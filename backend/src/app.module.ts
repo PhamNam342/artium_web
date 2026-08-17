@@ -5,6 +5,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ArtworksModule } from './modules/artworks/artworks.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AppService } from './app.service';
         }),
       }),
     }),
+    ArtworksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
