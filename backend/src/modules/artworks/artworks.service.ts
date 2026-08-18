@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { In, Repository } from 'typeorm';
 import {
   Artwork,
@@ -12,6 +13,14 @@ import {
   ArtworkStatus,
 } from './artwork.entity';
 import { ArtworkWeightInput, CreateArtworkDto } from './dto/create-artwork.dto';
+import {
+  ArtworkDimensionsResponseDto,
+  ArtworkImageResponseDto,
+  ArtworkResponseDto,
+  ArtworkTagResponseDto,
+  DeleteArtworkResponseDto,
+  ListArtworksResponseDto,
+} from './dto/artwork-response.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { Tag } from './tag.entity';
@@ -57,7 +66,7 @@ export class ArtworksService {
     private readonly tagRepository: Repository<Tag>,
   ) {}
 
-  async create(input: CreateArtworkDto) {
+  async create(input: CreateArtworkDto): Promise<ArtworkResponseDto> {
     const normalizedInput = this.normalizeCreateInput(input);
     const tags = await this.findTagsByIds(normalizedInput.tagIds);
 
@@ -78,10 +87,10 @@ export class ArtworksService {
       tags,
     });
 
-    return this.artworkRepository.save(artwork);
+    return this.toArtworkResponse(await this.artworkRepository.save(artwork));
   }
 
-  async findAll(query: ListArtworksQueryDto) {
+  async findAll(query: ListArtworksQueryDto): Promise<ListArtworksResponseDto> {
     const filters = this.normalizeQuery(query);
 
     const queryBuilder = this.artworkRepository
@@ -129,8 +138,8 @@ export class ArtworksService {
       .take(filters.limit)
       .getManyAndCount();
 
-    return {
-      data,
+    return this.toResponseDto(ListArtworksResponseDto, {
+      data: data.map((artwork) => this.toArtworkResponse(artwork)),
       meta: {
         page: filters.page,
         limit: filters.limit,
@@ -139,10 +148,10 @@ export class ArtworksService {
         hasNextPage: filters.page * filters.limit < total,
         hasPreviousPage: filters.page > 1,
       },
-    };
+    });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const artwork = await this.artworkRepository.findOne({
       where: { id: artworkId },
@@ -153,10 +162,13 @@ export class ArtworksService {
       throw new NotFoundException('Artwork not found');
     }
 
-    return artwork;
+    return this.toArtworkResponse(artwork);
   }
 
-  async update(id: string, input: UpdateArtworkDto) {
+  async update(
+    id: string,
+    input: UpdateArtworkDto,
+  ): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const normalizedInput = this.normalizeUpdateInput(input);
     const { tagIds, ...artworkPatch } = normalizedInput;
@@ -180,10 +192,10 @@ export class ArtworksService {
       artwork.tags = await this.findTagsByIds(tagIds);
     }
 
-    return this.artworkRepository.save(artwork);
+    return this.toArtworkResponse(await this.artworkRepository.save(artwork));
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<DeleteArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const result = await this.artworkRepository.delete({ id: artworkId });
 
@@ -191,7 +203,7 @@ export class ArtworksService {
       throw new NotFoundException('Artwork not found');
     }
 
-    return { success: true };
+    return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
   }
 
   private normalizeQuery(
@@ -623,6 +635,100 @@ export class ArtworksService {
     return tags;
   }
 
+  private toArtworkResponse(artwork: Artwork): ArtworkResponseDto {
+    return this.toResponseDto(ArtworkResponseDto, {
+      id: artwork.id,
+      sellerId: artwork.sellerId,
+      title: artwork.title,
+      description: artwork.description ?? null,
+      price: artwork.price ?? null,
+      currency: artwork.currency ?? null,
+      status: artwork.status,
+      isPublished: artwork.isPublished,
+      images: this.toImageResponses(artwork.images),
+      folderId: artwork.folderId ?? null,
+      viewCount: artwork.viewCount ?? 0,
+      tags: this.toTagResponses(artwork.tags),
+      createdAt: this.toIsoDateString(artwork.createdAt),
+      materials: artwork.materials ?? null,
+      dimensions: this.toDimensionsResponse(artwork.dimensions),
+      weight: artwork.weight ?? null,
+    });
+  }
+
+  private toImageResponses(
+    images: ArtworkImage[] | undefined,
+  ): ArtworkImageResponseDto[] {
+    if (!Array.isArray(images)) {
+      return [];
+    }
+
+    return images.map((image) =>
+      this.stripUndefined({
+        publicId: image.publicId,
+        url: image.url,
+        secureUrl: image.secureUrl,
+        format: image.format,
+        width: image.width,
+        height: image.height,
+        size: image.size,
+        bucket: image.bucket,
+        alt: image.alt,
+        altText: image.altText,
+        order: image.order,
+        isPrimary: image.isPrimary,
+      }),
+    );
+  }
+
+  private toDimensionsResponse(
+    dimensions: ArtworkDimensions | null | undefined,
+  ): ArtworkDimensionsResponseDto | null {
+    if (!dimensions) {
+      return null;
+    }
+
+    return this.stripUndefined({
+      height: dimensions.height,
+      width: dimensions.width,
+      depth: dimensions.depth,
+      unit: dimensions.unit,
+    });
+  }
+
+  private toTagResponses(tags: Tag[] | undefined): ArtworkTagResponseDto[] {
+    return (tags ?? []).map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+    }));
+  }
+
+  private toIsoDateString(value: Date | string | undefined) {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    return typeof value === 'string' ? value : null;
+  }
+
+  private toResponseDto<T extends object>(
+    dto: ClassConstructor<T>,
+    value: Record<string, unknown>,
+  ) {
+    return plainToInstance(dto, value, {
+      excludeExtraneousValues: true,
+      exposeUnsetFields: false,
+    });
+  }
+
+  private stripUndefined<T extends Record<string, unknown>>(value: T) {
+    return Object.fromEntries(
+      Object.entries(value).filter(
+        ([, fieldValue]) => fieldValue !== undefined,
+      ),
+    ) as T;
+  }
+
   private isUuid(value: string) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       value,
@@ -641,7 +747,7 @@ export class ArtworksService {
     }
   }
 
-  private hasOwn(value: object, key: string) {
-    return Object.prototype.hasOwnProperty.call(value, key);
+  private hasOwn(value: object, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(value, key) as boolean;
   }
 }
