@@ -183,6 +183,17 @@ export class ArtworksService {
     return this.artworkRepository.save(artwork);
   }
 
+  async remove(id: string) {
+    const artworkId = this.cleanRequiredUuid(id, 'id');
+    const result = await this.artworkRepository.delete({ id: artworkId });
+
+    if (!result.affected) {
+      throw new NotFoundException('Artwork not found');
+    }
+
+    return { success: true };
+  }
+
   private normalizeQuery(
     query: ListArtworksQueryDto,
   ): NormalizedListArtworksQuery {

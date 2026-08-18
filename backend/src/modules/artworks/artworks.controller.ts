@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ArtworksService } from './artworks.service';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
@@ -26,5 +35,10 @@ export class ArtworksController {
   @Put(':id')
   update(@Param('id') id: string, @Body() body: UpdateArtworkDto) {
     return this.artworksService.update(id, body);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.artworksService.remove(id);
   }
 }

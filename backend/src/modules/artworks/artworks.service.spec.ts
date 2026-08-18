@@ -14,6 +14,7 @@ describe('ArtworksService', () => {
   beforeEach(() => {
     artworkRepository = {
       create: jest.fn((data: Partial<Artwork>) => data as Artwork),
+      delete: jest.fn(),
       findOne: jest.fn(),
       save: jest.fn(async (artwork: Artwork) => ({
         ...artwork,
@@ -195,5 +196,38 @@ describe('ArtworksService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
 
     expect(artworkRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('deletes artwork by id', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.delete?.mockResolvedValue({
+      affected: 1,
+      raw: {},
+    });
+
+    await expect(service.remove(artworkId)).resolves.toEqual({
+      success: true,
+    });
+    expect(artworkRepository.delete).toHaveBeenCalledWith({ id: artworkId });
+  });
+
+  it('rejects an invalid artwork delete id', async () => {
+    await expect(service.remove('bad-id')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+
+    expect(artworkRepository.delete).not.toHaveBeenCalled();
+  });
+
+  it('throws not found when deleting a missing artwork', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.delete?.mockResolvedValue({
+      affected: 0,
+      raw: {},
+    });
+
+    await expect(service.remove(artworkId)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
