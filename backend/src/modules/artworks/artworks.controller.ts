@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ArtworksService } from './artworks.service';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
@@ -10,6 +10,11 @@ export class ArtworksController {
   @Get()
   findAll(@Query() query: ListArtworksQueryDto) {
     return this.artworksService.findAll(query);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.artworksService.findOne(id);
   }
 
   @Post()

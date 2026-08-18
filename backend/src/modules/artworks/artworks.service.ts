@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import {
@@ -133,6 +137,20 @@ export class ArtworksService {
         hasPreviousPage: filters.page > 1,
       },
     };
+  }
+
+  async findOne(id: string) {
+    const artworkId = this.cleanRequiredUuid(id, 'id');
+    const artwork = await this.artworkRepository.findOne({
+      where: { id: artworkId },
+      relations: { tags: true },
+    });
+
+    if (!artwork) {
+      throw new NotFoundException('Artwork not found');
+    }
+
+    return artwork;
   }
 
   private normalizeQuery(
