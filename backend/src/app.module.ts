@@ -3,15 +3,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { MailModule } from './common/mail/mail.module';
+import { AuthModule } from './identity/auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -39,6 +37,8 @@ import { AppService } from './app.service';
         }),
       }),
     }),
+    MailModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
