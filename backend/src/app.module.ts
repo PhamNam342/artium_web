@@ -6,6 +6,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArtworksModule } from './modules/artworks/artworks.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ArtworksModule } from './modules/artworks/artworks.module';
       }),
     }),
     ArtworksModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
