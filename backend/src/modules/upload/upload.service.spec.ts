@@ -2,6 +2,7 @@ import { readFile, rm, mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { BadRequestException } from '@nestjs/common';
+import { LocalStorageService } from './storage/local-storage.service';
 import { UploadService } from './upload.service';
 import { UploadedArtworkFile } from './upload.types';
 
@@ -14,7 +15,7 @@ describe('UploadService', () => {
     previousUploadRoot = process.env.UPLOAD_ROOT;
     uploadRoot = await mkdtemp(join(tmpdir(), 'artium-upload-'));
     process.env.UPLOAD_ROOT = uploadRoot;
-    service = new UploadService();
+    service = new UploadService(new LocalStorageService());
   });
 
   afterEach(async () => {
