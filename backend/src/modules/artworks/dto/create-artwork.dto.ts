@@ -14,19 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ArtworkStatus } from '../artwork.entity';
-
-const artworkStatusValues = [
-  ...Object.values(ArtworkStatus),
-  'AVAILABLE',
-  'available',
-  'active',
-  'sold',
-  'reserved',
-  'draft',
-  'inactive',
-  'deleted',
-  'pending_review',
-] as const;
+import { artworkStatusValues } from './artwork-status-values';
 
 export type ArtworkWeightInput = {
   value?: number | string;
@@ -116,6 +104,7 @@ export class ArtworkDimensionsDto {
 }
 
 export class CreateArtworkDto {
+  @IsNotEmpty()
   @IsUUID()
   sellerId?: string;
 

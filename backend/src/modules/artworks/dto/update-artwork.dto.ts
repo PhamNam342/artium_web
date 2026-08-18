@@ -19,22 +19,11 @@ import {
   ArtworkImageDto,
   ArtworkWeightInput,
 } from './create-artwork.dto';
-
-const artworkStatusValues = [
-  ...Object.values(ArtworkStatus),
-  'AVAILABLE',
-  'available',
-  'active',
-  'sold',
-  'reserved',
-  'draft',
-  'inactive',
-  'deleted',
-  'pending_review',
-] as const;
+import { artworkStatusValues } from './artwork-status-values';
 
 export class UpdateArtworkDto {
   @IsOptional()
+  @IsNotEmpty()
   @IsUUID()
   sellerId?: string;
 
