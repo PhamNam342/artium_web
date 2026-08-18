@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Post,
@@ -9,36 +8,22 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
+import {
+  artworkImageUploadOptions,
+  maxArtworkImageCount,
+} from './config/artwork-image-upload.config';
 import { UploadArtworkImagesDto } from './dto/upload-artwork-images.dto';
 import { UploadService } from './upload.service';
-import { UploadedArtworkFile } from './upload.types';
-
-const maxArtworkImageSize = 10 * 1024 * 1024;
-
-const artworkImageUploadOptions = {
-  limits: {
-    fileSize: maxArtworkImageSize,
-  },
-  fileFilter: (
-    _request: Request,
-    file: UploadedArtworkFile,
-    callback: (error: Error | null, acceptFile: boolean) => void,
-  ) => {
-    if (!file.mimetype?.startsWith('image/')) {
-      callback(new BadRequestException('Only image files are allowed'), false);
-      return;
-    }
-
-    callback(null, true);
-  },
-};
+import type { UploadedArtworkFile } from './upload.types';
 
 @Controller('api/upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('artwork-images')
-  @UseInterceptors(FilesInterceptor('files', 10, artworkImageUploadOptions))
+  @UseInterceptors(
+    FilesInterceptor('files', maxArtworkImageCount, artworkImageUploadOptions),
+  )
   uploadArtworkImages(
     @UploadedFiles() files: UploadedArtworkFile[],
     @Body() body: UploadArtworkImagesDto,
