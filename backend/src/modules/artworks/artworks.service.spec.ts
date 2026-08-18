@@ -2,6 +2,10 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Artwork, ArtworkStatus } from './artwork.entity';
 import { ArtworksService } from './artworks.service';
+import {
+  ArtworkImageResponseDto,
+  ArtworkResponseDto,
+} from './dto/artwork-response.dto';
 import { Tag } from './tag.entity';
 
 describe('ArtworksService', () => {
@@ -16,10 +20,13 @@ describe('ArtworksService', () => {
       create: jest.fn((data: Partial<Artwork>) => data as Artwork),
       delete: jest.fn(),
       findOne: jest.fn(),
-      save: jest.fn(async (artwork: Artwork) => ({
-        ...artwork,
-        id: artwork.id ?? '123e4567-e89b-12d3-a456-426614174111',
-      })),
+      save: jest.fn((artwork: Artwork) =>
+        Promise.resolve({
+          ...artwork,
+          id: artwork.id ?? '123e4567-e89b-12d3-a456-426614174111',
+          createdAt: artwork.createdAt ?? new Date('2026-08-18T10:37:05.141Z'),
+        }),
+      ),
     };
     tagRepository = {
       find: jest.fn(),
@@ -76,7 +83,7 @@ describe('ArtworksService', () => {
     await service.create({
       sellerId,
       title: 'Published Piece',
-      status: 'available' as ArtworkStatus,
+      status: 'available',
     });
 
     expect(artworkRepository.create).toHaveBeenCalledWith(
@@ -92,13 +99,60 @@ describe('ArtworksService', () => {
       id: artworkId,
       sellerId,
       title: 'Sunset Study',
+      description: 'Oil study on canvas',
+      price: '1500.00',
+      currency: 'USD',
       status: ArtworkStatus.ACTIVE,
+      isPublished: true,
+      images: [
+        {
+          url: 'https://example.com/artwork.jpg',
+          altText: 'Sunset Study',
+          internalToken: 'hidden',
+        },
+      ],
+      folderId: null,
+      viewCount: 4,
       tags: [{ id: '123e4567-e89b-12d3-a456-426614174333', name: 'Oil' }],
-    } as Artwork;
+      createdAt: new Date('2026-08-18T10:37:05.141Z'),
+      materials: 'Oil on canvas',
+      dimensions: { height: 60, width: 80, unit: 'cm' },
+      weight: '2.50',
+      internalNote: 'hidden',
+    } as Artwork & { internalNote: string };
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.findOne?.mockResolvedValue(artwork);
 
-    await expect(service.findOne(artworkId)).resolves.toBe(artwork);
+    const response = await service.findOne(artworkId);
+
+    expect(response).toBeInstanceOf(ArtworkResponseDto);
+    expect(response.images[0]).toBeInstanceOf(ArtworkImageResponseDto);
+    expect(response).not.toHaveProperty('internalNote');
+    expect(response.images[0]).not.toHaveProperty('internalToken');
+    expect(response).toEqual({
+      id: artworkId,
+      sellerId,
+      title: 'Sunset Study',
+      description: 'Oil study on canvas',
+      price: '1500.00',
+      currency: 'USD',
+      status: ArtworkStatus.ACTIVE,
+      isPublished: true,
+      images: [
+        {
+          url: 'https://example.com/artwork.jpg',
+          altText: 'Sunset Study',
+        },
+      ],
+      folderId: null,
+      viewCount: 4,
+      tags: [{ id: '123e4567-e89b-12d3-a456-426614174333', name: 'Oil' }],
+      createdAt: '2026-08-18T10:37:05.141Z',
+      materials: 'Oil on canvas',
+      dimensions: { height: 60, width: 80, unit: 'cm' },
+      weight: '2.50',
+    });
     expect(artworkRepository.findOne).toHaveBeenCalledWith({
       where: { id: artworkId },
       relations: { tags: true },
@@ -115,6 +169,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when artwork detail does not exist', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.findOne?.mockResolvedValue(null);
 
     await expect(service.findOne(artworkId)).rejects.toBeInstanceOf(
@@ -138,14 +193,16 @@ describe('ArtworksService', () => {
       tags: [],
     } as Artwork;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.findOne?.mockResolvedValue(artwork);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     tagRepository.find?.mockResolvedValue([tag]);
 
     const updated = await service.update(artworkId, {
       title: '  Updated Piece  ',
       price: 250,
       currency: 'usd',
-      status: 'available' as ArtworkStatus,
+      status: 'available',
       isPublished: true,
       materials: 'Oil on canvas',
       tagIds: [tag.id],
@@ -189,6 +246,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when updating a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.findOne?.mockResolvedValue(null);
 
     await expect(
@@ -200,6 +258,7 @@ describe('ArtworksService', () => {
 
   it('deletes artwork by id', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.delete?.mockResolvedValue({
       affected: 1,
       raw: {},
@@ -221,6 +280,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when deleting a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     artworkRepository.delete?.mockResolvedValue({
       affected: 0,
       raw: {},

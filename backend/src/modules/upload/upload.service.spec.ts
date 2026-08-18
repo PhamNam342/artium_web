@@ -49,9 +49,11 @@ describe('UploadService', () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual(
       expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         url: expect.stringMatching(
           /^http:\/\/localhost:3000\/uploads\/artwork-images\/seller-id\/artwork-id\/.+\.png$/,
         ),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         secureUrl: expect.stringMatching(
           /^http:\/\/localhost:3000\/uploads\/artwork-images\/seller-id\/artwork-id\/.+\.png$/,
         ),
