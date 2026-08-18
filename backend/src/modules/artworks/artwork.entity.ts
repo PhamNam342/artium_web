@@ -19,16 +19,25 @@ export enum ArtworkStatus {
 }
 
 export type ArtworkImage = {
+  publicId?: string;
   url: string;
+  secureUrl?: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  size?: number;
+  bucket?: string;
   alt?: string;
+  altText?: string;
+  order?: number;
   isPrimary?: boolean;
 };
 
 export type ArtworkDimensions = {
-  height: number;
-  width: number;
+  height?: number;
+  width?: number;
   depth?: number;
-  unit: string;
+  unit?: string;
 };
 
 @Entity('artworks')
@@ -42,14 +51,14 @@ export class Artwork {
   @Column({ type: 'varchar', length: 100 })
   title!: string;
 
-  @Column({ type: 'text' })
-  description!: string;
+  @Column({ type: 'text', nullable: true })
+  description!: string | null;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
-  price!: string;
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  price!: string | null;
 
-  @Column({ type: 'varchar', length: 10 })
-  currency!: string;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  currency!: string | null;
 
   @Column({
     type: 'enum',
@@ -65,8 +74,8 @@ export class Artwork {
   @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
   images!: ArtworkImage[];
 
-  @Column({ name: 'folder_id', type: 'uuid' })
-  folderId!: string;
+  @Column({ name: 'folder_id', type: 'uuid', nullable: true })
+  folderId!: string | null;
 
   @Column({ name: 'view_count', type: 'int', default: 0 })
   viewCount!: number;
@@ -83,11 +92,11 @@ export class Artwork {
   createdAt!: Date;
 
   @Column({ name: 'materials', type: 'varchar', length: 80, nullable: true })
-  material!: string | null;
+  materials!: string | null;
 
-  @Column({ type: 'jsonb' })
-  dimensions!: ArtworkDimensions;
+  @Column({ type: 'jsonb', nullable: true })
+  dimensions!: ArtworkDimensions | null;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  weight!: string;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  weight!: string | null;
 }
