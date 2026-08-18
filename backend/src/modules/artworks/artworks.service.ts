@@ -439,7 +439,7 @@ export class ArtworksService {
     return currency ? currency.toUpperCase() : null;
   }
 
-  private normalizeArtworkStatus(value: ArtworkStatus | undefined) {
+  private normalizeArtworkStatus(value: ArtworkStatus | string | undefined) {
     if (value === undefined) {
       return ArtworkStatus.DRAFT;
     }
@@ -498,7 +498,7 @@ export class ArtworksService {
     return parsedValue.toFixed(2);
   }
 
-  private normalizeImages(images: ArtworkImage[] | undefined) {
+  private normalizeImages(images: Array<Partial<ArtworkImage>> | undefined) {
     if (images === undefined) {
       return [];
     }
