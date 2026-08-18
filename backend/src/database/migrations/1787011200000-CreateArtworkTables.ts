@@ -59,6 +59,8 @@ export class CreateArtworkTables1787011200000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "artwork_tags"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "artworks"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "tags"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."artworks_status_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."artworks_status_enum"`,
+    );
   }
 }
