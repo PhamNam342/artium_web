@@ -13,6 +13,7 @@ import {
 } from './artwork.entity';
 import { ArtworkWeightInput, CreateArtworkDto } from './dto/create-artwork.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
+import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { Tag } from './tag.entity';
 
 type NormalizedListArtworksQuery = {
@@ -40,6 +41,8 @@ type NormalizedCreateArtworkInput = {
   dimensions: ArtworkDimensions | null;
   weight: string | null;
 };
+
+type NormalizedUpdateArtworkInput = Partial<NormalizedCreateArtworkInput>;
 
 @Injectable()
 export class ArtworksService {
@@ -151,6 +154,33 @@ export class ArtworksService {
     }
 
     return artwork;
+  }
+
+  async update(id: string, input: UpdateArtworkDto) {
+    const artworkId = this.cleanRequiredUuid(id, 'id');
+    const normalizedInput = this.normalizeUpdateInput(input);
+    const { tagIds, ...artworkPatch } = normalizedInput;
+
+    if (Object.keys(artworkPatch).length === 0 && tagIds === undefined) {
+      throw new BadRequestException('At least one artwork field is required');
+    }
+
+    const artwork = await this.artworkRepository.findOne({
+      where: { id: artworkId },
+      relations: { tags: true },
+    });
+
+    if (!artwork) {
+      throw new NotFoundException('Artwork not found');
+    }
+
+    Object.assign(artwork, artworkPatch);
+
+    if (tagIds !== undefined) {
+      artwork.tags = await this.findTagsByIds(tagIds);
+    }
+
+    return this.artworkRepository.save(artwork);
   }
 
   private normalizeQuery(
@@ -272,6 +302,87 @@ export class ArtworksService {
       dimensions: this.normalizeDimensions(input.dimensions),
       weight: this.normalizeWeight(input.weight),
     };
+  }
+
+  private normalizeUpdateInput(
+    input: UpdateArtworkDto,
+  ): NormalizedUpdateArtworkInput {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      throw new BadRequestException('Update input is required');
+    }
+
+    const normalizedInput: NormalizedUpdateArtworkInput = {};
+
+    if (this.hasOwn(input, 'sellerId')) {
+      normalizedInput.sellerId = this.cleanRequiredUuid(
+        input.sellerId,
+        'sellerId',
+      );
+    }
+
+    if (this.hasOwn(input, 'title')) {
+      const title = this.cleanRequiredString(input.title, 'title');
+      this.assertMaxLength(title, 'title', 100);
+      normalizedInput.title = title;
+    }
+
+    if (this.hasOwn(input, 'description')) {
+      normalizedInput.description = this.cleanNullableString(input.description);
+    }
+
+    if (this.hasOwn(input, 'price')) {
+      normalizedInput.price = this.parseOptionalDecimal(input.price, 'price');
+    }
+
+    if (this.hasOwn(input, 'currency')) {
+      const currency = this.normalizeCurrency(input.currency);
+      this.assertMaxLength(currency, 'currency', 10);
+      normalizedInput.currency = currency;
+    }
+
+    if (this.hasOwn(input, 'status')) {
+      normalizedInput.status = this.normalizeArtworkStatus(input.status);
+    }
+
+    if (this.hasOwn(input, 'isPublished')) {
+      normalizedInput.isPublished = this.normalizeBoolean(
+        input.isPublished,
+        'isPublished',
+      );
+    }
+
+    if (this.hasOwn(input, 'images')) {
+      normalizedInput.images = this.normalizeImages(input.images);
+    }
+
+    if (this.hasOwn(input, 'folderId')) {
+      normalizedInput.folderId = this.cleanOptionalUuid(
+        input.folderId,
+        'folderId',
+      );
+    }
+
+    if (this.hasOwn(input, 'tagIds')) {
+      normalizedInput.tagIds = this.normalizeTagIds(input.tagIds);
+    }
+
+    if (this.hasOwn(input, 'materials') || this.hasOwn(input, 'material')) {
+      const materials = this.cleanNullableString(
+        this.hasOwn(input, 'materials') ? input.materials : input.material,
+      );
+      this.assertMaxLength(materials, 'materials', 80);
+      normalizedInput.materials = materials;
+    }
+
+    if (this.hasOwn(input, 'dimensions')) {
+      normalizedInput.dimensions = this.normalizeDimensions(input.dimensions);
+    }
+
+    if (this.hasOwn(input, 'weight')) {
+      normalizedInput.weight = this.normalizeWeight(input.weight);
+    }
+
+    return normalizedInput;
   }
 
   private cleanRequiredString(value: unknown, fieldName: string) {
@@ -517,5 +628,9 @@ export class ArtworksService {
         `${fieldName} must be at most ${maxLength} characters`,
       );
     }
+  }
+
+  private hasOwn(value: object, key: string) {
+    return Object.prototype.hasOwnProperty.call(value, key);
   }
 }

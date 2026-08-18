@@ -17,7 +17,7 @@ describe('ArtworksService', () => {
       findOne: jest.fn(),
       save: jest.fn(async (artwork: Artwork) => ({
         ...artwork,
-        id: '123e4567-e89b-12d3-a456-426614174111',
+        id: artwork.id ?? '123e4567-e89b-12d3-a456-426614174111',
       })),
     };
     tagRepository = {
@@ -119,5 +119,81 @@ describe('ArtworksService', () => {
     await expect(service.findOne(artworkId)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('updates artwork fields and tag relations', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const tag = {
+      id: '123e4567-e89b-12d3-a456-426614174333',
+      name: 'Oil',
+    } as Tag;
+    const artwork = {
+      id: artworkId,
+      sellerId,
+      title: 'Old Piece',
+      price: '100.00',
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      tags: [],
+    } as Artwork;
+
+    artworkRepository.findOne?.mockResolvedValue(artwork);
+    tagRepository.find?.mockResolvedValue([tag]);
+
+    const updated = await service.update(artworkId, {
+      title: '  Updated Piece  ',
+      price: 250,
+      currency: 'usd',
+      status: 'available' as ArtworkStatus,
+      isPublished: true,
+      materials: 'Oil on canvas',
+      tagIds: [tag.id],
+    });
+
+    expect(artworkRepository.findOne).toHaveBeenCalledWith({
+      where: { id: artworkId },
+      relations: { tags: true },
+    });
+    expect(artworkRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: artworkId,
+        title: 'Updated Piece',
+        price: '250.00',
+        currency: 'USD',
+        status: ArtworkStatus.ACTIVE,
+        isPublished: true,
+        materials: 'Oil on canvas',
+        tags: [tag],
+      }),
+    );
+    expect(updated).toEqual(
+      expect.objectContaining({
+        id: artworkId,
+        title: 'Updated Piece',
+        status: ArtworkStatus.ACTIVE,
+      }),
+    );
+  });
+
+  it('rejects an empty artwork update body', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+
+    await expect(service.update(artworkId, {})).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+
+    expect(artworkRepository.findOne).not.toHaveBeenCalled();
+    expect(artworkRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('throws not found when updating a missing artwork', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.findOne?.mockResolvedValue(null);
+
+    await expect(
+      service.update(artworkId, { title: 'Updated Piece' }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 });
