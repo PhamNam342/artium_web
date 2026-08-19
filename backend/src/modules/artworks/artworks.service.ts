@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { In, Repository } from 'typeorm';
+import { t } from '../../common/utils/i18n.util';
 import {
   Artwork,
   ArtworkDimensions,
@@ -159,7 +160,7 @@ export class ArtworksService {
     });
 
     if (!artwork) {
-      throw new NotFoundException('Artwork not found');
+      throw new NotFoundException(t('artwork.not_found'));
     }
 
     return this.toArtworkResponse(artwork);
@@ -174,7 +175,7 @@ export class ArtworksService {
     const { tagIds, ...artworkPatch } = normalizedInput;
 
     if (Object.keys(artworkPatch).length === 0 && tagIds === undefined) {
-      throw new BadRequestException('At least one artwork field is required');
+      throw new BadRequestException(t('artwork.update_fields_required'));
     }
 
     const artwork = await this.artworkRepository.findOne({
@@ -183,7 +184,7 @@ export class ArtworksService {
     });
 
     if (!artwork) {
-      throw new NotFoundException('Artwork not found');
+      throw new NotFoundException(t('artwork.not_found'));
     }
 
     Object.assign(artwork, artworkPatch);
@@ -200,7 +201,7 @@ export class ArtworksService {
     const result = await this.artworkRepository.delete({ id: artworkId });
 
     if (!result.affected) {
-      throw new NotFoundException('Artwork not found');
+      throw new NotFoundException(t('artwork.not_found'));
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
@@ -232,7 +233,7 @@ export class ArtworksService {
       maxPrice !== undefined &&
       minPrice > maxPrice
     ) {
-      throw new BadRequestException('minPrice must be less than maxPrice');
+      throw new BadRequestException(t('artwork.min_price_less_than_max_price'));
     }
 
     return {
@@ -258,7 +259,11 @@ export class ArtworksService {
     const parsedValue = Number(value);
 
     if (!Number.isInteger(parsedValue) || parsedValue < 1) {
-      throw new BadRequestException(`${fieldName} must be a positive integer`);
+      throw new BadRequestException(
+        t('artwork.validation.positive_integer', {
+          args: { field: fieldName },
+        }),
+      );
     }
 
     return parsedValue;
@@ -275,7 +280,11 @@ export class ArtworksService {
     const parsedValue = Number(value);
 
     if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-      throw new BadRequestException(`${fieldName} must be a positive number`);
+      throw new BadRequestException(
+        t('artwork.validation.non_negative_number', {
+          args: { field: fieldName },
+        }),
+      );
     }
 
     return parsedValue;
@@ -331,7 +340,9 @@ export class ArtworksService {
     input: UpdateArtworkDto,
   ): NormalizedUpdateArtworkInput {
     if (!input || typeof input !== 'object' || Array.isArray(input)) {
-      throw new BadRequestException('Update input is required');
+      throw new BadRequestException(
+        t('artwork.validation.required', { args: { field: 'update' } }),
+      );
     }
 
     const normalizedInput: NormalizedUpdateArtworkInput = {};
@@ -412,7 +423,9 @@ export class ArtworksService {
     const cleanedValue = this.cleanString(value);
 
     if (!cleanedValue) {
-      throw new BadRequestException(`${fieldName} is required`);
+      throw new BadRequestException(
+        t('artwork.validation.required', { args: { field: fieldName } }),
+      );
     }
 
     return cleanedValue;
@@ -422,7 +435,9 @@ export class ArtworksService {
     const cleanedValue = this.cleanRequiredString(value, fieldName);
 
     if (!this.isUuid(cleanedValue)) {
-      throw new BadRequestException(`${fieldName} must be a valid UUID`);
+      throw new BadRequestException(
+        t('artwork.validation.uuid', { args: { field: fieldName } }),
+      );
     }
 
     return cleanedValue;
@@ -440,7 +455,9 @@ export class ArtworksService {
     }
 
     if (!this.isUuid(cleanedValue)) {
-      throw new BadRequestException(`${fieldName} must be a valid UUID`);
+      throw new BadRequestException(
+        t('artwork.validation.uuid', { args: { field: fieldName } }),
+      );
     }
 
     return cleanedValue;
@@ -475,7 +492,7 @@ export class ArtworksService {
     const allowedStatuses = Object.values(ArtworkStatus);
 
     if (!allowedStatuses.includes(normalizedStatus as ArtworkStatus)) {
-      throw new BadRequestException('status must be a valid artwork status');
+      throw new BadRequestException(t('artwork.validation.valid_status'));
     }
 
     return normalizedStatus as ArtworkStatus;
@@ -487,7 +504,9 @@ export class ArtworksService {
     }
 
     if (typeof value !== 'boolean') {
-      throw new BadRequestException(`${fieldName} must be a boolean`);
+      throw new BadRequestException(
+        t('artwork.validation.boolean', { args: { field: fieldName } }),
+      );
     }
 
     return value;
@@ -504,7 +523,11 @@ export class ArtworksService {
     const parsedValue = Number(value);
 
     if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-      throw new BadRequestException(`${fieldName} must be a positive number`);
+      throw new BadRequestException(
+        t('artwork.validation.non_negative_number', {
+          args: { field: fieldName },
+        }),
+      );
     }
 
     return parsedValue.toFixed(2);
@@ -516,19 +539,29 @@ export class ArtworksService {
     }
 
     if (!Array.isArray(images)) {
-      throw new BadRequestException('images must be an array');
+      throw new BadRequestException(
+        t('artwork.validation.array', { args: { field: 'images' } }),
+      );
     }
 
     return images.map((image, index) => {
       if (typeof image !== 'object' || image === null || Array.isArray(image)) {
-        throw new BadRequestException(`images.${index} must be an object`);
+        throw new BadRequestException(
+          t('artwork.validation.object', {
+            args: { field: `images.${index}` },
+          }),
+        );
       }
 
       const url =
         this.cleanString(image.url) ?? this.cleanString(image.secureUrl);
 
       if (!url) {
-        throw new BadRequestException(`images.${index}.url is required`);
+        throw new BadRequestException(
+          t('artwork.validation.image_url_required', {
+            args: { field: `images.${index}.url` },
+          }),
+        );
       }
 
       return {
@@ -549,7 +582,9 @@ export class ArtworksService {
     }
 
     if (typeof dimensions !== 'object' || Array.isArray(dimensions)) {
-      throw new BadRequestException('dimensions must be an object');
+      throw new BadRequestException(
+        t('artwork.validation.object', { args: { field: 'dimensions' } }),
+      );
     }
 
     return {
@@ -571,7 +606,11 @@ export class ArtworksService {
     const parsedValue = Number(value);
 
     if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-      throw new BadRequestException(`dimensions.${fieldName} must be a number`);
+      throw new BadRequestException(
+        t('artwork.validation.number', {
+          args: { field: `dimensions.${fieldName}` },
+        }),
+      );
     }
 
     return parsedValue;
@@ -586,7 +625,7 @@ export class ArtworksService {
 
     if (typeof weight === 'object') {
       if (Array.isArray(weight)) {
-        throw new BadRequestException('weight must be a number or an object');
+        throw new BadRequestException(t('artwork.validation.weight_format'));
       }
 
       return this.parseOptionalDecimal(weight.value, 'weight');
@@ -601,14 +640,20 @@ export class ArtworksService {
     }
 
     if (!Array.isArray(tagIds)) {
-      throw new BadRequestException('tagIds must be an array');
+      throw new BadRequestException(
+        t('artwork.validation.array', { args: { field: 'tagIds' } }),
+      );
     }
 
     const normalizedTagIds = tagIds.map((tagId, index) => {
       const cleanedTagId = this.cleanRequiredString(tagId, `tagIds.${index}`);
 
       if (!this.isUuid(cleanedTagId)) {
-        throw new BadRequestException(`tagIds.${index} must be a valid UUID`);
+        throw new BadRequestException(
+          t('artwork.validation.uuid', {
+            args: { field: `tagIds.${index}` },
+          }),
+        );
       }
 
       return cleanedTagId;
@@ -628,7 +673,9 @@ export class ArtworksService {
 
     if (missingTagIds.length > 0) {
       throw new BadRequestException(
-        `tagIds not found: ${missingTagIds.join(', ')}`,
+        t('artwork.validation.tag_ids_not_found', {
+          args: { tagIds: missingTagIds.join(', ') },
+        }),
       );
     }
 
@@ -742,7 +789,9 @@ export class ArtworksService {
   ) {
     if (value !== null && value.length > maxLength) {
       throw new BadRequestException(
-        `${fieldName} must be at most ${maxLength} characters`,
+        t('artwork.validation.max_length', {
+          args: { field: fieldName, maxLength },
+        }),
       );
     }
   }

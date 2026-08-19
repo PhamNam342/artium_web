@@ -1,15 +1,16 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { artworkValidationMessage } from '../../../common/utils/artwork-validation-message.util';
 
 export class UploadArtworkImagesDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: artworkValidationMessage('string') })
+  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
   sellerId?: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: artworkValidationMessage('string') })
+  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
   artworkId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   altText?: string;
 }

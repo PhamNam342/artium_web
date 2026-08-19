@@ -14,6 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ArtworkStatus } from '../artwork.entity';
+import { artworkValidationMessage } from '../../../common/utils/artwork-validation-message.util';
 import { artworkStatusValues } from './artwork-status-values';
 
 export type ArtworkWeightInput = {
@@ -23,142 +24,145 @@ export type ArtworkWeightInput = {
 
 export class ArtworkImageDto {
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   publicId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   url?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   secureUrl?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   format?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   width?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   height?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   size?: number;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   bucket?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   alt?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   altText?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   order?: number;
 
   @IsOptional()
-  @IsBoolean()
+  @IsBoolean({ message: artworkValidationMessage('boolean') })
   isPrimary?: boolean;
 }
 
 export class ArtworkDimensionsDto {
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   height?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   width?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   depth?: number;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   unit?: string;
 }
 
 export class CreateArtworkDto {
-  @IsNotEmpty()
-  @IsUUID()
+  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
+  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
   sellerId?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
+  @IsString({ message: artworkValidationMessage('string') })
+  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
+  @MaxLength(100, { message: artworkValidationMessage('max_length') })
   title?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   description?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(0, { message: artworkValidationMessage('min') })
   price?: number;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
+  @IsString({ message: artworkValidationMessage('string') })
+  @MaxLength(10, { message: artworkValidationMessage('max_length') })
   currency?: string;
 
   @IsOptional()
-  @IsIn(artworkStatusValues)
+  @IsIn(artworkStatusValues, { message: artworkValidationMessage('enum') })
   status?: ArtworkStatus | string;
 
   @IsOptional()
-  @IsBoolean()
+  @IsBoolean({ message: artworkValidationMessage('boolean') })
   isPublished?: boolean;
 
   @IsOptional()
-  @IsArray()
+  @IsArray({ message: artworkValidationMessage('array') })
   @ValidateNested({ each: true })
   @Type(() => ArtworkImageDto)
   images?: ArtworkImageDto[];
 
   @IsOptional()
-  @IsUUID()
+  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
   folderId?: string | null;
 
   @IsOptional()
-  @IsArray()
-  @IsUUID(undefined, { each: true })
+  @IsArray({ message: artworkValidationMessage('array') })
+  @IsUUID(undefined, {
+    each: true,
+    message: artworkValidationMessage('uuid'),
+  })
   tagIds?: string[];
 
   @IsOptional()
-  @IsString()
-  @MaxLength(80)
+  @IsString({ message: artworkValidationMessage('string') })
+  @MaxLength(80, { message: artworkValidationMessage('max_length') })
   materials?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(80)
+  @IsString({ message: artworkValidationMessage('string') })
+  @MaxLength(80, { message: artworkValidationMessage('max_length') })
   material?: string;
 
   @IsOptional()
@@ -171,25 +175,25 @@ export class CreateArtworkDto {
   weight?: string | number | ArtworkWeightInput | null;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   creatorName?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
+  @IsNumber({}, { message: artworkValidationMessage('number') })
   creationYear?: number;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   editionRun?: string;
 
   @IsOptional()
-  @IsString()
+  @IsString({ message: artworkValidationMessage('string') })
   location?: string;
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
-  @Min(1)
+  @IsNumber({}, { message: artworkValidationMessage('number') })
+  @Min(1, { message: artworkValidationMessage('min') })
   quantity?: number;
 }

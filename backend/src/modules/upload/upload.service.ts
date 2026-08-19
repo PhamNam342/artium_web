@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { t } from '../../common/utils/i18n.util';
 import { UploadArtworkImagesDto } from './dto/upload-artwork-images.dto';
 import { STORAGE_SERVICE } from './storage/storage.constants';
 import type { StorageService } from './storage/storage.service';
@@ -17,7 +18,7 @@ export class UploadService {
     baseUrl: string,
   ): Promise<UploadedArtworkImage[]> {
     if (!files || files.length === 0) {
-      throw new BadRequestException('No files provided');
+      throw new BadRequestException(t('artwork.files_required'));
     }
 
     const sellerId = this.cleanRequiredString(dto.sellerId, 'sellerId');
@@ -45,12 +46,16 @@ export class UploadService {
     const cleanedValue = this.cleanOptionalString(value);
 
     if (!cleanedValue) {
-      throw new BadRequestException(`${fieldName} is required`);
+      throw new BadRequestException(
+        t('artwork.validation.required', { args: { field: fieldName } }),
+      );
     }
 
     if (cleanedValue === 'undefined' || cleanedValue === 'null') {
       throw new BadRequestException(
-        `${fieldName} cannot be the string "${cleanedValue}"`,
+        t('artwork.validation.string_literal_not_allowed', {
+          args: { field: fieldName, value: cleanedValue },
+        }),
       );
     }
 
@@ -68,11 +73,15 @@ export class UploadService {
 
   private assertImageFile(file: UploadedArtworkFile, index: number) {
     if (!file?.buffer) {
-      throw new BadRequestException(`files.${index} is empty`);
+      throw new BadRequestException(
+        t('artwork.validation.file_empty', { args: { index } }),
+      );
     }
 
     if (!file.mimetype?.startsWith('image/')) {
-      throw new BadRequestException(`files.${index} must be an image`);
+      throw new BadRequestException(
+        t('artwork.validation.file_must_be_image', { args: { index } }),
+      );
     }
   }
 }
