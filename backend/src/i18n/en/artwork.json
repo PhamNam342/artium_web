@@ -1,0 +1,29 @@
+{
+  "not_found": "Artwork not found.",
+  "update_fields_required": "At least one artwork field is required.",
+  "min_price_less_than_max_price": "Minimum price must not be greater than maximum price.",
+  "files_required": "At least one image file is required.",
+  "only_images_allowed": "Only image files are allowed.",
+  "validation": {
+    "required": "{{field}} is required.",
+    "string": "{{field}} must be a string.",
+    "uuid": "{{field}} must be a valid UUID.",
+    "boolean": "{{field}} must be a boolean.",
+    "number": "{{field}} must be a number.",
+    "non_negative_number": "{{field}} must be a non-negative number.",
+    "positive_integer": "{{field}} must be a positive integer.",
+    "array": "{{field}} must be an array.",
+    "object": "{{field}} must be an object.",
+    "valid_status": "status must be a valid artwork status.",
+    "string_literal_not_allowed": "{{field}} cannot be the string \"{{value}}\".",
+    "image_url_required": "{{field}} is required.",
+    "weight_format": "weight must be a number or an object.",
+    "tag_ids_not_found": "The following tag IDs were not found: {{tagIds}}.",
+    "max_length": "{{field}} must be at most {{maxLength}} characters.",
+    "file_empty": "File at index {{index}} is empty.",
+    "file_must_be_image": "File at index {{index}} must be an image.",
+    "enum": "{{field}} has an invalid value.",
+    "min": "{{field}} must be at least {{constraint}}.",
+    "not_empty": "{{field}} must not be empty."
+  }
+}

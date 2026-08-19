@@ -19,9 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/config/typeorm.config.ts",
-    "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/config/typeorm.config.ts",
-    "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d src/config/typeorm.config.ts",
+    "migration:generate": "npm run typeorm migration:generate -d src/config/typeorm.config.ts",
+    "migration:run": "npm run typeorm migration:run -d src/config/typeorm.config.ts",
+    "migration:revert": "npm run typeorm migration:revert -d src/config/typeorm.config.ts",
     "seed": "ts-node -r tsconfig-paths/register src/seed.ts"
   },
   "dependencies": {
@@ -39,7 +39,7 @@
     "cache-manager": "^7.2.9",
     "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0",
+    "class-validator": "^0.15.1",
     "google-auth-library": "^9.12.0",
     "nestjs-i18n": "^10.8.5",
     "nodemailer": "^6.9.0",

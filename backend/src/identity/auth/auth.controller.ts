@@ -17,6 +17,8 @@ import { GoogleLoginDto } from './dto/google-login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
+import { t } from '../../common/utils/i18n.util';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -27,7 +29,7 @@ export class AuthController {
     await this.authService.initiateRegister(dto.email, dto.password);
 
     return {
-      message: 'OTP đã được gửi tới email của bạn',
+      message: t('auth.otp_sent'),
     };
   }
 
@@ -77,7 +79,7 @@ export class AuthController {
     await this.authService.logout(token);
 
     return {
-      message: 'Đăng xuất thành công',
+      message: t('auth.logout_success'),
     };
   }
   @Patch('profile/complete')

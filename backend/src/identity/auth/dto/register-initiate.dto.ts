@@ -1,10 +1,11 @@
 import { IsEmail, IsString, Length } from 'class-validator';
+import { authValidationMessage } from '../../../common/utils/auth-validation-message.util';
 
 export class RegisterInitiateDto {
-  @IsEmail()
+  @IsEmail({}, { message: authValidationMessage('email') })
   email!: string;
 
-  @IsString()
-  @Length(6, 32)
+  @IsString({ message: authValidationMessage('string') })
+  @Length(6, 32, { message: authValidationMessage('length') })
   password!: string;
 }

@@ -14,6 +14,8 @@ import { MailModule } from './common/mail/mail.module';
 import { AuthModule } from './identity/auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ArtworksModule } from './modules/artworks/artworks.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -57,6 +59,8 @@ import { AppService } from './app.service';
         }),
       }),
     }),
+    ArtworksModule,
+    UploadModule,
     MailModule,
     AuthModule,
   ],

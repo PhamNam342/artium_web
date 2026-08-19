@@ -1,5 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import express from 'express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -9,22 +11,22 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
 
-  // CORS: cho phép frontend gọi API
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang'],
   });
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
-  // Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Artium API')
     .setDescription('API documentation for the Artium project')
@@ -38,5 +40,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-
 void bootstrap();

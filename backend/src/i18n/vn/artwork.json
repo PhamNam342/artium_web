@@ -1,0 +1,29 @@
+{
+  "not_found": "Không tìm thấy tác phẩm.",
+  "update_fields_required": "Cần cung cấp ít nhất một trường để cập nhật tác phẩm.",
+  "min_price_less_than_max_price": "Giá tối thiểu không được lớn hơn giá tối đa.",
+  "files_required": "Cần tải lên ít nhất một tệp hình ảnh.",
+  "only_images_allowed": "Chỉ cho phép tải lên tệp hình ảnh.",
+  "validation": {
+    "required": "{{field}} là bắt buộc.",
+    "string": "{{field}} phải là chuỗi ký tự.",
+    "uuid": "{{field}} phải là UUID hợp lệ.",
+    "boolean": "{{field}} phải là giá trị đúng hoặc sai.",
+    "number": "{{field}} phải là số.",
+    "non_negative_number": "{{field}} phải là số không âm.",
+    "positive_integer": "{{field}} phải là số nguyên dương.",
+    "array": "{{field}} phải là mảng.",
+    "object": "{{field}} phải là đối tượng.",
+    "valid_status": "Trạng thái tác phẩm không hợp lệ.",
+    "string_literal_not_allowed": "{{field}} không được là chuỗi \"{{value}}\".",
+    "image_url_required": "{{field}} là bắt buộc.",
+    "weight_format": "Khối lượng phải là số hoặc đối tượng.",
+    "tag_ids_not_found": "Không tìm thấy các mã thẻ sau: {{tagIds}}.",
+    "max_length": "{{field}} không được vượt quá {{maxLength}} ký tự.",
+    "file_empty": "Tệp tại vị trí {{index}} đang trống.",
+    "file_must_be_image": "Tệp tại vị trí {{index}} phải là hình ảnh.",
+    "enum": "{{field}} có giá trị không hợp lệ.",
+    "min": "{{field}} phải lớn hơn hoặc bằng {{constraint}}.",
+    "not_empty": "{{field}} không được để trống."
+  }
+}
