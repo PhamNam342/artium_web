@@ -1,14 +1,15 @@
 import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
+import { authValidationMessage } from '../../../common/utils/auth-validation-message.util';
 
 export class RegisterCompleteDto {
-  @IsEmail()
+  @IsEmail({}, { message: authValidationMessage('email') })
   email!: string;
 
-  @IsString()
-  @Length(6, 6)
+  @IsString({ message: authValidationMessage('string') })
+  @Length(6, 6, { message: authValidationMessage('length') })
   otp!: string; // 6‑digit OTP
 
-  @IsString()
   @IsOptional()
+  @IsString({ message: authValidationMessage('string') })
   name?: string;
 }

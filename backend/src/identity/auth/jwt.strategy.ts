@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { RedisService } from '../../common/redis/redis.service';
+import { t } from '../../common/utils/i18n.util';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -29,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     if (revoked) {
-      throw new UnauthorizedException('Token has been revoked');
+      throw new UnauthorizedException(t('auth.token_revoked'));
     }
 
     return {

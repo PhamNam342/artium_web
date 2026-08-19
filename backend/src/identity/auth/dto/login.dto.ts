@@ -1,9 +1,11 @@
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { authValidationMessage } from '../../../common/utils/auth-validation-message.util';
 
 export class LoginDto {
-  @IsEmail()
+  @IsEmail({}, { message: authValidationMessage('email') })
   email!: string;
 
-  @IsString()
+  @IsString({ message: authValidationMessage('string') })
+  @IsNotEmpty({ message: authValidationMessage('not_empty') })
   password!: string;
 }
