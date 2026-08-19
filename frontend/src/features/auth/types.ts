@@ -26,7 +26,7 @@ export interface MessageResponse {
   message: string;
 }
 
-export type UserRole = 'ADMIN' | 'ARTIST' | 'COLECTOR';
+export type UserRole = 'ADMIN' | 'ARTIST' | 'COLLECTOR';
 
 export interface User {
   id: string;

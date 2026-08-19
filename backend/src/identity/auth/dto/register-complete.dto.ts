@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class RegisterCompleteDto {
   @IsEmail()
@@ -9,5 +9,6 @@ export class RegisterCompleteDto {
   otp!: string; // 6‑digit OTP
 
   @IsString()
+  @IsOptional()
   name?: string;
 }

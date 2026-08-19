@@ -14,6 +14,7 @@ import { RedisService } from '../../common/redis/redis.service';
 import { randomUUID } from 'crypto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { t } from '../../common/utils/i18n.util';
 @Injectable()
 export class AuthService {
   private readonly OTP_TTL = 5 * 60 * 1000;
@@ -46,7 +47,10 @@ export class AuthService {
     const exists = await this.users.findOneBy({ email });
 
     if (exists) {
-      throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      throw new HttpException(
+        t('auth.email_already_exists'),
+        HttpStatus.CONFLICT,
+      );
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -70,14 +74,17 @@ export class AuthService {
     const storedOtp = await this.cacheManager.get<string>(`otp:${email}`);
 
     if (!storedOtp || storedOtp !== otp) {
-      throw new HttpException('Invalid or expired OTP', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        t('auth.invalid_or_expired_otp'),
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const hashedPassword = await this.cacheManager.get<string>(`pwd:${email}`);
 
     if (!hashedPassword) {
       throw new HttpException(
-        'Registration session expired',
+        t('auth.registration_session_expired'),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -85,7 +92,10 @@ export class AuthService {
     const exists = await this.users.findOneBy({ email });
 
     if (exists) {
-      throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      throw new HttpException(
+        t('auth.email_already_exists'),
+        HttpStatus.CONFLICT,
+      );
     }
 
     const user = this.users.create({
@@ -108,13 +118,19 @@ export class AuthService {
     const user = await this.users.findOneBy({ email });
 
     if (!user || !user.password) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        t('auth.invalid_credentials'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        t('auth.invalid_credentials'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     return this.generateToken(user);
@@ -133,7 +149,10 @@ export class AuthService {
     const payload = ticket.getPayload();
 
     if (!payload?.email || !payload.sub) {
-      throw new HttpException('Invalid Google token', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        t('auth.invalid_google_token'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const email = payload.email;
@@ -170,7 +189,7 @@ export class AuthService {
   async logout(token?: string): Promise<void> {
     if (!token) {
       throw new HttpException(
-        'Authorization token is required',
+        t('auth.authorization_token_required'),
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -178,11 +197,11 @@ export class AuthService {
     const payload = this.jwt.decode<JwtPayload>(token);
 
     if (!payload || typeof payload === 'string') {
-      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(t('auth.invalid_token'), HttpStatus.UNAUTHORIZED);
     }
 
     if (!payload.jti) {
-      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(t('auth.invalid_token'), HttpStatus.UNAUTHORIZED);
     }
 
     const remainingTtl = payload.exp
@@ -207,12 +226,12 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new HttpException(t('auth.user_not_found'), HttpStatus.NOT_FOUND);
     }
 
     if (user.role) {
       throw new HttpException(
-        'Profile has already been completed',
+        t('auth.profile_already_completed'),
         HttpStatus.BAD_REQUEST,
       );
     }

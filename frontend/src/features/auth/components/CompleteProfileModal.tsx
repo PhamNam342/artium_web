@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from '../AuthContext';
 import toast from 'react-hot-toast';
 
-type UserRole = 'ARTIST' | 'COLECTOR';
+type UserRole = 'ARTIST' | 'COLLECTOR';
 
 export default function CompleteProfileModal() {
   const { user, completeProfile } = useAuth();
@@ -75,10 +75,10 @@ export default function CompleteProfileModal() {
 
               <button
                 type="button"
-                onClick={() => setRole('COLECTOR')}
+                onClick={() => setRole('COLLECTOR')}
                 disabled={isLoading}
                 className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                  role === 'COLECTOR'
+                  role === 'COLLECTOR'
                     ? 'border-blue-600 bg-blue-50 text-blue-600'
                     : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}

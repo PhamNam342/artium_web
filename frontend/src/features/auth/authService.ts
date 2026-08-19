@@ -8,7 +8,7 @@ import type {
   MessageResponse,
 } from './types';
 export interface CompleteProfileRequest {
-  role: 'ARTIST' | 'COLECTOR';
+  role: 'ARTIST' | 'COLLECTOR';
   full_name: string;
   location: string;
 }

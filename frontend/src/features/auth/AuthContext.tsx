@@ -9,7 +9,7 @@ import {
 import * as authService from './authService';
 import type { User, JwtPayload } from './types';
 
-type UserRole = 'ARTIST' | 'COLECTOR';
+type UserRole = 'ARTIST' | 'COLLECTOR';
 
 function decodeJwt(token: string): JwtPayload {
   try {

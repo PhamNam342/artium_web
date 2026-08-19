@@ -9,7 +9,7 @@ import {
 export enum UserRole {
   ADMIN = 'ADMIN',
   ARTIST = 'ARTIST',
-  COLECTOR = 'COLECTOR',
+  COLLECTOR = 'COLLECTOR',
 }
 
 @Entity('users')
