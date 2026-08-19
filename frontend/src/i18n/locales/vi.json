@@ -1,0 +1,62 @@
+{
+  "common": {
+    "loading": "Đang xử lý...",
+    "or": "hoặc",
+    "requiredFields": "Vui lòng điền đầy đủ thông tin",
+    "unexpectedError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "language": "Ngôn ngữ",
+    "back": "Quay lại"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "artworks": "Tác phẩm",
+    "pricing": "Bảng giá",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "profile": "Hồ sơ cá nhân",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "welcomeBack": "Chào mừng trở lại",
+    "loginSubtitle": "Đăng nhập để tiếp tục quản lý tác phẩm của bạn",
+    "createAccount": "Tạo tài khoản",
+    "registerSubtitle": "Bắt đầu chia sẻ và bán tác phẩm nghệ thuật của bạn",
+    "verifyEmail": "Xác nhận email",
+    "otpSentTo": "Chúng tôi đã gửi mã 6 chữ số đến",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Tối thiểu 6 ký tự",
+    "confirmPasswordLabel": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "continueWithGoogle": "Tiếp tục với Google",
+    "loginButton": "Đăng nhập",
+    "nextButton": "Tiếp tục",
+    "confirmButton": "Xác nhận",
+    "resendOtp": "Gửi lại",
+    "resendCooldown": "Gửi lại sau {{seconds}}s",
+    "noAccount": "Chưa có tài khoản?",
+    "registerFree": "Đăng ký miễn phí",
+    "hasAccount": "Đã có tài khoản?",
+    "passwordMinLength": "Mật khẩu phải từ 6 đến 32 ký tự",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp",
+    "passwordAddChars": "Cần thêm {{count}} ký tự nữa",
+    "otpIncomplete": "Vui lòng nhập đủ 6 chữ số",
+    "loginSuccess": "Đăng nhập thành công!",
+    "registerInitiated": "Mã OTP đã được gửi tới email của bạn",
+    "registerSuccess": "Đăng ký thành công!",
+    "resendSuccess": "Mã OTP mới đã được gửi",
+    "logoutSuccess": "Đã đăng xuất thành công",
+    "logoutError": "Đăng xuất thất bại",
+    "googleLoginFailed": "Đăng nhập Google thất bại"
+  },
+  "apiErrors": {
+    "emailExists": "Email này đã được sử dụng",
+    "invalidCredentials": "Email hoặc mật khẩu không đúng",
+    "invalidOtp": "Mã OTP không đúng hoặc đã hết hạn",
+    "sessionExpired": "Phiên đăng ký đã hết hạn, vui lòng thử lại",
+    "invalidGoogleToken": "Đăng nhập Google thất bại",
+    "unauthorized": "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại."
+  }
+}
