@@ -16,7 +16,7 @@ import { UploadArtworkImagesDto } from './dto/upload-artwork-images.dto';
 import { UploadService } from './upload.service';
 import type { UploadedArtworkFile } from './upload.types';
 
-@Controller('api/upload')
+@Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
