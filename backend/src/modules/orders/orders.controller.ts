@@ -9,23 +9,23 @@ export class OrdersController {
 
   @Post()
   async createOrder(
-    @Headers('x-user-id') userId: string, // Mocking authentication since there is no AuthGuard yet
+    @Headers('x-user-id') collectorId: string, // Mocking authentication since there is no AuthGuard yet
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    // In a real scenario, userId should be extracted from req.user
-    if (!userId) {
+    // In a real scenario, collectorId should be extracted from req.user
+    if (!collectorId) {
       // Mocking a default user for testing purposes if header is missing
-      userId = '00000000-0000-0000-0000-000000000000';
+      collectorId = '00000000-0000-0000-0000-000000000000';
     }
-    return this.ordersService.createOrder(userId, createOrderDto);
+    return this.ordersService.createOrder(collectorId, createOrderDto);
   }
 
   @Get()
-  async getUserOrders(@Headers('x-user-id') userId: string) {
-    if (!userId) {
-      userId = '00000000-0000-0000-0000-000000000000';
+  async getUserOrders(@Headers('x-user-id') collectorId: string) {
+    if (!collectorId) {
+      collectorId = '00000000-0000-0000-0000-000000000000';
     }
-    return this.ordersService.getUserOrders(userId);
+    return this.ordersService.getUserOrders(collectorId);
   }
 
   @Get(':id')

@@ -5,11 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
-import { OrderItem } from './order-item.entity';
+// Note: If you have an Artwork entity, you can add ManyToOne relation here later
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -24,11 +23,23 @@ export class Order {
   id: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @JoinColumn({ name: 'collector_id' })
+  collector: User;
 
-  @Column({ name: 'userId' })
-  userId: string;
+  @Column({ name: 'collector_id', type: 'uuid' })
+  collectorId: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  subtotal: number;
+
+  @Column({ name: 'artwork_id', type: 'uuid' })
+  artworkId: string;
+
+  @Column({ name: 'shipping_cost', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  shippingCost: number;
+
+  @Column({ name: 'total_amount', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  totalAmount: number;
 
   @Column({
     type: 'enum',
@@ -37,12 +48,15 @@ export class Order {
   })
   status: OrderStatus;
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
-  items: OrderItem[];
+  @Column({ name: 'shipping_address', type: 'jsonb', nullable: true })
+  shippingAddress: any;
 
-  @CreateDateColumn()
+  @Column({ name: 'payment_status', type: 'varchar', length: 50, nullable: true })
+  paymentStatus: string;
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

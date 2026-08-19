@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
-import { OrderItem } from './order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
@@ -11,36 +10,28 @@ export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
   ) {}
 
-  async createOrder(userId: string, createOrderDto: CreateOrderDto): Promise<{ orderId: string }> {
-    const { artworkIds } = createOrderDto;
-
+  async createOrder(collectorId: string, createOrderDto: CreateOrderDto): Promise<{ orderId: string }> {
     const order = this.orderRepository.create({
-      userId,
+      collectorId,
       status: OrderStatus.PENDING,
+      artworkId: createOrderDto.artworkId,
+      subtotal: createOrderDto.subtotal,
+      shippingCost: createOrderDto.shippingCost,
+      totalAmount: createOrderDto.totalAmount,
+      shippingAddress: createOrderDto.shippingAddress,
+      paymentStatus: createOrderDto.paymentStatus,
     });
 
     const savedOrder = await this.orderRepository.save(order);
 
-    const orderItems = artworkIds.map((artworkId) =>
-      this.orderItemRepository.create({
-        orderId: savedOrder.id,
-        artworkId,
-      }),
-    );
-
-    await this.orderItemRepository.save(orderItems);
-
     return { orderId: savedOrder.id };
   }
 
-  async getUserOrders(userId: string): Promise<Order[]> {
+  async getUserOrders(collectorId: string): Promise<Order[]> {
     return this.orderRepository.find({
-      where: { userId },
-      relations: { items: true },
+      where: { collectorId },
       order: { createdAt: 'DESC' },
     });
   }
@@ -48,7 +39,7 @@ export class OrdersService {
   async getOrderById(id: string): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: { items: true, user: true },
+      relations: { collector: true },
     });
 
     if (!order) {

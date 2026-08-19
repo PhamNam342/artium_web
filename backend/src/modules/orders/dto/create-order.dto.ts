@@ -1,3 +1,8 @@
 export class CreateOrderDto {
-  artworkIds: string[];
+  artworkId: string;
+  subtotal?: number;
+  shippingCost?: number;
+  totalAmount?: number;
+  shippingAddress?: any;
+  paymentStatus?: string;
 }
