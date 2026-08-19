@@ -40,7 +40,7 @@ export class OrdersService {
   async getUserOrders(userId: string): Promise<Order[]> {
     return this.orderRepository.find({
       where: { userId },
-      relations: ['items'],
+      relations: { items: true },
       order: { createdAt: 'DESC' },
     });
   }
@@ -48,7 +48,7 @@ export class OrdersService {
   async getOrderById(id: string): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: ['items', 'user'],
+      relations: { items: true, user: true },
     });
 
     if (!order) {
