@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Heart, ImageOff, Maximize2, MessageCircle, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
+import { useAuth } from '../features/auth/AuthContext';
 import type { Artwork } from '../features/artworks/types';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -24,6 +25,9 @@ function formatWeight(artwork: Artwork) {
 export default function ArtworkDetailPage() {
   const { language, t } = useI18n();
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -78,8 +82,22 @@ export default function ArtworkDetailPage() {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      navigate('/login', { state: { from: `${location.pathname}${location.search}${location.hash}` } });
+      return;
+    }
+
     setIsInCart(true);
     toast.success(t('artworks.cartAdded'));
+  };
+
+  const handleBuyNow = () => {
+    if (!user) {
+      navigate('/login', { state: { from: `${location.pathname}${location.search}${location.hash}` } });
+      return;
+    }
+
+    toast(t('artworks.purchaseComingSoon'));
   };
 
   useEffect(() => {
@@ -136,7 +154,7 @@ export default function ArtworkDetailPage() {
                   <ShoppingCart className="h-4 w-4" />
                   {t(isInCart ? 'artworks.addedToCart' : 'artworks.addToCart')}
                 </button>
-                <button type="button" onClick={() => toast(t('artworks.purchaseComingSoon'))} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
+                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
                   {t('artworks.buyNow')}
                 </button>
               </div>

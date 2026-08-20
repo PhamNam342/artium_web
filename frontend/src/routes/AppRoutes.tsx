@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 
 import MainLayout from '../layouts/MainLayout';
@@ -13,6 +13,8 @@ import CompleteProfileModal from '../features/auth/components/CompleteProfileMod
 
 function GuestRoute() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
 
   if (isLoading) {
     return (
@@ -23,7 +25,7 @@ function GuestRoute() {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <Outlet />;
