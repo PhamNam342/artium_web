@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, Tag, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Heart, ImageOff, Maximize2, MessageCircle, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
 import { useI18n } from '../i18n/I18nContext';
@@ -28,6 +29,8 @@ export default function ArtworkDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -65,6 +68,18 @@ export default function ArtworkDetailPage() {
   const selectRelativeImage = (offset: number) => {
     if (images.length < 2) return;
     setSelectedIndex((current) => (current + offset + images.length) % images.length);
+  };
+
+  const handleFavorite = () => {
+    setIsFavorited((current) => {
+      toast.success(t(current ? 'artworks.favoriteRemoved' : 'artworks.favoriteAdded'));
+      return !current;
+    });
+  };
+
+  const handleAddToCart = () => {
+    setIsInCart(true);
+    toast.success(t('artworks.cartAdded'));
   };
 
   useEffect(() => {
@@ -106,7 +121,27 @@ export default function ArtworkDetailPage() {
             {artwork.materials && <p className="mt-3 text-base text-slate-600">{artwork.materials}</p>}
             {dimensions && <p className="mt-2 flex items-center gap-2 text-sm text-slate-600"><Ruler className="h-4 w-4" aria-hidden="true" />{dimensions}</p>}
             {weight && <p className="mt-1 text-sm text-slate-600">{t('artworks.weight', { weight })}</p>}
-            <div className="mt-7 border-y border-slate-200 py-5"><p className="text-2xl font-semibold text-slate-950">{formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}</p><p className="mt-2 text-sm text-slate-500">{t('artworks.contactArtist')}</p></div>
+            <div className="mt-7 border-y border-slate-200 py-5">
+              <p className="text-2xl font-bold text-slate-950">
+                {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2" aria-label={t('artworks.actionsLabel')}>
+                <button type="button" onClick={handleFavorite} className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${isFavorited ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`} aria-label={t(isFavorited ? 'artworks.unfavorite' : 'artworks.favorite')}>
+                  <Heart className="h-5 w-5" fill={isFavorited ? 'currentColor' : 'none'} />
+                </button>
+                <button type="button" onClick={() => toast(t('artworks.commentComingSoon'))} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50" aria-label={t('artworks.comment')}>
+                  <MessageCircle className="h-5 w-5" />
+                </button>
+                <button type="button" onClick={handleAddToCart} disabled={isInCart} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-blue-600 px-4 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:cursor-default disabled:border-emerald-600 disabled:text-emerald-700">
+                  <ShoppingCart className="h-4 w-4" />
+                  {t(isInCart ? 'artworks.addedToCart' : 'artworks.addToCart')}
+                </button>
+                <button type="button" onClick={() => toast(t('artworks.purchaseComingSoon'))} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
+                  {t('artworks.buyNow')}
+                </button>
+              </div>
+              <p className="mt-3 text-sm text-slate-500">{t('artworks.contactArtist')}</p>
+            </div>
             {artwork.description && <div className="mt-7"><h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900">{t('artworks.aboutArtwork')}</h2><p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{artwork.description}</p></div>}
           </article>
         </div>
