@@ -7,6 +7,8 @@ import AuthLayout from '../layouts/AuthLayout';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ArtworksPage from '../pages/ArtworksPage';
+import ArtworkDetailPage from '../pages/ArtworkDetailPage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 function GuestRoute() {
@@ -51,6 +53,8 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/artworks" element={<ArtworksPage />} />
+          <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
         </Route>
 
         <Route element={<GuestRoute />}>

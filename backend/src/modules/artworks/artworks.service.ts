@@ -134,7 +134,7 @@ export class ArtworksService {
     }
 
     const [data, total] = await queryBuilder
-      .orderBy('artwork.created_at', 'DESC')
+      .orderBy('artwork.createdAt', 'DESC')
       .skip((filters.page - 1) * filters.limit)
       .take(filters.limit)
       .getManyAndCount();
