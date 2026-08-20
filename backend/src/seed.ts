@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
-import { User } from './database/entities/user.entity';
+import { User } from './user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
@@ -22,7 +22,7 @@ async function bootstrap() {
       const admin = userRepository.create({
         email: adminEmail,
         password: hashedPassword,
-        name: 'Super Admin',
+        full_name: 'Super Admin',
       });
       await userRepository.save(admin);
       console.log(`✅ Đã tạo tài khoản Admin: ${adminEmail}`);
@@ -37,4 +37,4 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+void bootstrap();

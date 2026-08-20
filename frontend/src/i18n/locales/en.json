@@ -1,0 +1,62 @@
+{
+  "common": {
+    "loading": "Processing...",
+    "or": "or",
+    "requiredFields": "Please fill in all required fields",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "language": "Language",
+    "back": "Back"
+  },
+  "nav": {
+    "home": "Home",
+    "artworks": "Artworks",
+    "pricing": "Pricing",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "profile": "Profile",
+    "logout": "Sign Out"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "loginSubtitle": "Sign in to continue managing your artworks",
+    "createAccount": "Create an account",
+    "registerSubtitle": "Start sharing and selling your art today",
+    "verifyEmail": "Verify your email",
+    "otpSentTo": "We sent a 6-digit code to",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "forgotPassword": "Forgot password?",
+    "continueWithGoogle": "Continue with Google",
+    "loginButton": "Sign In",
+    "nextButton": "Continue",
+    "confirmButton": "Verify",
+    "resendOtp": "Resend",
+    "resendCooldown": "Resend in {{seconds}}s",
+    "noAccount": "Don't have an account?",
+    "registerFree": "Sign up for free",
+    "hasAccount": "Already have an account?",
+    "passwordMinLength": "Password must be 6 to 32 characters",
+    "passwordMismatch": "Passwords do not match",
+    "passwordAddChars": "{{count}} more characters required",
+    "otpIncomplete": "Please enter all 6 digits",
+    "loginSuccess": "Signed in successfully!",
+    "registerInitiated": "An OTP code has been sent to your email",
+    "registerSuccess": "Account created successfully!",
+    "resendSuccess": "A new OTP code has been sent",
+    "logoutSuccess": "Signed out successfully",
+    "logoutError": "Failed to sign out",
+    "googleLoginFailed": "Google login failed"
+  },
+  "apiErrors": {
+    "emailExists": "This email is already in use",
+    "invalidCredentials": "Invalid email or password",
+    "invalidOtp": "Invalid or expired OTP code",
+    "sessionExpired": "Registration session expired, please try again",
+    "invalidGoogleToken": "Google authentication failed",
+    "unauthorized": "Session expired. Please sign in again."
+  }
+}
