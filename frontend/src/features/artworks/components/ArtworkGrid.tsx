@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
+import { useI18n } from '../../../i18n/I18nContext';
 import ArtworkCard from './ArtworkCard';
 import type { Artwork, ArtworkListMeta } from '../types';
 
@@ -11,6 +12,7 @@ interface ArtworkGridProps {
 }
 
 export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageChange }: ArtworkGridProps) {
+  const { t } = useI18n();
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -32,8 +34,8 @@ export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageCh
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
         <SearchX className="mx-auto h-9 w-9 text-slate-400" aria-hidden="true" />
-        <h2 className="mt-4 text-lg font-semibold text-slate-900">Không tìm thấy tác phẩm</h2>
-        <p className="mt-1 text-sm text-slate-500">Hãy thử thay đổi từ khóa hoặc khoảng giá của bạn.</p>
+        <h2 className="mt-4 text-lg font-semibold text-slate-900">{t('artworks.emptyTitle')}</h2>
+        <p className="mt-1 text-sm text-slate-500">{t('artworks.emptyDescription')}</p>
       </div>
     );
   }
@@ -45,23 +47,23 @@ export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageCh
       </div>
 
       {meta && meta.totalPages > 1 && (
-        <nav className="mt-10 flex items-center justify-center gap-3" aria-label="Phân trang tác phẩm">
+        <nav className="mt-10 flex items-center justify-center gap-3" aria-label={t('artworks.paginationLabel')}>
           <button
             type="button"
             disabled={!meta.hasPreviousPage}
             onClick={() => onPageChange(meta.page - 1)}
             className="inline-flex h-10 items-center gap-1 rounded-xl border border-slate-300 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Trước
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" /> {t('artworks.previous')}
           </button>
-          <span className="text-sm text-slate-600">Trang {meta.page} / {meta.totalPages}</span>
+          <span className="text-sm text-slate-600">{t('artworks.pageInfo', { page: meta.page, totalPages: meta.totalPages })}</span>
           <button
             type="button"
             disabled={!meta.hasNextPage}
             onClick={() => onPageChange(meta.page + 1)}
             className="inline-flex h-10 items-center gap-1 rounded-xl border border-slate-300 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Sau <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            {t('artworks.next')} <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
         </nav>
       )}

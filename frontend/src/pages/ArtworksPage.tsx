@@ -3,11 +3,13 @@ import ArtworkFilters from '../features/artworks/components/ArtworkFilters';
 import ArtworkGrid from '../features/artworks/components/ArtworkGrid';
 import { artworkService } from '../features/artworks/artworkService';
 import type { Artwork, ArtworkFiltersValue, ArtworkListMeta } from '../features/artworks/types';
+import { useI18n } from '../i18n/I18nContext';
 
 const INITIAL_FILTERS: ArtworkFiltersValue = { search: '', minPrice: '', maxPrice: '' };
 const PAGE_SIZE = 12;
 
 export default function ArtworksPage() {
+  const { t } = useI18n();
   const [filters, setFilters] = useState<ArtworkFiltersValue>(INITIAL_FILTERS);
   const [page, setPage] = useState(1);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -31,22 +33,22 @@ export default function ArtworksPage() {
       } catch {
         setArtworks([]);
         setMeta(null);
-        setError('Không thể tải danh sách tác phẩm. Vui lòng thử lại sau.');
+        setError(t('artworks.loadError'));
       } finally {
         setIsLoading(false);
       }
     }, 300);
 
     return () => window.clearTimeout(timeoutId);
-  }, [filters, page]);
+  }, [filters, page, t]);
 
   return (
     <div className="bg-slate-50">
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Khám phá</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">Tác phẩm nghệ thuật</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">Khám phá các tác phẩm nguyên bản được nghệ sĩ chia sẻ trên Artium.</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">{t('artworks.eyebrow')}</p>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">{t('artworks.title')}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{t('artworks.subtitle')}</p>
         </div>
       </section>
 

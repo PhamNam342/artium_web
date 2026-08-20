@@ -1,5 +1,6 @@
 import { ImageOff, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useI18n } from '../../../i18n/I18nContext';
 import { formatArtworkPrice, getArtworkImage } from '../artworkService';
 import type { Artwork } from '../types';
 
@@ -9,6 +10,7 @@ interface ArtworkCardProps {
 
 export default function ArtworkCard({ artwork }: ArtworkCardProps) {
   const image = getArtworkImage(artwork.images);
+  const { language, t } = useI18n();
 
   return (
     <Link
@@ -26,7 +28,7 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
         ) : (
           <div className="flex h-full items-center justify-center text-slate-400">
             <ImageOff className="h-8 w-8" aria-hidden="true" />
-            <span className="sr-only">Tác phẩm chưa có hình ảnh</span>
+            <span className="sr-only">{t('artworks.imageUnavailable')}</span>
           </div>
         )}
       </div>
@@ -35,12 +37,17 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
         <div className="flex items-start justify-between gap-3">
           <h2 className="line-clamp-1 text-base font-semibold text-slate-900">{artwork.title}</h2>
           <span className="shrink-0 text-sm font-semibold text-slate-900">
-            {formatArtworkPrice(artwork.price, artwork.currency)}
+            {formatArtworkPrice(
+              artwork.price,
+              artwork.currency,
+              language === 'en' ? 'en-US' : 'vi-VN',
+              t('artworks.priceOnRequest'),
+            )}
           </span>
         </div>
 
         <p className="mt-1 line-clamp-1 text-sm text-slate-500">
-          {artwork.materials || 'Tác phẩm nghệ thuật nguyên bản'}
+          {artwork.materials || t('artworks.originalArtwork')}
         </p>
 
         {artwork.tags.length > 0 && (
