@@ -7,7 +7,11 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
+import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
 import { ArtworksService } from './artworks.service';
 import {
   ArtworkResponseDto,
@@ -27,6 +31,15 @@ export class ArtworksController {
     @Query() query: ListArtworksQueryDto,
   ): Promise<ListArtworksResponseDto> {
     return this.artworksService.findAll(query);
+  }
+
+  @Get('mine')
+  @UseGuards(JwtAuthGuard)
+  findMine(
+    @Req() req: RequestWithUser,
+    @Query() query: ListArtworksQueryDto,
+  ): Promise<ListArtworksResponseDto> {
+    return this.artworksService.findMine(req.user.id, query);
   }
 
   @Get(':id')

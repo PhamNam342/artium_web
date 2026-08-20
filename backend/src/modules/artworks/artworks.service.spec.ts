@@ -18,6 +18,7 @@ describe('ArtworksService', () => {
   beforeEach(() => {
     artworkRepository = {
       create: jest.fn((data: Partial<Artwork>) => data as Artwork),
+      createQueryBuilder: jest.fn(),
       delete: jest.fn(),
       findOne: jest.fn(),
       save: jest.fn((artwork: Artwork) =>
@@ -157,6 +158,57 @@ describe('ArtworksService', () => {
       where: { id: artworkId },
       relations: { tags: true },
     });
+  });
+
+  it("lists only the authenticated seller's artworks, including drafts", async () => {
+    const artwork = {
+      id: '123e4567-e89b-12d3-a456-426614174222',
+      sellerId,
+      title: 'Private Draft',
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      images: [],
+      tags: [],
+      createdAt: new Date('2026-08-18T10:37:05.141Z'),
+    } as Artwork;
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([[artwork], 1]),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    artworkRepository.createQueryBuilder?.mockReturnValue(
+      queryBuilder as never,
+    );
+
+    await expect(service.findMine(sellerId, {})).resolves.toEqual({
+      data: [
+        expect.objectContaining({
+          id: artwork.id,
+          status: ArtworkStatus.DRAFT,
+        }),
+      ],
+      meta: {
+        page: 1,
+        limit: 12,
+        total: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    });
+    expect(queryBuilder.where).toHaveBeenCalledWith(
+      'artwork.seller_id = :sellerId',
+      { sellerId },
+    );
+    expect(queryBuilder.andWhere).not.toHaveBeenCalledWith(
+      'artwork.is_published = :isPublished',
+      expect.anything(),
+    );
   });
 
   it('rejects an invalid artwork detail id', async () => {
