@@ -24,11 +24,6 @@ import { artworkStatusValues } from './artwork-status-values';
 
 export class UpdateArtworkDto {
   @IsOptional()
-  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
-  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
-  sellerId?: string;
-
-  @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
   @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
   @MaxLength(100, { message: artworkValidationMessage('max_length') })

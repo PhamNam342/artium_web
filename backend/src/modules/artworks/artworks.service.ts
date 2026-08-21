@@ -67,8 +67,11 @@ export class ArtworksService {
     private readonly tagRepository: Repository<Tag>,
   ) {}
 
-  async create(input: CreateArtworkDto): Promise<ArtworkResponseDto> {
-    const normalizedInput = this.normalizeCreateInput(input);
+  async create(
+    input: CreateArtworkDto,
+    sellerIdOverride: string,
+  ): Promise<ArtworkResponseDto> {
+    const normalizedInput = this.normalizeCreateInput(input, sellerIdOverride);
     const tags = await this.findTagsByIds(normalizedInput.tagIds);
 
     const artwork = this.artworkRepository.create({
@@ -196,7 +199,7 @@ export class ArtworksService {
     }
 
     const [data, total] = await queryBuilder
-      .orderBy('artwork.created_at', 'DESC')
+      .orderBy('artwork.createdAt', 'DESC')
       .skip((filters.page - 1) * filters.limit)
       .take(filters.limit)
       .getManyAndCount();
@@ -231,8 +234,10 @@ export class ArtworksService {
   async update(
     id: string,
     input: UpdateArtworkDto,
+    ownerId: string,
   ): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
+    const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
     const normalizedInput = this.normalizeUpdateInput(input);
     const { tagIds, ...artworkPatch } = normalizedInput;
 
@@ -241,7 +246,7 @@ export class ArtworksService {
     }
 
     const artwork = await this.artworkRepository.findOne({
-      where: { id: artworkId },
+      where: { id: artworkId, sellerId: normalizedOwnerId },
       relations: { tags: true },
     });
 
@@ -258,15 +263,35 @@ export class ArtworksService {
     return this.toArtworkResponse(await this.artworkRepository.save(artwork));
   }
 
-  async remove(id: string): Promise<DeleteArtworkResponseDto> {
+  async remove(id: string, ownerId: string): Promise<DeleteArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
-    const result = await this.artworkRepository.delete({ id: artworkId });
+    const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
+    const result = await this.artworkRepository.delete({
+      id: artworkId,
+      sellerId: normalizedOwnerId,
+    });
 
     if (!result.affected) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async updateStatus(
+    id: string,
+    status: ArtworkStatus | string,
+    ownerId: string,
+  ): Promise<ArtworkResponseDto> {
+    return this.update(id, { status }, ownerId);
+  }
+
+  async updatePublish(
+    id: string,
+    isPublished: boolean,
+    ownerId: string,
+  ): Promise<ArtworkResponseDto> {
+    return this.update(id, { isPublished }, ownerId);
   }
 
   private normalizeQuery(
@@ -367,8 +392,12 @@ export class ArtworksService {
 
   private normalizeCreateInput(
     input: CreateArtworkDto,
+    sellerIdOverride?: string,
   ): NormalizedCreateArtworkInput {
-    const sellerId = this.cleanRequiredUuid(input.sellerId, 'sellerId');
+    const sellerId = this.cleanRequiredUuid(
+      sellerIdOverride ?? input.sellerId,
+      'sellerId',
+    );
     const title = this.cleanRequiredString(input.title, 'title');
     const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
     const tagIds = this.normalizeTagIds(input.tagIds);
@@ -408,13 +437,6 @@ export class ArtworksService {
     }
 
     const normalizedInput: NormalizedUpdateArtworkInput = {};
-
-    if (this.hasOwn(input, 'sellerId')) {
-      normalizedInput.sellerId = this.cleanRequiredUuid(
-        input.sellerId,
-        'sellerId',
-      );
-    }
 
     if (this.hasOwn(input, 'title')) {
       const title = this.cleanRequiredString(input.title, 'title');
