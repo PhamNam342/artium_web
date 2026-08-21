@@ -36,5 +36,6 @@ const storageServiceProvider = {
     CloudStorageService,
     storageServiceProvider,
   ],
+  exports: [UploadService],
 })
 export class UploadModule {}

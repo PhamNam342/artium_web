@@ -1,17 +1,21 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { authValidationMessage } from '../../../common/utils/auth-validation-message.util';
-import { UserRole } from '../../../user/entities/user.entity';
+
+import { UserRole } from '../../user/entities/user.entity';
 
 export class CompleteProfileDto {
-  @IsEnum(UserRole, { message: authValidationMessage('enum') })
+  @IsEnum(UserRole)
   role!: UserRole;
 
-  @IsOptional()
-  @IsString({ message: authValidationMessage('string') })
-  @MaxLength(255, { message: authValidationMessage('max_length') })
-  full_name?: string;
+  @IsString()
+  @MaxLength(100)
+  full_name!: string;
+
+  @IsString()
+  @MaxLength(255)
+  location!: string;
 
   @IsOptional()
-  @IsString({ message: authValidationMessage('string') })
-  location?: string;
+  @IsString()
+  @MaxLength(2000)
+  bio?: string;
 }

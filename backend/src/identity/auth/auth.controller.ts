@@ -18,6 +18,10 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
 import { t } from '../../common/utils/i18n.util';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyForgotPasswordDto } from './dto/verify-forgot-password.dto.ts';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -95,6 +99,55 @@ export class AuthController {
 
     return {
       access_token,
+    };
+  }
+  // forgot password
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto.email);
+
+    return {
+      message: t('auth.otp_sent'),
+    };
+  }
+  @Post('forgot-password/verify')
+  @HttpCode(HttpStatus.OK)
+  async verifyForgotPassword(@Body() dto: VerifyForgotPasswordDto) {
+    const resetToken = await this.authService.verifyForgotPassword(
+      dto.email,
+      dto.otp,
+    );
+
+    return {
+      reset_token: resetToken,
+    };
+  }
+  @Post('forgot-password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.resetToken, dto.newPassword);
+
+    return {
+      message: 'Password reset successfully',
+    };
+  }
+
+  @Patch('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Req() req: RequestWithUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.authService.changePassword(
+      req.user.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+
+    return {
+      message: t('auth.password_changed'),
     };
   }
 }

@@ -10,8 +10,10 @@ export default function CompleteProfileModal() {
   const [role, setRole] = useState<UserRole | ''>('');
   const [fullName, setFullName] = useState('');
   const [location, setLocation] = useState('');
+  const [bio, setBio] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Đã có role => không cần hiện modal nữa
   if (!user || user.role) {
     return null;
   }
@@ -24,6 +26,12 @@ export default function CompleteProfileModal() {
       return;
     }
 
+    // Artist bắt buộc phải có bio
+    if (role === 'ARTIST' && !bio.trim()) {
+      toast.error('Artist vui lòng nhập giới thiệu bản thân');
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -31,6 +39,9 @@ export default function CompleteProfileModal() {
         role,
         fullName.trim(),
         location.trim(),
+        role === 'ARTIST'
+          ? bio.trim()
+          : undefined,
       );
 
       toast.success('Hoàn thiện hồ sơ thành công');
@@ -43,7 +54,7 @@ export default function CompleteProfileModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
         <h2 className="text-2xl font-bold text-gray-900">
           Hoàn thiện hồ sơ
         </h2>
@@ -52,7 +63,10 @@ export default function CompleteProfileModal() {
           Hãy hoàn thiện thông tin trước khi tiếp tục.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-4"
+        >
           {/* Role */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -127,6 +141,28 @@ export default function CompleteProfileModal() {
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50"
             />
           </div>
+
+          {/* Artist fields */}
+          {role === 'ARTIST' && (
+            <div>
+              <label
+                htmlFor="artist-bio"
+                className="mb-1.5 block text-sm font-medium text-gray-700"
+              >
+                Giới thiệu bản thân
+              </label>
+
+              <textarea
+                id="artist-bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Hãy giới thiệu một chút về bạn và phong cách nghệ thuật..."
+                rows={4}
+                disabled={isLoading}
+                className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50"
+              />
+            </div>
+          )}
 
           {/* Submit */}
           <button

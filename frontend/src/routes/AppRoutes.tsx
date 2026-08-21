@@ -4,9 +4,10 @@ import { useAuth } from '../features/auth/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 
-import HomePage from '../pages/HomePage';
+import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ProfilePage from '../pages/ProfilePage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 function GuestRoute() {
@@ -50,7 +51,7 @@ export default function AppRoutes() {
     <>
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LandingPage />} />
         </Route>
 
         <Route element={<GuestRoute />}>
@@ -63,6 +64,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             {/* Protected routes go here */}
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 

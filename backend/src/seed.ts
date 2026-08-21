@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
-import { User } from './user/entities/user.entity';
+import { User } from './identity/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
