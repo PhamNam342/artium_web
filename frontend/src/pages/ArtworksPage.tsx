@@ -43,20 +43,10 @@ export default function ArtworksPage() {
   }, [filters, page, t]);
 
   return (
-    <div className="bg-slate-50">
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">{t('artworks.eyebrow')}</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">{t('artworks.title')}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{t('artworks.subtitle')}</p>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-        <ArtworkFilters value={filters} onChange={handleFiltersChange} resultCount={meta?.total} />
-        <div className="mt-7">
-          <ArtworkGrid artworks={artworks} meta={meta} isLoading={isLoading} error={error} onPageChange={setPage} />
-        </div>
+    <div className="min-h-[calc(100vh-60px)] bg-white">
+      <ArtworkFilters value={filters} onChange={handleFiltersChange} resultCount={meta?.total} />
+      <section className="mx-auto max-w-[1600px] px-5 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <ArtworkGrid artworks={artworks} meta={meta} isLoading={isLoading} error={error} onPageChange={setPage} />
       </section>
     </div>
   );

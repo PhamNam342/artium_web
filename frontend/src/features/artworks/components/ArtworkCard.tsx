@@ -1,4 +1,5 @@
-import { ImageOff, Tag } from 'lucide-react';
+import { ImageOff, UserRound } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n/I18nContext';
 import { formatArtworkPrice, getArtworkImage } from '../artworkService';
@@ -8,35 +9,47 @@ interface ArtworkCardProps {
   artwork: Artwork;
 }
 
+function getImageAspectRatio(artwork: Artwork, image?: ReturnType<typeof getArtworkImage>) {
+  const width = image?.width ?? artwork.dimensions?.width;
+  const height = image?.height ?? artwork.dimensions?.height;
+
+  if (!width || !height) return undefined;
+  return `${Math.max(0.65, Math.min(width / height, 1.55))}`;
+}
+
 export default function ArtworkCard({ artwork }: ArtworkCardProps) {
   const image = getArtworkImage(artwork.images);
   const { language, t } = useI18n();
+  const [hasImageError, setHasImageError] = useState(false);
+  const imageAspectRatio = getImageAspectRatio(artwork, image);
+  const artistHandle = `@${artwork.sellerId.slice(0, 8)}`;
 
   return (
     <Link
       to={`/artworks/${artwork.id}`}
-      className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+      className="group mb-4 inline-block w-full break-inside-avoid overflow-hidden rounded-lg border border-slate-200 bg-white align-top transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-slate-100">
-        {image ? (
+      <div
+        className="relative overflow-hidden bg-slate-100"
+        style={{ aspectRatio: imageAspectRatio ?? '4 / 5' }}
+      >
+        {image && !hasImageError ? (
           <img
             src={image.secureUrl || image.url}
             alt={image.altText || image.alt || artwork.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             loading="lazy"
+            onError={() => setHasImageError(true)}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-400">
-            <ImageOff className="h-8 w-8" aria-hidden="true" />
+          <div className="flex min-h-48 items-center justify-center text-slate-400">
+            <ImageOff className="h-7 w-7" aria-hidden="true" />
             <span className="sr-only">{t('artworks.imageUnavailable')}</span>
           </div>
         )}
-      </div>
 
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="line-clamp-1 text-base font-semibold text-slate-900">{artwork.title}</h2>
-          <span className="shrink-0 text-sm font-semibold text-slate-900">
+        {artwork.price !== null && (
+          <span className="absolute bottom-2 right-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-semibold text-slate-800 shadow-sm backdrop-blur-sm">
             {formatArtworkPrice(
               artwork.price,
               artwork.currency,
@@ -44,17 +57,19 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
               t('artworks.priceOnRequest'),
             )}
           </span>
+        )}
+      </div>
+
+      <div className="p-3">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+            <UserRound className="h-3 w-3" aria-hidden="true" />
+          </span>
+          <span className="truncate" title={artwork.sellerId}>{artistHandle}</span>
         </div>
-
-        <p className="mt-1 line-clamp-1 text-sm text-slate-500">
-          {artwork.materials || t('artworks.originalArtwork')}
-        </p>
-
+        <h2 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-5 text-slate-950">{artwork.title}</h2>
         {artwork.tags.length > 0 && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-            <Tag className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="line-clamp-1">{artwork.tags.map((tag) => tag.name).join(' · ')}</span>
-          </div>
+          <p className="mt-1 line-clamp-1 text-xs text-slate-500">{artwork.tags.map((tag) => tag.name).join(' · ')}</p>
         )}
       </div>
     </Link>

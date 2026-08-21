@@ -15,11 +15,11 @@ export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageCh
   const { t } = useI18n();
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
         {Array.from({ length: 8 }, (_, index) => (
-          <div key={index} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <div className="aspect-[4/3] animate-pulse bg-slate-200" />
-            <div className="space-y-3 p-4"><div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" /><div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" /></div>
+          <div key={index} className="mb-4 break-inside-avoid overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className={`animate-pulse bg-slate-200 ${index % 3 === 0 ? 'aspect-[3/4]' : index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-square'}`} />
+            <div className="space-y-2 p-3"><div className="h-3 w-2/5 animate-pulse rounded bg-slate-100" /><div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" /></div>
           </div>
         ))}
       </div>
@@ -42,7 +42,7 @@ export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageCh
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
         {artworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} />)}
       </div>
 
