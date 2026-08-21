@@ -63,7 +63,6 @@ export class Artwork {
   @Column({
     type: 'enum',
     enum: ArtworkStatus,
-    enumName: 'artworks_status_enum',
     default: ArtworkStatus.DRAFT,
   })
   status!: ArtworkStatus;
@@ -71,7 +70,7 @@ export class Artwork {
   @Column({ name: 'is_published', type: 'boolean', default: false })
   isPublished!: boolean;
 
-  @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
+  @Column({ type: 'jsonb', default: [] })
   images!: ArtworkImage[];
 
   @Column({ name: 'folder_id', type: 'uuid', nullable: true })
@@ -80,7 +79,9 @@ export class Artwork {
   @Column({ name: 'view_count', type: 'int', default: 0 })
   viewCount!: number;
 
-  @ManyToMany(() => Tag, (tag) => tag.artworks)
+  @ManyToMany(() => Tag, (tag) => tag.artworks, {
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'artwork_tags',
     joinColumn: { name: 'artwork_id', referencedColumnName: 'id' },
