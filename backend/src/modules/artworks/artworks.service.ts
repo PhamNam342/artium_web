@@ -152,6 +152,68 @@ export class ArtworksService {
     });
   }
 
+  async findMine(
+    sellerId: string,
+    query: ListArtworksQueryDto,
+  ): Promise<ListArtworksResponseDto> {
+    const normalizedSellerId = this.cleanRequiredUuid(sellerId, 'sellerId');
+    const filters = this.normalizeQuery(query);
+
+    const queryBuilder = this.artworkRepository
+      .createQueryBuilder('artwork')
+      .leftJoinAndSelect('artwork.tags', 'tag')
+      .where('artwork.seller_id = :sellerId', { sellerId: normalizedSellerId });
+
+    if (filters.search) {
+      queryBuilder.andWhere(
+        '(artwork.title ILIKE :search OR artwork.description ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    if (filters.minPrice !== undefined) {
+      queryBuilder.andWhere('artwork.price >= :minPrice', {
+        minPrice: filters.minPrice,
+      });
+    }
+
+    if (filters.maxPrice !== undefined) {
+      queryBuilder.andWhere('artwork.price <= :maxPrice', {
+        maxPrice: filters.maxPrice,
+      });
+    }
+
+    if (filters.category) {
+      queryBuilder.andWhere('LOWER(tag.name) = LOWER(:category)', {
+        category: filters.category,
+      });
+    }
+
+    if (filters.material) {
+      queryBuilder.andWhere('artwork.materials ILIKE :material', {
+        material: `%${filters.material}%`,
+      });
+    }
+
+    const [data, total] = await queryBuilder
+      .orderBy('artwork.created_at', 'DESC')
+      .skip((filters.page - 1) * filters.limit)
+      .take(filters.limit)
+      .getManyAndCount();
+
+    return this.toResponseDto(ListArtworksResponseDto, {
+      data: data.map((artwork) => this.toArtworkResponse(artwork)),
+      meta: {
+        page: filters.page,
+        limit: filters.limit,
+        total,
+        totalPages: Math.ceil(total / filters.limit),
+        hasNextPage: filters.page * filters.limit < total,
+        hasPreviousPage: filters.page > 1,
+      },
+    });
+  }
+
   async findOne(id: string): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const artwork = await this.artworkRepository.findOne({
