@@ -60,6 +60,8 @@
     "discoverSearchPlaceholder": "Try “Dreamy” artworks",
     "categoryLabel": "Discovery categories",
     "filters": "Filters",
+    "artistArtworkAlt": "Artwork by artist {{artist}}",
+    "artistWorks": "{{count}} artworks",
     "minPrice": "Price from",
     "maxPrice": "To",
     "noLimit": "No limit",

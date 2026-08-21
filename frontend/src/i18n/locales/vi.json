@@ -60,6 +60,8 @@
     "discoverSearchPlaceholder": "Thử tìm tác phẩm “mơ màng”",
     "categoryLabel": "Danh mục khám phá",
     "filters": "Bộ lọc",
+    "artistArtworkAlt": "Tác phẩm của nghệ sĩ {{artist}}",
+    "artistWorks": "{{count}} tác phẩm",
     "minPrice": "Giá từ",
     "maxPrice": "Đến",
     "noLimit": "Không giới hạn",

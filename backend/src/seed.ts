@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
-import { User } from './user/entities/user.entity';
+import { User, UserRole } from './user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Artwork, ArtworkStatus } from './modules/artworks/artwork.entity';
 import { Tag } from './modules/artworks/tag.entity';
@@ -139,6 +139,12 @@ const artworkSeeds = [
   },
 ];
 
+const artistSeeds = [
+  { email: 'amelia.artist@artium.com', fullName: 'Amelia Stone' },
+  { email: 'minh.artist@artium.com', fullName: 'Minh Nguyen' },
+  { email: 'noah.artist@artium.com', fullName: 'Noah Rivera' },
+];
+
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   console.log('🌱 Bắt đầu chạy Seeder...');
@@ -167,6 +173,30 @@ async function bootstrap() {
       console.log('Tài khoản Admin đã tồn tại. Bỏ qua.');
     }
 
+    const artists: User[] = [];
+    for (const artistSeed of artistSeeds) {
+      let artist = await userRepository.findOneBy({ email: artistSeed.email });
+
+      if (!artist) {
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash('Artist@123', salt);
+        artist = userRepository.create({
+          email: artistSeed.email,
+          password: hashedPassword,
+          full_name: artistSeed.fullName,
+          role: UserRole.ARTIST,
+        });
+        artist = await userRepository.save(artist);
+        console.log(`Đã tạo artist: ${artistSeed.email}`);
+      } else if (artist.role !== UserRole.ARTIST) {
+        artist.role = UserRole.ARTIST;
+        artist.full_name = artist.full_name || artistSeed.fullName;
+        artist = await userRepository.save(artist);
+      }
+
+      artists.push(artist);
+    }
+
     const tagNames = [
       ...new Set(artworkSeeds.flatMap((artwork) => artwork.tags)),
     ];
@@ -180,17 +210,15 @@ async function bootstrap() {
       tagsByName.set(name, tag);
     }
 
-    const existingArtworks = await artworkRepository.find({
-      select: { title: true },
-    });
+    const existingArtworks = await artworkRepository.find();
     const existingTitles = new Set(
       existingArtworks.map((artwork) => artwork.title),
     );
     const newArtworks = artworkSeeds
       .filter((artwork) => !existingTitles.has(artwork.title))
-      .map((artwork) =>
+      .map((artwork, index) =>
         artworkRepository.create({
-          sellerId: admin.id,
+          sellerId: artists[index % artists.length].id,
           title: artwork.title,
           description: artwork.description,
           price: artwork.price,
@@ -207,9 +235,31 @@ async function bootstrap() {
         }),
       );
 
-    if (newArtworks.length > 0) {
-      await artworkRepository.save(newArtworks);
-      console.log(`Đã thêm ${newArtworks.length} tác phẩm mẫu.`);
+    const seededArtworkTitles = new Set(
+      artworkSeeds.map((artwork) => artwork.title),
+    );
+    const existingSeededArtworks = existingArtworks.filter((artwork) =>
+      seededArtworkTitles.has(artwork.title),
+    );
+    const reassignedArtworks = existingSeededArtworks.filter(
+      (artwork, index) => {
+        const artistId = artists[index % artists.length].id;
+        if (artwork.sellerId !== admin.id || artwork.sellerId === artistId) {
+          return false;
+        }
+        artwork.sellerId = artistId;
+        return true;
+      },
+    );
+
+    if (newArtworks.length > 0 || reassignedArtworks.length > 0) {
+      if (newArtworks.length > 0) await artworkRepository.save(newArtworks);
+      if (reassignedArtworks.length > 0) {
+        await artworkRepository.save(reassignedArtworks);
+      }
+      console.log(
+        `Đã thêm ${newArtworks.length} tác phẩm mẫu và phân bổ ${reassignedArtworks.length} tác phẩm cho artist.`,
+      );
     } else {
       console.log(' Dữ liệu tác phẩm mẫu đã tồn tại. Bỏ qua.');
     }

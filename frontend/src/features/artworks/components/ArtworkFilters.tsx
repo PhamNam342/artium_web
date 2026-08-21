@@ -6,12 +6,26 @@ import type { ArtworkFiltersValue } from '../types';
 interface ArtworkFiltersProps {
   value: ArtworkFiltersValue;
   onChange: (value: ArtworkFiltersValue) => void;
+  activeCategory: ArtworkCategory;
+  onCategoryChange: (category: ArtworkCategory) => void;
   resultCount?: number;
 }
 
-const categories = ['TOP PICKS', 'ARTWORKS', 'PROFILES', 'MOMENTS'];
+export type ArtworkCategory = 'top-picks' | 'artworks' | 'profiles';
 
-export default function ArtworkFilters({ value, onChange, resultCount }: ArtworkFiltersProps) {
+const categories: { id: ArtworkCategory; label: string }[] = [
+  { id: 'top-picks', label: 'TOP PICKS' },
+  { id: 'artworks', label: 'ARTWORKS' },
+  { id: 'profiles', label: 'PROFILES' },
+];
+
+export default function ArtworkFilters({
+  value,
+  onChange,
+  activeCategory,
+  onCategoryChange,
+  resultCount,
+}: ArtworkFiltersProps) {
   const { t } = useI18n();
   const [isFiltersOpen, setIsFiltersOpen] = useState(Boolean(value.minPrice || value.maxPrice));
   const updateValue = (field: keyof ArtworkFiltersValue, fieldValue: string) => {
@@ -24,18 +38,19 @@ export default function ArtworkFilters({ value, onChange, resultCount }: Artwork
     <div className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-3 px-5 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="-mx-1 flex max-w-full gap-2 overflow-x-auto px-1 pb-1 lg:pb-0" aria-label={t('artworks.categoryLabel')}>
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <button
-              key={category}
+              key={category.id}
               type="button"
+              onClick={() => onCategoryChange(category.id)}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-semibold tracking-wide transition ${
-                index === 0
+                activeCategory === category.id
                   ? 'border-slate-950 bg-slate-950 text-white'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950'
               }`}
-              aria-pressed={index === 0}
+              aria-pressed={activeCategory === category.id}
             >
-              {category}
+              {category.label}
             </button>
           ))}
         </div>

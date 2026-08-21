@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SearchX, UserRound } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nContext';
 import ArtworkCard from './ArtworkCard';
+import { getArtworkImage } from '../artworkService';
 import type { Artwork, ArtworkListMeta } from '../types';
 
 interface ArtworkGridProps {
@@ -9,9 +10,49 @@ interface ArtworkGridProps {
   isLoading: boolean;
   error: string | null;
   onPageChange: (page: number) => void;
+  variant?: 'artworks' | 'profiles';
 }
 
-export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageChange }: ArtworkGridProps) {
+function ProfileCard({ sellerId, artworks }: { sellerId: string; artworks: Artwork[] }) {
+  const { t } = useI18n();
+  const featuredArtwork = artworks.find((artwork) => getArtworkImage(artwork.images)) || artworks[0];
+  const image = featuredArtwork ? getArtworkImage(featuredArtwork.images) : undefined;
+
+  return (
+    <article className="mb-4 break-inside-avoid overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="relative aspect-square overflow-hidden bg-slate-100">
+        {image ? (
+          <img
+            src={image.secureUrl || image.url}
+            alt={t('artworks.artistArtworkAlt', { artist: sellerId.slice(0, 8) })}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-slate-400">
+            <UserRound className="h-9 w-9" aria-hidden="true" />
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+          <UserRound className="h-4 w-4" aria-hidden="true" />
+        </div>
+        <h2 className="mt-2 truncate text-base font-semibold text-slate-950">@{sellerId.slice(0, 8)}</h2>
+        <p className="mt-1 text-sm text-slate-500">{t('artworks.artistWorks', { count: artworks.length })}</p>
+      </div>
+    </article>
+  );
+}
+
+export default function ArtworkGrid({
+  artworks,
+  meta,
+  isLoading,
+  error,
+  onPageChange,
+  variant = 'artworks',
+}: ArtworkGridProps) {
   const { t } = useI18n();
   if (isLoading) {
     return (
@@ -36,6 +77,25 @@ export default function ArtworkGrid({ artworks, meta, isLoading, error, onPageCh
         <SearchX className="mx-auto h-9 w-9 text-slate-400" aria-hidden="true" />
         <h2 className="mt-4 text-lg font-semibold text-slate-900">{t('artworks.emptyTitle')}</h2>
         <p className="mt-1 text-sm text-slate-500">{t('artworks.emptyDescription')}</p>
+      </div>
+    );
+  }
+
+  if (variant === 'profiles') {
+    const profiles = Array.from(
+      artworks.reduce((grouped, artwork) => {
+        const profileArtworks = grouped.get(artwork.sellerId) || [];
+        profileArtworks.push(artwork);
+        grouped.set(artwork.sellerId, profileArtworks);
+        return grouped;
+      }, new Map<string, Artwork[]>()),
+    );
+
+    return (
+      <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
+        {profiles.map(([sellerId, profileArtworks]) => (
+          <ProfileCard key={sellerId} sellerId={sellerId} artworks={profileArtworks} />
+        ))}
       </div>
     );
   }
