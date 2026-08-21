@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 
 import MainLayout from '../layouts/MainLayout';
@@ -7,10 +7,14 @@ import AuthLayout from '../layouts/AuthLayout';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ArtworksPage from '../pages/ArtworksPage';
+import ArtworkDetailPage from '../pages/ArtworkDetailPage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 function GuestRoute() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
 
   if (isLoading) {
     return (
@@ -21,7 +25,7 @@ function GuestRoute() {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <Outlet />;
@@ -51,6 +55,8 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/artworks" element={<ArtworksPage />} />
+          <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
         </Route>
 
         <Route element={<GuestRoute />}>
