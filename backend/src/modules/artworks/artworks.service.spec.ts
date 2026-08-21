@@ -40,13 +40,16 @@ describe('ArtworksService', () => {
   });
 
   it('creates an artwork with normalized defaults', async () => {
-    const created = await service.create({
+    const created = await service.create(
+      {
+        sellerId,
+        title: '  New Piece  ',
+        price: 1500,
+        currency: 'usd',
+        materials: 'Oil on canvas',
+      },
       sellerId,
-      title: '  New Piece  ',
-      price: 1500,
-      currency: 'usd',
-      materials: 'Oil on canvas',
-    });
+    );
 
     expect(artworkRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -71,21 +74,27 @@ describe('ArtworksService', () => {
 
   it('rejects an invalid seller id before saving', async () => {
     await expect(
-      service.create({
-        sellerId: 'not-a-uuid',
-        title: 'New Piece',
-      }),
+      service.create(
+        {
+          sellerId: 'not-a-uuid',
+          title: 'New Piece',
+        },
+        'not-a-uuid',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
   it('maps legacy available status to active', async () => {
-    await service.create({
+    await service.create(
+      {
+        sellerId,
+        title: 'Published Piece',
+        status: 'available',
+      },
       sellerId,
-      title: 'Published Piece',
-      status: 'available',
-    });
+    );
 
     expect(artworkRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -181,9 +190,7 @@ describe('ArtworksService', () => {
       getManyAndCount: jest.fn().mockResolvedValue([[artwork], 1]),
     };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.createQueryBuilder?.mockReturnValue(
-      queryBuilder as never,
-    );
+    artworkRepository.createQueryBuilder?.mockReturnValue(queryBuilder);
 
     await expect(service.findMine(sellerId, {})).resolves.toEqual({
       data: [
@@ -250,18 +257,22 @@ describe('ArtworksService', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     tagRepository.find?.mockResolvedValue([tag]);
 
-    const updated = await service.update(artworkId, {
-      title: '  Updated Piece  ',
-      price: 250,
-      currency: 'usd',
-      status: 'available',
-      isPublished: true,
-      materials: 'Oil on canvas',
-      tagIds: [tag.id],
-    });
+    const updated = await service.update(
+      artworkId,
+      {
+        title: '  Updated Piece  ',
+        price: 250,
+        currency: 'usd',
+        status: 'available',
+        isPublished: true,
+        materials: 'Oil on canvas',
+        tagIds: [tag.id],
+      },
+      sellerId,
+    );
 
     expect(artworkRepository.findOne).toHaveBeenCalledWith({
-      where: { id: artworkId },
+      where: { id: artworkId, sellerId },
       relations: { tags: true },
     });
     expect(artworkRepository.save).toHaveBeenCalledWith(
@@ -288,9 +299,9 @@ describe('ArtworksService', () => {
   it('rejects an empty artwork update body', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
 
-    await expect(service.update(artworkId, {})).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(
+      service.update(artworkId, {}, sellerId),
+    ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(artworkRepository.findOne).not.toHaveBeenCalled();
     expect(artworkRepository.save).not.toHaveBeenCalled();
@@ -302,9 +313,26 @@ describe('ArtworksService', () => {
     artworkRepository.findOne?.mockResolvedValue(null);
 
     await expect(
-      service.update(artworkId, { title: 'Updated Piece' }),
+      service.update(artworkId, { title: 'Updated Piece' }, sellerId),
     ).rejects.toBeInstanceOf(NotFoundException);
 
+    expect(artworkRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('only updates artwork owned by the authenticated seller', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    artworkRepository.findOne?.mockResolvedValue(null);
+
+    await expect(
+      service.update(artworkId, { title: 'Not mine' }, otherSellerId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(artworkRepository.findOne).toHaveBeenCalledWith({
+      where: { id: artworkId, sellerId: otherSellerId },
+      relations: { tags: true },
+    });
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
@@ -316,14 +344,17 @@ describe('ArtworksService', () => {
       raw: {},
     });
 
-    await expect(service.remove(artworkId)).resolves.toEqual({
+    await expect(service.remove(artworkId, sellerId)).resolves.toEqual({
       success: true,
     });
-    expect(artworkRepository.delete).toHaveBeenCalledWith({ id: artworkId });
+    expect(artworkRepository.delete).toHaveBeenCalledWith({
+      id: artworkId,
+      sellerId,
+    });
   });
 
   it('rejects an invalid artwork delete id', async () => {
-    await expect(service.remove('bad-id')).rejects.toBeInstanceOf(
+    await expect(service.remove('bad-id', sellerId)).rejects.toBeInstanceOf(
       BadRequestException,
     );
 
@@ -338,8 +369,26 @@ describe('ArtworksService', () => {
       raw: {},
     });
 
-    await expect(service.remove(artworkId)).rejects.toBeInstanceOf(
+    await expect(service.remove(artworkId, sellerId)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('only deletes artwork owned by the authenticated seller', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    artworkRepository.delete?.mockResolvedValue({
+      affected: 0,
+      raw: {},
+    });
+
+    await expect(
+      service.remove(artworkId, otherSellerId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(artworkRepository.delete).toHaveBeenCalledWith({
+      id: artworkId,
+      sellerId: otherSellerId,
+    });
   });
 });
