@@ -62,6 +62,7 @@
     "filters": "Filters",
     "artistArtworkAlt": "Artwork by artist {{artist}}",
     "artistWorks": "{{count}} artworks",
+    "backToProfiles": "Back to profiles",
     "minPrice": "Price from",
     "maxPrice": "To",
     "noLimit": "No limit",

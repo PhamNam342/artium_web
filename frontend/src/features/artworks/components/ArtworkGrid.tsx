@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, SearchX, UserRound } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, SearchX, UserRound } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nContext';
 import ArtworkCard from './ArtworkCard';
 import { getArtworkImage } from '../artworkService';
@@ -11,15 +11,30 @@ interface ArtworkGridProps {
   error: string | null;
   onPageChange: (page: number) => void;
   variant?: 'artworks' | 'profiles';
+  selectedProfileId?: string | null;
+  onProfileSelect?: (sellerId: string) => void;
+  onProfileBack?: () => void;
 }
 
-function ProfileCard({ sellerId, artworks }: { sellerId: string; artworks: Artwork[] }) {
+function ProfileCard({
+  sellerId,
+  artworks,
+  onSelect,
+}: {
+  sellerId: string;
+  artworks: Artwork[];
+  onSelect: () => void;
+}) {
   const { t } = useI18n();
   const featuredArtwork = artworks.find((artwork) => getArtworkImage(artwork.images)) || artworks[0];
   const image = featuredArtwork ? getArtworkImage(featuredArtwork.images) : undefined;
 
   return (
-    <article className="mb-4 break-inside-avoid overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <button
+      type="button"
+      onClick={onSelect}
+      className="group mb-4 block w-full break-inside-avoid overflow-hidden rounded-lg border border-slate-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+    >
       <div className="relative aspect-square overflow-hidden bg-slate-100">
         {image ? (
           <img
@@ -41,7 +56,7 @@ function ProfileCard({ sellerId, artworks }: { sellerId: string; artworks: Artwo
         <h2 className="mt-2 truncate text-base font-semibold text-slate-950">@{sellerId.slice(0, 8)}</h2>
         <p className="mt-1 text-sm text-slate-500">{t('artworks.artistWorks', { count: artworks.length })}</p>
       </div>
-    </article>
+    </button>
   );
 }
 
@@ -52,6 +67,9 @@ export default function ArtworkGrid({
   error,
   onPageChange,
   variant = 'artworks',
+  selectedProfileId,
+  onProfileSelect,
+  onProfileBack,
 }: ArtworkGridProps) {
   const { t } = useI18n();
   if (isLoading) {
@@ -91,10 +109,48 @@ export default function ArtworkGrid({
       }, new Map<string, Artwork[]>()),
     );
 
+    const selectedProfile = selectedProfileId
+      ? profiles.find(([sellerId]) => sellerId === selectedProfileId)
+      : undefined;
+
+    if (selectedProfile) {
+      const [sellerId, profileArtworks] = selectedProfile;
+
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={onProfileBack}
+            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-950"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            {t('artworks.backToProfiles')}
+          </button>
+          <div className="mb-7 flex items-center gap-4 border-b border-slate-200 pb-6">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+              <UserRound className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-950">@{sellerId.slice(0, 8)}</h1>
+              <p className="mt-1 text-sm text-slate-500">{t('artworks.artistWorks', { count: profileArtworks.length })}</p>
+            </div>
+          </div>
+          <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
+            {profileArtworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} />)}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
         {profiles.map(([sellerId, profileArtworks]) => (
-          <ProfileCard key={sellerId} sellerId={sellerId} artworks={profileArtworks} />
+          <ProfileCard
+            key={sellerId}
+            sellerId={sellerId}
+            artworks={profileArtworks}
+            onSelect={() => onProfileSelect?.(sellerId)}
+          />
         ))}
       </div>
     );

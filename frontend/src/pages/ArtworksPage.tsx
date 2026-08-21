@@ -12,6 +12,7 @@ export default function ArtworksPage() {
   const { t } = useI18n();
   const [filters, setFilters] = useState<ArtworkFiltersValue>(INITIAL_FILTERS);
   const [activeCategory, setActiveCategory] = useState<ArtworkCategory>('top-picks');
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [meta, setMeta] = useState<ArtworkListMeta | null>(null);
@@ -25,6 +26,7 @@ export default function ArtworksPage() {
 
   const handleCategoryChange = (category: ArtworkCategory) => {
     setActiveCategory(category);
+    setSelectedProfileId(null);
     setPage(1);
   };
 
@@ -70,6 +72,9 @@ export default function ArtworksPage() {
           error={error}
           onPageChange={setPage}
           variant={activeCategory === 'profiles' ? 'profiles' : 'artworks'}
+          selectedProfileId={selectedProfileId}
+          onProfileSelect={setSelectedProfileId}
+          onProfileBack={() => setSelectedProfileId(null)}
         />
       </section>
     </div>

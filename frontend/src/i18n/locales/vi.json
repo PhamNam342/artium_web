@@ -62,6 +62,7 @@
     "filters": "Bộ lọc",
     "artistArtworkAlt": "Tác phẩm của nghệ sĩ {{artist}}",
     "artistWorks": "{{count}} tác phẩm",
+    "backToProfiles": "Quay lại danh sách artist",
     "minPrice": "Giá từ",
     "maxPrice": "Đến",
     "noLimit": "Không giới hạn",
