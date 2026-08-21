@@ -16,27 +16,27 @@ export class CreateArtworkTables1787011200000 implements MigrationInterface {
       `CREATE TABLE IF NOT EXISTS "tags" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying(100) NOT NULL, CONSTRAINT "PK_e7dc17249a1148a1970748eda99" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE IF NOT EXISTS "artworks" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "seller_id" uuid NOT NULL, "title" character varying(100) NOT NULL, "description" text, "price" numeric(12,2), "currency" character varying(10), "status" "public"."artworks_status_enum" NOT NULL DEFAULT 'DRAFT', "is_published" boolean NOT NULL DEFAULT false, "images" jsonb NOT NULL DEFAULT '[]'::jsonb, "folder_id" uuid, "view_count" integer NOT NULL DEFAULT 0, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "materials" character varying(80), "dimensions" jsonb, "weight" numeric(10,2), CONSTRAINT "PK_71c9a30b72fe5876f1a88499219" PRIMARY KEY ("id"))`,
+      `CREATE TABLE IF NOT EXISTS "artworks" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "seller_id" uuid NOT NULL, "title" character varying(100) NOT NULL, "description" text, "price" numeric(12,2), "currency" character varying(10), "status" "public"."artworks_status_enum" NOT NULL DEFAULT 'DRAFT', "is_published" boolean NOT NULL DEFAULT false, "images" jsonb NOT NULL DEFAULT '[]'::jsonb, "folder_id" uuid, "view_count" integer NOT NULL DEFAULT 0, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "materials" character varying(80), "dimensions" jsonb, "weight" numeric(10,2), CONSTRAINT "PK_e452ea65fb5958274badfe245de" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE IF NOT EXISTS "artwork_tags" ("artwork_id" uuid NOT NULL, "tag_id" uuid NOT NULL, CONSTRAINT "PK_5fdb3e1957bf3b5c69d069bb929" PRIMARY KEY ("artwork_id", "tag_id"))`,
+      `CREATE TABLE IF NOT EXISTS "artwork_tags" ("artwork_id" uuid NOT NULL, "tag_id" uuid NOT NULL, CONSTRAINT "PK_68e37eddbe48a633de9b70ca5fb" PRIMARY KEY ("artwork_id", "tag_id"))`,
     );
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_1e3cb3477dd1e2b2f6392b5ddd" ON "artwork_tags" ("artwork_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_833f5b29b7d30192e1677c05a7" ON "artwork_tags" ("artwork_id")`,
     );
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_55dc349ee75370e6152e7a4d7f" ON "artwork_tags" ("tag_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_a9b52b87e31816112be6a1a619" ON "artwork_tags" ("tag_id")`,
     );
     await queryRunner.query(
       `DO $$ BEGIN
-        ALTER TABLE "artwork_tags" ADD CONSTRAINT "FK_1e3cb3477dd1e2b2f6392b5ddd4" FOREIGN KEY ("artwork_id") REFERENCES "artworks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        ALTER TABLE "artwork_tags" ADD CONSTRAINT "FK_833f5b29b7d30192e1677c05a76" FOREIGN KEY ("artwork_id") REFERENCES "artworks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
       EXCEPTION
         WHEN duplicate_object THEN NULL;
       END $$`,
     );
     await queryRunner.query(
       `DO $$ BEGIN
-        ALTER TABLE "artwork_tags" ADD CONSTRAINT "FK_55dc349ee75370e6152e7a4d7f0" FOREIGN KEY ("tag_id") REFERENCES "tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        ALTER TABLE "artwork_tags" ADD CONSTRAINT "FK_a9b52b87e31816112be6a1a6198" FOREIGN KEY ("tag_id") REFERENCES "tags"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
       EXCEPTION
         WHEN duplicate_object THEN NULL;
       END $$`,
@@ -45,16 +45,16 @@ export class CreateArtworkTables1787011200000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE IF EXISTS "artwork_tags" DROP CONSTRAINT IF EXISTS "FK_55dc349ee75370e6152e7a4d7f0"`,
+      `ALTER TABLE IF EXISTS "artwork_tags" DROP CONSTRAINT IF EXISTS "FK_a9b52b87e31816112be6a1a6198"`,
     );
     await queryRunner.query(
-      `ALTER TABLE IF EXISTS "artwork_tags" DROP CONSTRAINT IF EXISTS "FK_1e3cb3477dd1e2b2f6392b5ddd4"`,
+      `ALTER TABLE IF EXISTS "artwork_tags" DROP CONSTRAINT IF EXISTS "FK_833f5b29b7d30192e1677c05a76"`,
     );
     await queryRunner.query(
-      `DROP INDEX IF EXISTS "public"."IDX_55dc349ee75370e6152e7a4d7f"`,
+      `DROP INDEX IF EXISTS "public"."IDX_a9b52b87e31816112be6a1a619"`,
     );
     await queryRunner.query(
-      `DROP INDEX IF EXISTS "public"."IDX_1e3cb3477dd1e2b2f6392b5ddd"`,
+      `DROP INDEX IF EXISTS "public"."IDX_833f5b29b7d30192e1677c05a7"`,
     );
     await queryRunner.query(`DROP TABLE IF EXISTS "artwork_tags"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "artworks"`);

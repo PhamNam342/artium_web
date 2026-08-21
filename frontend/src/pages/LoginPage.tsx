@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   GoogleLogin,
   type CredentialResponse,
@@ -17,6 +17,8 @@ import ForgotPasswordModal from '../features/auth/components/ForgotPasswordModal
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
 
   const { login, loginWithGoogle } = useAuth();
   const { t, getApiError } = useI18n();
@@ -52,7 +54,7 @@ export default function LoginPage() {
       // AuthContext đã cập nhật user.
       // App sẽ tự kiểm tra user.role để hiển thị
       // CompleteProfileModal nếu cần.
-      navigate('/');
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
 
@@ -91,7 +93,7 @@ export default function LoginPage() {
 
       // Nếu user mới chưa có role,
       // CompleteProfileModal sẽ được App hiển thị.
-      navigate('/');
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
 
