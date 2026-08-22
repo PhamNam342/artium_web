@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function HomePage() {
+export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const faqs = [

@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
-import { User, UserRole } from './user/entities/user.entity';
+import { User, UserRole } from './identity/user/entities/user.entity';
+
 import * as bcrypt from 'bcrypt';
 import { Artwork, ArtworkStatus } from './modules/artworks/artwork.entity';
 import { Tag } from './modules/artworks/tag.entity';

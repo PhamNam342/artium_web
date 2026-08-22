@@ -16,3 +16,9 @@ export type UploadedArtworkImage = {
   order: number;
   isPrimary: boolean;
 };
+export type UploadedAvatarFile = {
+  buffer: Buffer;
+  originalname: string;
+  mimetype: string;
+  size: number;
+};

@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile } from 'fs/promises';
 import { extname, join, posix } from 'path';
-import { StorageService, UploadArtworkImageInput } from './storage.service';
+import {
+  StorageService,
+  UploadArtworkImageInput,
+  UploadAvatarInput,
+} from './storage.service';
 
 @Injectable()
 export class LocalStorageService implements StorageService {
@@ -77,5 +81,16 @@ export class LocalStorageService implements StorageService {
   private buildPublicUrl(baseUrl: string, publicId: string) {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
     return `${normalizedBaseUrl}/${this.publicRoot}/${publicId}`;
+  }
+  //upload avatar
+  async uploadAvatar(input: UploadAvatarInput): Promise<string> {
+    const userSegment = this.toPathSegment(input.userId);
+    const uploadDirectory = join(this.uploadRoot, 'avatars', userSegment);
+    await mkdir(uploadDirectory, { recursive: true });
+    const extension = this.resolveExtension(input.file);
+    const fileName = `${randomUUID()}${extension}`;
+    const publicId = posix.join('avatars', userSegment, fileName);
+    await writeFile(join(uploadDirectory, fileName), input.file.buffer);
+    return this.buildPublicUrl(input.baseUrl, publicId);
   }
 }

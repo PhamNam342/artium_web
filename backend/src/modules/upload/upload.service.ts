@@ -84,4 +84,22 @@ export class UploadService {
       );
     }
   }
+  // upload avatar
+  async uploadAvatar(
+    file: UploadedArtworkFile | undefined,
+    userId: string,
+    baseUrl: string,
+  ): Promise<string> {
+    if (!file?.buffer) {
+      throw new BadRequestException(t('avatar.validation.file_empty'));
+    }
+
+    this.assertImageFile(file, 0);
+
+    return this.storageService.uploadAvatar({
+      file,
+      userId,
+      baseUrl,
+    });
+  }
 }

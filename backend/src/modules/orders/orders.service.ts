@@ -12,7 +12,10 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
   ) {}
 
-  async createOrder(collectorId: string, createOrderDto: CreateOrderDto): Promise<{ orderId: string }> {
+  async createOrder(
+    collectorId: string,
+    createOrderDto: CreateOrderDto,
+  ): Promise<{ orderId: string }> {
     const order = this.orderRepository.create({
       collectorId,
       status: OrderStatus.PENDING,
@@ -49,9 +52,12 @@ export class OrdersService {
     return order;
   }
 
-  async updateOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<Order> {
+  async updateOrderStatus(
+    id: string,
+    updateOrderStatusDto: UpdateOrderStatusDto,
+  ): Promise<Order> {
     const order = await this.getOrderById(id);
-    
+
     order.status = updateOrderStatusDto.status;
     return this.orderRepository.save(order);
   }

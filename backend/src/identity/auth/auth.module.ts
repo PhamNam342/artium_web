@@ -8,13 +8,14 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { MailModule } from '../../common/mail/mail.module';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { RedisModule } from '../../common/redis/redis.module';
+import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
 @Module({
   imports: [
     ConfigModule,
     RedisModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, SellerProfile]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],

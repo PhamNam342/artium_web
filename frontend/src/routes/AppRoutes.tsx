@@ -4,11 +4,13 @@ import { useAuth } from '../features/auth/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 
-import HomePage from '../pages/HomePage';
+import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ProfilePage from '../pages/ProfilePage';
 import ArtworksPage from '../pages/ArtworksPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
+
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 function GuestRoute() {
@@ -54,7 +56,7 @@ export default function AppRoutes() {
     <>
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
         </Route>
@@ -69,6 +71,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             {/* Protected routes go here */}
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 

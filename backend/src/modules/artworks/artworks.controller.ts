@@ -21,7 +21,6 @@ import {
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
-
 @Controller('artwork')
 export class ArtworksController {
   constructor(private readonly artworksService: ArtworksService) {}

@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../features/auth/types';
 import { Eye, EyeOff } from 'lucide-react';
+import ForgotPasswordModal from '../features/auth/components/ForgotPasswordModal';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
 
   const googleClientId =
     import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -290,7 +292,8 @@ export default function LoginPage() {
 
             <button
               type="button"
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              onClick={() => setIsForgotOpen(true)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
             >
               {t('auth.forgotPassword')}
             </button>
@@ -401,6 +404,12 @@ export default function LoginPage() {
           {t('auth.registerFree')}
         </Link>
       </p>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotOpen}
+        onClose={() => setIsForgotOpen(false)}
+      />
     </div>
   );
 }
