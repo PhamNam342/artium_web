@@ -62,6 +62,20 @@ export default function OrderDetailPage() {
     );
   }
 
+  const formatOrderAmount = (amount: number | null) => {
+    if (amount === null) {
+      return '—';
+    }
+
+    return formatArtworkPrice(
+      amount.toString(),
+      'VND',
+      language === 'en' ? 'en-US' : 'vi-VN',
+      '',
+    );
+  };
+
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       <Link

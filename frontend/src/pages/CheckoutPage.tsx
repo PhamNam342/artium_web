@@ -241,19 +241,19 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <dt>{t('orders.subtotal')}</dt>
                 <dd className="font-medium text-slate-900">
-                  {formatArtworkPrice(priceValue.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatArtworkPrice(priceValue.toString(), 'VND', language === 'en' ? 'en-US' : 'vi-VN', '')}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt>{t('orders.shipping')}</dt>
                 <dd className="font-medium text-slate-900">
-                  {formatArtworkPrice('0', 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatArtworkPrice('0', 'VND', language === 'en' ? 'en-US' : 'vi-VN', '')}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-slate-200 pt-4 text-base font-semibold text-slate-900">
                 <dt>{t('orders.total')}</dt>
                 <dd>
-                  {formatArtworkPrice(priceValue.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatArtworkPrice(priceValue.toString(), 'VND', language === 'en' ? 'en-US' : 'vi-VN', '')}
                 </dd>
               </div>
             </dl>

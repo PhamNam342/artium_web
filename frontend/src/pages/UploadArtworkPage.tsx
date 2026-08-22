@@ -81,7 +81,7 @@ const EMPTY_FORM: ArtworkForm = {
   title: '',
   description: '',
   price: '',
-  currency: 'USD',
+  currency: 'VND',
   year: '',
   editionRun: '',
   height: '',
@@ -145,7 +145,7 @@ export default function UploadArtworkPage() {
           title: artwork.title,
           description: artwork.description || '',
           price: artwork.price || '',
-          currency: artwork.currency || 'USD',
+          currency: artwork.currency || 'VND',
           year: '',
           editionRun: '',
           height: dimensions?.height === undefined ? '' : String(dimensions.height),
@@ -571,7 +571,6 @@ function ArtworkDetailsForm({
         <NumberField label="Price" value={form.price} onChange={(value) => onChange('price', value)} />
         <label className="block text-xs font-medium text-slate-500">Currency
           <select value={form.currency} onChange={(event) => onChange('currency', event.target.value)} className="field-input mt-2">
-            <option value="USD">USD</option>
             <option value="VND">VND</option>
           </select>
         </label>
