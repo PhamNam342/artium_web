@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowUpDown,
+  CalendarDays,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CirclePlus,
@@ -26,6 +28,26 @@ import type { Artwork } from '../features/artworks/types';
 type InventoryTab = 'artworks' | 'artists';
 type ViewMode = 'list' | 'compact' | 'grid';
 
+type InventoryFilters = {
+  status: string;
+  listingType: string;
+  location: string;
+  customTag: string;
+  visibilityType: string;
+  dateFrom: string;
+  dateTo: string;
+};
+
+const EMPTY_FILTERS: InventoryFilters = {
+  status: '',
+  listingType: '',
+  location: '',
+  customTag: '',
+  visibilityType: '',
+  dateFrom: '',
+  dateTo: '',
+};
+
 export default function InventoryPage() {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -34,6 +56,8 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterDraft, setFilterDraft] = useState<InventoryFilters>(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<InventoryFilters>(EMPTY_FILTERS);
   const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
   const [sortLabel, setSortLabel] = useState('Date Created (Newest)');
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -43,6 +67,7 @@ export default function InventoryPage() {
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null);
   const [isDeletingArtwork, setIsDeletingArtwork] = useState(false);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const closeUploadMenu = (event: MouseEvent) => {
@@ -137,9 +162,23 @@ export default function InventoryPage() {
 
   const items = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const filtered = query
+    const searchFiltered = query
       ? artworks.filter((artwork) => artwork.title.toLowerCase().includes(query))
       : artworks;
+
+    const filtered = searchFiltered.filter((artwork) => {
+      if (appliedFilters.status && artwork.status !== appliedFilters.status) return false;
+      if (appliedFilters.listingType === 'listed' && !artwork.isPublished) return false;
+      if (appliedFilters.listingType === 'not-listed' && artwork.isPublished) return false;
+      if (appliedFilters.visibilityType === 'public' && !artwork.isPublished) return false;
+      if (appliedFilters.visibilityType === 'private' && artwork.isPublished) return false;
+      if (appliedFilters.customTag && !artwork.customTags.some((tag) => tag.toLocaleLowerCase() === appliedFilters.customTag.toLocaleLowerCase())) return false;
+
+      const createdAt = artwork.createdAt ? new Date(artwork.createdAt).getTime() : null;
+      if (appliedFilters.dateFrom && (!createdAt || createdAt < new Date(`${appliedFilters.dateFrom}T00:00:00`).getTime())) return false;
+      if (appliedFilters.dateTo && (!createdAt || createdAt > new Date(`${appliedFilters.dateTo}T23:59:59`).getTime())) return false;
+      return true;
+    });
 
     return [...filtered].sort((first, second) => {
       if (sortLabel === 'Title (A–Z)') return first.title.localeCompare(second.title);
@@ -147,7 +186,12 @@ export default function InventoryPage() {
       const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
       return sortLabel === 'Date Created (Oldest)' ? firstDate - secondDate : secondDate - firstDate;
     });
-  }, [artworks, search, sortLabel]);
+  }, [appliedFilters, artworks, search, sortLabel]);
+
+  const customTags = useMemo(
+    () => [...new Set(artworks.flatMap((artwork) => artwork.customTags))].sort((first, second) => first.localeCompare(second)),
+    [artworks],
+  );
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
@@ -262,6 +306,7 @@ export default function InventoryPage() {
 
               <div className="relative">
                 <button
+                  ref={filterButtonRef}
                   type="button"
                   onClick={() => setIsSortOpen((open) => !open)}
                   className="inline-flex h-[46px] items-center gap-2 rounded-[12px] bg-slate-100 px-3 text-sm font-semibold text-slate-900 hover:bg-slate-200"
@@ -289,28 +334,18 @@ export default function InventoryPage() {
                 )}
               </div>
 
-              <div className="relative">
+              <div>
                 <button
                   type="button"
-                  onClick={() => setIsFilterOpen((open) => !open)}
+                  onClick={() => {
+                    setFilterDraft(appliedFilters);
+                    setIsFilterOpen(true);
+                  }}
                   className={`inline-flex h-[46px] items-center gap-2.5 rounded-[12px] px-3 text-sm font-semibold transition-colors ${isFilterOpen ? 'bg-slate-200' : 'bg-slate-100 hover:bg-slate-200'}`}
                 >
                   <SlidersHorizontal size={22} strokeWidth={1.8} />
                   Filter
                 </button>
-                {isFilterOpen && (
-                  <div className="absolute right-0 top-[70px] z-10 w-64 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-lg">
-                    <p className="font-semibold text-slate-900">Filter artworks</p>
-                    <label className="mt-3 flex items-center gap-2 text-slate-600">
-                      <input type="checkbox" className="h-4 w-4 rounded border-slate-300" />
-                      Drafts only
-                    </label>
-                    <label className="mt-2 flex items-center gap-2 text-slate-600">
-                      <input type="checkbox" className="h-4 w-4 rounded border-slate-300" />
-                      Listed on marketplace
-                    </label>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -376,6 +411,19 @@ export default function InventoryPage() {
           isDeleting={isDeletingArtwork}
           onCancel={() => setArtworkToDelete(null)}
           onConfirm={() => void deleteArtwork()}
+        />
+      )}
+      {isFilterOpen && (
+        <FilterDialog
+          filters={filterDraft}
+          customTags={customTags}
+          anchorRef={filterButtonRef}
+          onChange={(field, value) => setFilterDraft((current) => ({ ...current, [field]: value }))}
+          onCancel={() => setIsFilterOpen(false)}
+          onApply={() => {
+            setAppliedFilters(filterDraft);
+            setIsFilterOpen(false);
+          }}
         />
       )}
     </div>
@@ -474,6 +522,112 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
           <DraftAction icon={Trash2} label="Delete Artwork" destructive onClick={() => { onDelete(); onClose(); }} />
         </div>
       )}
+    </div>
+  );
+}
+
+function FilterDialog({ filters, customTags, anchorRef, onChange, onCancel, onApply }: {
+  filters: InventoryFilters;
+  customTags: string[];
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  onChange: (field: keyof InventoryFilters, value: string) => void;
+  onCancel: () => void;
+  onApply: () => void;
+}) {
+  const [position, setPosition] = useState({ top: 90, right: 24 });
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCancel();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [onCancel]);
+
+  useEffect(() => {
+    const updatePosition = () => {
+      const rect = anchorRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPosition({
+        top: rect.bottom + 12,
+        right: Math.max(16, window.innerWidth - rect.right),
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [anchorRef]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/15"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="inventory-filter-title"
+        style={{ top: position.top, right: position.right, maxHeight: `calc(100vh - ${position.top + 16}px)` }}
+        className="absolute w-[calc(100%-2rem)] max-w-[600px] overflow-y-auto rounded-[24px] bg-white p-5 shadow-[0_12px_26px_rgba(15,23,42,0.24)] sm:p-7"
+      >
+        <h2 id="inventory-filter-title" className="text-lg font-bold text-slate-500">Filters</h2>
+        <div className="mt-5 space-y-4">
+          <FilterSelect label="Status" value={filters.status} onChange={(value) => onChange('status', value)} options={[
+            ['DRAFT', 'Draft'], ['ACTIVE', 'Active'], ['SOLD', 'Sold'], ['RESERVED', 'Reserved'], ['INACTIVE', 'Inactive'],
+          ]} />
+          <FilterSelect label="Listing Type" value={filters.listingType} onChange={(value) => onChange('listingType', value)} options={[
+            ['listed', 'Listed on marketplace'], ['not-listed', 'Not listed'],
+          ]} />
+          <FilterSelect label="Location" value={filters.location} onChange={(value) => onChange('location', value)} options={[]} />
+          <FilterSelect label="Custom tags" value={filters.customTag} onChange={(value) => onChange('customTag', value)} options={customTags.map((tag) => [tag, tag])} />
+          <FilterSelect label="Visibility Type" value={filters.visibilityType} onChange={(value) => onChange('visibilityType', value)} options={[
+            ['public', 'Public'], ['private', 'Private'],
+          ]} />
+        </div>
+
+        <div className="mt-5">
+          <p className="text-base font-bold text-slate-500">Date range</p>
+          <div className="mt-3">
+            <FilterSelect label="Date created" value="created" onChange={() => undefined} options={[["created", "Date created"]]} />
+          </div>
+          <div className="mt-3 flex min-h-[64px] flex-col gap-2 rounded-[18px] border-2 border-slate-200 px-5 py-3 sm:flex-row sm:items-center">
+            <CalendarDays className="shrink-0 text-slate-500" size={22} strokeWidth={2} />
+            <input aria-label="Start date" type="date" value={filters.dateFrom} onChange={(event) => onChange('dateFrom', event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none" />
+            <span className="hidden text-slate-400 sm:block">to</span>
+            <input aria-label="End date" type="date" value={filters.dateTo} min={filters.dateFrom || undefined} onChange={(event) => onChange('dateTo', event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none" />
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button type="button" onClick={onCancel} className="min-w-[130px] rounded-full border-2 border-slate-200 px-6 py-2.5 text-base font-bold text-slate-950 hover:bg-slate-50">Cancel</button>
+          <button type="button" onClick={onApply} className="min-w-[130px] rounded-full bg-blue-600 px-6 py-2.5 text-base font-bold text-white hover:bg-blue-700">Apply</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function FilterSelect({ label, value, onChange, options }: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[][];
+}) {
+  return (
+    <div className="relative">
+      <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)} className="h-[64px] w-full appearance-none rounded-[18px] border-2 border-slate-200 bg-white px-6 pr-12 text-base font-semibold text-slate-800 outline-none transition-colors focus:border-blue-500">
+        <option value="">{label}</option>
+        {options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-slate-500" size={21} strokeWidth={2.5} />
     </div>
   );
 }
