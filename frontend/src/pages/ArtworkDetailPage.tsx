@@ -97,7 +97,9 @@ export default function ArtworkDetailPage() {
       return;
     }
 
-    toast(t('artworks.purchaseComingSoon'));
+    if (artwork) {
+      navigate(`/checkout/${artwork.id}`);
+    }
   };
 
   useEffect(() => {
