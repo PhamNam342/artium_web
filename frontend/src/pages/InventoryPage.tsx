@@ -332,6 +332,7 @@ export default function InventoryPage() {
 
 function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: ViewMode; onEdit: () => void }) {
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
+  const closeDraftMenu = () => setIsDraftMenuOpen(false);
   const image = getArtworkImage(item.images);
   const dimensions = item.dimensions
     ? `${[item.dimensions.height, item.dimensions.width, item.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${item.dimensions.unit ?? ''}`.trim()
@@ -344,7 +345,7 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
-          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onEdit={onEdit} />}
+          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
@@ -360,7 +361,7 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
-          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onEdit={onEdit} />}
+          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
@@ -373,9 +374,29 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
   );
 }
 
-function DraftActionsMenu({ isOpen, onToggle, onEdit }: { isOpen: boolean; onToggle: () => void; onEdit: () => void }) {
+function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit }: { isOpen: boolean; onToggle: () => void; onClose: () => void; onEdit: () => void }) {
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) onClose();
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isOpen, onClose]);
+
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button type="button" aria-label="Draft artwork actions" aria-expanded={isOpen} onClick={onToggle} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
       {isOpen && (
         <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
