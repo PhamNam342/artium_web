@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -55,7 +55,43 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
   const [sortLabel, setSortLabel] = useState('Date Created (Newest)');
+  const uploadMenuRef = useRef<HTMLDivElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const closeUploadMenu = (event: MouseEvent) => {
+      if (!uploadMenuRef.current?.contains(event.target as Node)) {
+        setIsUploadMenuOpen(false);
+      }
+    };
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsUploadMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', closeUploadMenu);
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', closeUploadMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, []);
+
+  const selectArtworkFiles = () => {
+    setIsUploadMenuOpen(false);
+    uploadInputRef.current?.click();
+  };
+
+  const handleArtworkFileSelection = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles?.length) return;
+
+    toast.success(`${selectedFiles.length} artwork image${selectedFiles.length > 1 ? 's' : ''} selected.`);
+    event.target.value = '';
+  };
 
   const items = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -64,12 +100,12 @@ export default function InventoryPage() {
   }, [search]);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-white px-4 py-8 text-slate-900 sm:px-8 sm:py-10 lg:px-12 lg:py-11">
+    <div className="min-h-[calc(100vh-4rem)] bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
       <div className="mx-auto max-w-[1920px]">
-        <div className="mb-9 flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
+        <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
           <div>
-            <h1 className="text-[32px] font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[36px]">Inventory</h1>
-            <p className="mt-2 text-base leading-6 text-slate-500 sm:text-[18px]">
+            <h1 className="text-[24px] font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[26px]">Inventory</h1>
+            <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
               Uploads stay private until you&apos;re ready. List on the marketplace to get discovered.
             </p>
           </div>
@@ -77,56 +113,93 @@ export default function InventoryPage() {
             <button
               type="button"
               disabled
-              className="inline-flex h-[54px] items-center gap-3 rounded-full border-2 border-[#a8c4ff] px-6 text-base font-semibold text-[#9bbaff] disabled:cursor-not-allowed disabled:opacity-90"
+              className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-[#a8c4ff] px-4 text-xs font-semibold text-[#9bbaff] disabled:cursor-not-allowed disabled:opacity-90"
             >
               <LockKeyhole size={19} strokeWidth={1.8} />
-              <Plus size={21} strokeWidth={1.8} />
+              <Plus size={19} strokeWidth={1.8} />
               New folder
             </button>
-            <button
-              type="button"
-              className="inline-flex h-[54px] items-center gap-3 rounded-full border-2 border-[#2f6df6] px-6 text-base font-semibold text-[#1764ed] transition-colors hover:bg-blue-50"
-              onClick={() => toast('Artwork upload is coming soon.')}
-            >
-              <CirclePlus size={21} strokeWidth={1.9} />
-              Upload Artwork
-            </button>
+            <div ref={uploadMenuRef} className="relative">
+              <button
+                type="button"
+                aria-expanded={isUploadMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsUploadMenuOpen((open) => !open)}
+              className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-[#2f6df6] px-4 text-xs font-semibold text-[#1764ed] transition-colors hover:bg-blue-50"
+              >
+                <CirclePlus size={19} strokeWidth={1.9} />
+                Upload Artwork
+              </button>
+              <input
+                ref={uploadInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="sr-only"
+                onChange={handleArtworkFileSelection}
+              />
+              {isUploadMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[46px] z-30 w-[220px] overflow-hidden rounded-[18px] border border-slate-200 bg-white py-1 shadow-[0_5px_13px_rgba(15,23,42,0.2)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={selectArtworkFiles}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-slate-950 transition-colors hover:bg-slate-50"
+                  >
+                    <Plus size={24} strokeWidth={1.7} />
+                    Upload an artwork
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled
+                    className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-slate-400"
+                  >
+                    <LockKeyhole size={24} strokeWidth={1.45} />
+                    Bulk upload
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
-          <div className="flex flex-col gap-5 border-b border-slate-200 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-            <div className="flex items-center gap-8 sm:gap-11">
+        <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
+          <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+            <div className="flex items-center gap-5 sm:gap-7">
               <button
                 type="button"
                 onClick={() => setActiveTab('artworks')}
-                className={`rounded-full px-6 py-3 text-[17px] font-semibold transition-colors ${activeTab === 'artworks' ? 'bg-slate-100 text-slate-950' : 'text-slate-800 hover:bg-slate-50'}`}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'artworks' ? 'bg-slate-100 text-slate-950' : 'text-slate-800 hover:bg-slate-50'}`}
               >
                 Artworks
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('artists')}
-                className={`rounded-full px-2 py-3 text-[17px] font-semibold transition-colors ${activeTab === 'artists' ? 'bg-slate-100 px-6 text-slate-950' : 'text-slate-800 hover:text-slate-950'}`}
+                className={`rounded-full px-2 py-2 text-sm font-semibold transition-colors ${activeTab === 'artists' ? 'bg-slate-100 px-4 text-slate-950' : 'text-slate-800 hover:text-slate-950'}`}
               >
                 Artists
               </button>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-              <label className="relative block sm:w-[382px]">
+              <label className="relative block sm:w-[280px]">
                 <span className="sr-only">Search by artwork title</span>
-                <Search className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-slate-950" size={25} strokeWidth={2} />
+                <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-950" size={21} strokeWidth={2} />
                 <input
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by artwork title"
-                  className="h-[64px] w-full rounded-full border-2 border-slate-300 bg-white pl-[66px] pr-5 text-[20px] text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-500"
+                  className="h-[46px] w-full rounded-full border-2 border-slate-300 bg-white pl-[48px] pr-4 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-500"
                 />
               </label>
 
-              <div className="inline-flex h-[64px] overflow-hidden rounded-[22px] bg-slate-100 p-1.5">
+              <div className="inline-flex h-[46px] overflow-hidden rounded-[16px] bg-slate-100 p-1">
                 {([
                   ['list', List, 'List view'],
                   ['compact', List, 'Compact view'],
@@ -138,9 +211,9 @@ export default function InventoryPage() {
                     aria-label={label}
                     aria-pressed={viewMode === mode}
                     onClick={() => setViewMode(mode)}
-                    className={`flex w-[62px] items-center justify-center rounded-[17px] transition-colors ${viewMode === mode ? 'bg-white shadow-sm' : 'text-slate-900 hover:bg-white/60'}`}
+                    className={`flex w-[44px] items-center justify-center rounded-[12px] transition-colors ${viewMode === mode ? 'bg-white shadow-sm' : 'text-slate-900 hover:bg-white/60'}`}
                   >
-                    <Icon size={29} strokeWidth={2} />
+                    <Icon size={20} strokeWidth={2} />
                   </button>
                 ))}
               </div>
@@ -149,11 +222,11 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setIsSortOpen((open) => !open)}
-                  className="inline-flex h-[64px] items-center gap-3 rounded-[16px] bg-slate-100 px-5 text-[17px] font-semibold text-slate-900 hover:bg-slate-200"
+                  className="inline-flex h-[46px] items-center gap-2 rounded-[12px] bg-slate-100 px-3 text-sm font-semibold text-slate-900 hover:bg-slate-200"
                 >
                   <ArrowUpDown size={21} strokeWidth={1.8} />
                   <span>Sort by</span>
-                  <span className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm font-medium">{sortLabel}</span>
+                  <span className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium">{sortLabel}</span>
                 </button>
                 {isSortOpen && (
                   <div className="absolute right-0 top-[70px] z-10 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
@@ -178,7 +251,7 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setIsFilterOpen((open) => !open)}
-                  className={`inline-flex h-[64px] items-center gap-4 rounded-[16px] px-5 text-[17px] font-semibold transition-colors ${isFilterOpen ? 'bg-slate-200' : 'bg-slate-100 hover:bg-slate-200'}`}
+                  className={`inline-flex h-[46px] items-center gap-2.5 rounded-[12px] px-3 text-sm font-semibold transition-colors ${isFilterOpen ? 'bg-slate-200' : 'bg-slate-100 hover:bg-slate-200'}`}
                 >
                   <SlidersHorizontal size={22} strokeWidth={1.8} />
                   Filter
@@ -200,7 +273,7 @@ export default function InventoryPage() {
             </div>
           </div>
 
-          <div className="min-h-[690px] px-5 py-8 sm:px-8 lg:px-10">
+          <div className="min-h-[440px] px-4 py-5 sm:px-5 lg:px-6">
             {activeTab === 'artists' ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
                 <div>
@@ -217,20 +290,20 @@ export default function InventoryPage() {
                 </div>
               </div>
             ) : (
-              <div className={viewMode === 'grid' ? 'grid gap-5 sm:grid-cols-2' : 'space-y-6'}>
+              <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-5'}>
                 {items.map((item) => (
                   <InventoryCard key={item.id} item={item} viewMode={viewMode} />
                 ))}
               </div>
             )}
 
-            <div className="mt-10 flex items-center justify-center gap-12 text-slate-900">
+            <div className="mt-8 flex items-center justify-center gap-10 text-slate-900">
               <button type="button" aria-label="Previous page" disabled className="cursor-not-allowed text-slate-400">
-                <ChevronLeft size={38} strokeWidth={1.5} />
+                <ChevronLeft size={30} strokeWidth={1.5} />
               </button>
-              <span className="text-[28px] font-semibold">1</span>
+              <span className="text-[22px] font-semibold">1</span>
               <button type="button" aria-label="Next page" disabled className="cursor-not-allowed text-slate-400">
-                <ChevronRight size={38} strokeWidth={1.5} />
+                <ChevronRight size={30} strokeWidth={1.5} />
               </button>
             </div>
           </div>
@@ -243,29 +316,29 @@ export default function InventoryPage() {
 function InventoryCard({ item, viewMode }: { item: InventoryItem; viewMode: ViewMode }) {
   if (viewMode === 'grid') {
     return (
-      <article className="rounded-2xl border border-slate-200 p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+      <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
-          <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={18} /></div>
+          <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={16} /></div>
           <MoreHorizontal size={22} />
         </div>
-        <h2 className="mt-4 text-xl font-medium text-slate-500">{item.title}</h2>
+        <h2 className="mt-3 text-lg font-medium text-slate-500">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
       </article>
     );
   }
 
   return (
-    <article className={`rounded-2xl border border-slate-200 px-10 py-8 shadow-[0_1px_3px_rgba(15,23,42,0.08)] ${viewMode === 'compact' ? 'min-h-[190px]' : 'min-h-[260px]'}`}>
-      <div className="flex items-start gap-6">
-        <input aria-label={`Select ${item.title}`} type="checkbox" className="mt-1 h-6 w-6 appearance-none rounded-md border-2 border-slate-400 checked:bg-blue-600" />
-        <div className="flex h-[72px] w-[66px] shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={14} /></div>
-        <h2 className="pt-1 text-[24px] font-medium text-slate-500">{item.title}</h2>
-        <div className="ml-auto flex items-center gap-5 pt-2">
-          <span className="text-[16px] font-bold tracking-wide text-slate-500">{item.status}</span>
-          <button type="button" aria-label={`More options for ${item.title}`} className="text-slate-950"><MoreHorizontal size={24} strokeWidth={2.6} /></button>
+    <article className={`rounded-2xl border border-slate-200 px-6 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.08)] ${viewMode === 'compact' ? 'min-h-[126px]' : 'min-h-[168px]'}`}>
+      <div className="flex items-start gap-4">
+        <input aria-label={`Select ${item.title}`} type="checkbox" className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <div className="flex h-[48px] w-[45px] shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={12} /></div>
+        <h2 className="pt-1 text-[17px] font-medium text-slate-500">{item.title}</h2>
+        <div className="ml-auto flex items-center gap-3 pt-1">
+          <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
+          <button type="button" aria-label={`More options for ${item.title}`} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
         </div>
       </div>
-      <div className="mt-8 grid gap-x-16 gap-y-5 text-[18px] sm:grid-cols-2">
+      <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
         <InventoryField label="Material" value={item.material} />
         <InventoryField label="Location" value={item.location} />
         <InventoryField label="Dimensions" value={item.dimensions} />
@@ -277,7 +350,7 @@ function InventoryCard({ item, viewMode }: { item: InventoryItem; viewMode: View
 
 function InventoryField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[minmax(150px,1fr)_1fr] gap-3">
+    <div className="grid grid-cols-[minmax(100px,1fr)_1fr] gap-2">
       <span className="font-semibold text-slate-400">{label}</span>
       <span className="font-semibold text-slate-800">{value}</span>
     </div>
