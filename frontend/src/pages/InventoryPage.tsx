@@ -172,6 +172,7 @@ export default function InventoryPage() {
       if (appliedFilters.listingType === 'not-listed' && artwork.isPublished) return false;
       if (appliedFilters.visibilityType === 'public' && !artwork.isPublished) return false;
       if (appliedFilters.visibilityType === 'private' && artwork.isPublished) return false;
+      if (appliedFilters.location && !(artwork.location || '').toLocaleLowerCase().includes(appliedFilters.location.toLocaleLowerCase())) return false;
       if (appliedFilters.customTag && !artwork.customTags.some((tag) => tag.toLocaleLowerCase() === appliedFilters.customTag.toLocaleLowerCase())) return false;
 
       const createdAt = artwork.createdAt ? new Date(artwork.createdAt).getTime() : null;
@@ -473,7 +474,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
         <InventoryField label="Material" value={material} />
-        <InventoryField label="Location" value="—" />
+        <InventoryField label="Location" value={item.location || '—'} />
         <InventoryField label="Dimensions" value={dimensions} />
         <InventoryField label="Listing status" value={listingStatus} />
       </div>
@@ -575,40 +576,45 @@ function FilterDialog({ filters, customTags, anchorRef, onChange, onCancel, onAp
         role="dialog"
         aria-modal="true"
         aria-labelledby="inventory-filter-title"
-        style={{ top: position.top, right: position.right, maxHeight: `calc(100vh - ${position.top + 16}px)` }}
-        className="absolute w-[calc(100%-2rem)] max-w-[600px] overflow-y-auto rounded-[24px] bg-white p-5 shadow-[0_12px_26px_rgba(15,23,42,0.24)] sm:p-7"
+        style={{
+          top: position.top,
+          right: position.right,
+          width: 'min(520px, calc(100vw - 32px))',
+          maxHeight: `calc(100vh - ${position.top + 16}px)`,
+        }}
+        className="absolute overflow-y-auto rounded-[24px] bg-white p-5 shadow-[0_12px_26px_rgba(15,23,42,0.24)] sm:p-7"
       >
-        <h2 id="inventory-filter-title" className="text-lg font-bold text-slate-500">Filters</h2>
-        <div className="mt-5 space-y-4">
+        <h2 id="inventory-filter-title" className="text-base font-bold text-slate-500">Filters</h2>
+        <div className="mt-4 space-y-3">
           <FilterSelect label="Status" value={filters.status} onChange={(value) => onChange('status', value)} options={[
             ['DRAFT', 'Draft'], ['ACTIVE', 'Active'], ['SOLD', 'Sold'], ['RESERVED', 'Reserved'], ['INACTIVE', 'Inactive'],
           ]} />
           <FilterSelect label="Listing Type" value={filters.listingType} onChange={(value) => onChange('listingType', value)} options={[
             ['listed', 'Listed on marketplace'], ['not-listed', 'Not listed'],
           ]} />
-          <FilterSelect label="Location" value={filters.location} onChange={(value) => onChange('location', value)} options={[]} />
+          <FilterTextInput label="Location" value={filters.location} onChange={(value) => onChange('location', value)} />
           <FilterSelect label="Custom tags" value={filters.customTag} onChange={(value) => onChange('customTag', value)} options={customTags.map((tag) => [tag, tag])} />
           <FilterSelect label="Visibility Type" value={filters.visibilityType} onChange={(value) => onChange('visibilityType', value)} options={[
             ['public', 'Public'], ['private', 'Private'],
           ]} />
         </div>
 
-        <div className="mt-5">
-          <p className="text-base font-bold text-slate-500">Date range</p>
-          <div className="mt-3">
+        <div className="mt-4">
+          <p className="text-sm font-bold text-slate-500">Date range</p>
+          <div className="mt-2.5">
             <FilterSelect label="Date created" value="created" onChange={() => undefined} options={[["created", "Date created"]]} />
           </div>
-          <div className="mt-3 flex min-h-[64px] flex-col gap-2 rounded-[18px] border-2 border-slate-200 px-5 py-3 sm:flex-row sm:items-center">
-            <CalendarDays className="shrink-0 text-slate-500" size={22} strokeWidth={2} />
-            <input aria-label="Start date" type="date" value={filters.dateFrom} onChange={(event) => onChange('dateFrom', event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none" />
+          <div className="mt-2.5 flex min-h-[48px] flex-col gap-1.5 rounded-[14px] border-2 border-slate-200 px-4 py-2 sm:flex-row sm:items-center">
+            <CalendarDays className="shrink-0 text-slate-500" size={18} strokeWidth={2} />
+            <input aria-label="Start date" type="date" value={filters.dateFrom} onChange={(event) => onChange('dateFrom', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
             <span className="hidden text-slate-400 sm:block">to</span>
-            <input aria-label="End date" type="date" value={filters.dateTo} min={filters.dateFrom || undefined} onChange={(event) => onChange('dateTo', event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none" />
+            <input aria-label="End date" type="date" value={filters.dateTo} min={filters.dateFrom || undefined} onChange={(event) => onChange('dateTo', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <button type="button" onClick={onCancel} className="min-w-[130px] rounded-full border-2 border-slate-200 px-6 py-2.5 text-base font-bold text-slate-950 hover:bg-slate-50">Cancel</button>
-          <button type="button" onClick={onApply} className="min-w-[130px] rounded-full bg-blue-600 px-6 py-2.5 text-base font-bold text-white hover:bg-blue-700">Apply</button>
+        <div className="mt-5 flex items-center justify-center gap-3">
+          <button type="button" onClick={onCancel} className="min-w-[115px] rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-slate-50">Cancel</button>
+          <button type="button" onClick={onApply} className="min-w-[115px] rounded-full bg-blue-600 px-5 py-2 text-sm font-bold text-white hover:bg-blue-700">Apply</button>
         </div>
       </section>
     </div>
@@ -623,12 +629,22 @@ function FilterSelect({ label, value, onChange, options }: {
 }) {
   return (
     <div className="relative">
-      <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)} className="h-[64px] w-full appearance-none rounded-[18px] border-2 border-slate-200 bg-white px-6 pr-12 text-base font-semibold text-slate-800 outline-none transition-colors focus:border-blue-500">
+      <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)} className="h-[48px] w-full appearance-none rounded-[14px] border-2 border-slate-200 bg-white px-4 pr-10 text-sm font-semibold text-slate-800 outline-none transition-colors focus:border-blue-500">
         <option value="">{label}</option>
         {options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-slate-500" size={21} strokeWidth={2.5} />
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} strokeWidth={2.5} />
     </div>
+  );
+}
+
+function FilterTextInput({ label, value, onChange }: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <input aria-label={label} value={value} maxLength={120} onChange={(event) => onChange(event.target.value)} placeholder={label} className="h-[48px] w-full rounded-[14px] border-2 border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-500" />
   );
 }
 

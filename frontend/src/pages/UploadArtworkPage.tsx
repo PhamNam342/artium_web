@@ -147,7 +147,7 @@ export default function UploadArtworkPage() {
           depth: dimensions?.depth === undefined ? '' : String(dimensions.depth),
           weight: weightValue === undefined || weightValue === null ? '' : String(weightValue),
           materials: artwork.materials || '',
-          location: '',
+          location: artwork.location || '',
           customTags: artwork.customTags || [],
         });
         setDimensionUnit(dimensions?.unit === 'cm' ? 'cm' : 'in');
@@ -577,7 +577,7 @@ function ArtworkDetailsForm({
       <CharacterCount current={form.materials.length} max={80} />
 
       <FieldLabel label="ARTWORK LOCATION" />
-      <input value={form.location} onChange={(event) => onChange('location', event.target.value)} placeholder="Current location" className="field-input" />
+      <input value={form.location} maxLength={120} onChange={(event) => onChange('location', event.target.value)} placeholder="Current location" className="field-input" />
     </div>
   );
 }

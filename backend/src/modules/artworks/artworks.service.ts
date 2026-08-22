@@ -50,6 +50,7 @@ type NormalizedCreateArtworkInput = {
   tagIds: string[];
   customTags: string[];
   materials: string | null;
+  location: string | null;
   dimensions: ArtworkDimensions | null;
   weight: string | null;
 };
@@ -89,6 +90,7 @@ export class ArtworksService {
       customTags: normalizedInput.customTags,
       viewCount: 0,
       materials: normalizedInput.materials,
+      location: normalizedInput.location,
       dimensions: normalizedInput.dimensions,
       weight: normalizedInput.weight,
       tags,
@@ -432,10 +434,12 @@ export class ArtworksService {
     const materials = this.cleanNullableString(
       input.materials ?? input.material,
     );
+    const location = this.cleanNullableString(input.location);
 
     this.assertMaxLength(title, 'title', 100);
     this.assertMaxLength(currency, 'currency', 10);
     this.assertMaxLength(materials, 'materials', 80);
+    this.assertMaxLength(location, 'location', 120);
 
     return {
       sellerId,
@@ -450,6 +454,7 @@ export class ArtworksService {
       tagIds,
       customTags,
       materials,
+      location,
       dimensions: this.normalizeDimensions(input.dimensions),
       weight: this.normalizeWeight(input.weight),
     };
@@ -522,6 +527,12 @@ export class ArtworksService {
       );
       this.assertMaxLength(materials, 'materials', 80);
       normalizedInput.materials = materials;
+    }
+
+    if (this.hasOwn(input, 'location')) {
+      const location = this.cleanNullableString(input.location);
+      this.assertMaxLength(location, 'location', 120);
+      normalizedInput.location = location;
     }
 
     if (this.hasOwn(input, 'dimensions')) {
@@ -845,6 +856,7 @@ export class ArtworksService {
       customTags: artwork.customTags ?? [],
       createdAt: this.toIsoDateString(artwork.createdAt),
       materials: artwork.materials ?? null,
+      location: artwork.location ?? null,
       dimensions: this.toDimensionsResponse(artwork.dimensions),
       weight: artwork.weight ?? null,
     });

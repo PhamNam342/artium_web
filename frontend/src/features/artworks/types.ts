@@ -54,6 +54,7 @@ export interface Artwork {
   customTags: string[];
   createdAt: string | null;
   materials: string | null;
+  location: string | null;
   dimensions: ArtworkDimensions | null;
   weight: string | number | ArtworkWeight | null;
 }

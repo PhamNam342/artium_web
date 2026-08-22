@@ -110,6 +110,9 @@ export class ArtworkResponseDto {
   materials!: string | null;
 
   @Expose()
+  location!: string | null;
+
+  @Expose()
   @Type(() => ArtworkDimensionsResponseDto)
   dimensions!: ArtworkDimensionsResponseDto | null;
 

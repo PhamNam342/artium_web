@@ -198,6 +198,7 @@ export class CreateArtworkDto {
 
   @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
+  @MaxLength(120, { message: artworkValidationMessage('max_length') })
   location?: string;
 
   @IsOptional()

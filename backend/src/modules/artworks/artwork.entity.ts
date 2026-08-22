@@ -102,6 +102,9 @@ export class Artwork {
   @Column({ name: 'materials', type: 'varchar', length: 80, nullable: true })
   materials!: string | null;
 
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  location!: string | null;
+
   @Column({ type: 'jsonb', nullable: true })
   dimensions!: ArtworkDimensions | null;
 
