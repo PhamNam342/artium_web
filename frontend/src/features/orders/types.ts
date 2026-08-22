@@ -14,12 +14,12 @@ export interface Order {
   id: string;
   collectorId: string;
   artworkId: string;
-  subtotal: number;
-  shippingCost: number;
-  totalAmount: number;
+  subtotal: number | null;
+  shippingCost: number | null;
+  totalAmount: number | null;
   status: OrderStatus;
-  shippingAddress: ShippingAddress;
-  paymentStatus: string;
+  shippingAddress: ShippingAddress | null;
+  paymentStatus: string | null;
   createdAt: string;
   updatedAt: string;
 }

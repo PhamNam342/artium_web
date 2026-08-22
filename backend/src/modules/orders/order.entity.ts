@@ -17,6 +17,13 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum PaymentStatus {
+  UNPAID = 'UNPAID',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+}
+
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
@@ -69,7 +76,7 @@ export class Order {
     length: 50,
     nullable: true,
   })
-  paymentStatus!: string;
+  paymentStatus!: PaymentStatus | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

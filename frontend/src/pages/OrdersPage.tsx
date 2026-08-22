@@ -126,7 +126,14 @@ export default function OrdersPage() {
                       {t('orders.total')}
                     </p>
                     <p className="mt-1 text-sm font-medium text-slate-900">
-                      {formatArtworkPrice(order.totalAmount.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                      {order.totalAmount === null
+                        ? '—'
+                        : formatArtworkPrice(
+                            order.totalAmount.toString(),
+                            'USD',
+                            language === 'en' ? 'en-US' : 'vi-VN',
+                            '',
+                          )}
                     </p>
                   </div>
                 </div>

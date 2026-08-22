@@ -16,4 +16,9 @@ export const orderService = {
     const response = await api.post<Order>('/orders', data);
     return response.data;
   },
+
+  async createVnpayPayment(id: string): Promise<{ paymentUrl: string }> {
+    const response = await api.post<{ paymentUrl: string }>(`/orders/${id}/payments/vnpay`);
+    return response.data;
+  },
 };
