@@ -72,9 +72,9 @@ export class ArtworksService {
 
   async create(
     input: CreateArtworkDto,
-    sellerIdOverride: string,
+    sellerId: string,
   ): Promise<ArtworkResponseDto> {
-    const normalizedInput = this.normalizeCreateInput(input, sellerIdOverride);
+    const normalizedInput = this.normalizeCreateInput(input, sellerId);
     const tags = await this.findTagsByIds(normalizedInput.tagIds);
 
     const artwork = this.artworkRepository.create({
@@ -433,12 +433,9 @@ export class ArtworksService {
 
   private normalizeCreateInput(
     input: CreateArtworkDto,
-    sellerIdOverride?: string,
+    sellerIdOverride: string,
   ): NormalizedCreateArtworkInput {
-    const sellerId = this.cleanRequiredUuid(
-      sellerIdOverride ?? input.sellerId,
-      'sellerId',
-    );
+    const sellerId = this.cleanRequiredUuid(sellerIdOverride, 'sellerId');
     const title = this.cleanRequiredString(input.title, 'title');
     const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
     const tagIds = this.normalizeTagIds(input.tagIds);

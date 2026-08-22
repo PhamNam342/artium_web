@@ -106,11 +106,6 @@ export class ArtworkDimensionsDto {
 }
 
 export class CreateArtworkDto {
-  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
-  @IsOptional()
-  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
-  sellerId?: string;
-
   @IsString({ message: artworkValidationMessage('string') })
   @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
   @MaxLength(100, { message: artworkValidationMessage('max_length') })

@@ -53,7 +53,6 @@ describe('ArtworksService', () => {
   it('creates an artwork with normalized defaults', async () => {
     const created = await service.create(
       {
-        sellerId,
         title: '  New Piece  ',
         price: 1500,
         currency: 'usd',
@@ -100,7 +99,6 @@ describe('ArtworksService', () => {
     await expect(
       service.create(
         {
-          sellerId: 'not-a-uuid',
           title: 'New Piece',
         },
         'not-a-uuid',
@@ -113,7 +111,6 @@ describe('ArtworksService', () => {
   it('maps legacy available status to active', async () => {
     await service.create(
       {
-        sellerId,
         title: 'Published Piece',
         status: 'available',
       },
