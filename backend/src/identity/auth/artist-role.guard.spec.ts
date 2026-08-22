@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { ArtistRoleGuard } from './artist-role.guard';
-import { UserRole } from '../../user/entities/user.entity';
+import { UserRole } from '../user/entities/user.entity';
 
 describe('ArtistRoleGuard', () => {
   const guard = new ArtistRoleGuard();

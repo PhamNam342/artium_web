@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { t } from '../../common/utils/i18n.util';
-import { UserRole } from '../../user/entities/user.entity';
+import { UserRole } from '../user/entities/user.entity';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
 
 @Injectable()

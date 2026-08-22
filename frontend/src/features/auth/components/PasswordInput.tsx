@@ -5,8 +5,9 @@ interface PasswordInputProps {
   id: string;
   value: string;
   onChange: (value: string) => void;
-  placeholder: string,
+  placeholder: string;
   disabled?: boolean;
+  autoComplete?: string;
 }
 
 export default function PasswordInput({
@@ -15,6 +16,7 @@ export default function PasswordInput({
   onChange,
   placeholder,
   disabled = false,
+  autoComplete = 'new-password',
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -23,7 +25,7 @@ export default function PasswordInput({
       <input
         id={id}
         type={showPassword ? 'text' : 'password'}
-        autoComplete="new-password"
+        autoComplete={autoComplete}
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
