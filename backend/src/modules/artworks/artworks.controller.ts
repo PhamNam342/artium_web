@@ -13,8 +13,10 @@ import {
 } from '@nestjs/common';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
-import { ArtistRoleGuard } from '../../identity/auth/artist-role.guard';
 import { OptionalJwtAuthGuard } from '../../identity/auth/optional-jwt-auth.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { UserRole } from '../../identity/user/entities/user.entity';
 import { ArtworksService } from './artworks.service';
 import {
   ArtworkResponseDto,
@@ -43,7 +45,8 @@ export class ArtworksController {
   }
 
   @Get('mine')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   findMine(
     @Req() req: RequestWithUser,
     @Query() query: ListArtworksQueryDto,
@@ -57,7 +60,8 @@ export class ArtworksController {
   }
 
   @Post('tags')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   createTag(
     @Body() body: CreateArtworkTagDto,
   ): Promise<ArtworkTagResponseDto> {
@@ -74,7 +78,8 @@ export class ArtworksController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   create(
     @Req() req: RequestWithUser,
     @Body() body: CreateArtworkDto,
@@ -83,7 +88,8 @@ export class ArtworksController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   update(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -93,7 +99,8 @@ export class ArtworksController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   remove(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -102,7 +109,8 @@ export class ArtworksController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   updateStatus(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -112,7 +120,8 @@ export class ArtworksController {
   }
 
   @Patch(':id/publish')
-  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   updatePublish(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
