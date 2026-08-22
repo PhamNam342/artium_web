@@ -10,6 +10,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
+import { ArtistRoleGuard } from '../../identity/auth/artist-role.guard';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 import {
   artworkImageUploadOptions,
@@ -24,7 +25,7 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('artwork-images')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   @UseInterceptors(
     FilesInterceptor('files', maxArtworkImageCount, artworkImageUploadOptions),
   )

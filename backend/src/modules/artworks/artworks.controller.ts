@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
+import { ArtistRoleGuard } from '../../identity/auth/artist-role.guard';
 import { OptionalJwtAuthGuard } from '../../identity/auth/optional-jwt-auth.guard';
 import { ArtworksService } from './artworks.service';
 import {
@@ -42,7 +43,7 @@ export class ArtworksController {
   }
 
   @Get('mine')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   findMine(
     @Req() req: RequestWithUser,
     @Query() query: ListArtworksQueryDto,
@@ -56,7 +57,7 @@ export class ArtworksController {
   }
 
   @Post('tags')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   createTag(
     @Body() body: CreateArtworkTagDto,
   ): Promise<ArtworkTagResponseDto> {
@@ -73,7 +74,7 @@ export class ArtworksController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   create(
     @Req() req: RequestWithUser,
     @Body() body: CreateArtworkDto,
@@ -82,7 +83,7 @@ export class ArtworksController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   update(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -92,7 +93,7 @@ export class ArtworksController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   remove(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -101,7 +102,7 @@ export class ArtworksController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   updateStatus(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
@@ -111,7 +112,7 @@ export class ArtworksController {
   }
 
   @Patch(':id/publish')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ArtistRoleGuard)
   updatePublish(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
