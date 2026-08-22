@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ImagePlus,
@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
 import { artworkService } from '../features/artworks/artworkService';
-import type { ArtworkDimensions, ArtworkWeight } from '../features/artworks/types';
+import type { ArtworkDimensions, ArtworkImage, ArtworkWeight } from '../features/artworks/types';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_IMAGE_COUNT = 10;
@@ -21,10 +21,19 @@ type Unit = 'in' | 'cm';
 type WeightUnit = 'lbs' | 'kg';
 type Step = 1 | 2;
 
-type SelectedImage = {
+type NewSelectedImage = {
+  kind: 'new';
   file: File;
   preview: string;
 };
+
+type ExistingSelectedImage = {
+  kind: 'existing';
+  image: ArtworkImage;
+  preview: string;
+};
+
+type SelectedImage = NewSelectedImage | ExistingSelectedImage;
 
 type ApiFailure = {
   message?: string | string[];
@@ -82,7 +91,9 @@ const EMPTY_FORM: ArtworkForm = {
 
 export default function UploadArtworkPage() {
   const navigate = useNavigate();
+  const { id: artworkId } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const isEditing = Boolean(artworkId);
   const inputRef = useRef<HTMLInputElement>(null);
   const imagesRef = useRef<SelectedImage[]>([]);
   const [step, setStep] = useState<Step>(1);
@@ -92,12 +103,72 @@ export default function UploadArtworkPage() {
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingArtwork, setIsLoadingArtwork] = useState(isEditing);
 
   useEffect(() => {
     imagesRef.current = images;
   }, [images]);
 
-  useEffect(() => () => imagesRef.current.forEach((image) => URL.revokeObjectURL(image.preview)), []);
+  useEffect(() => () => {
+    imagesRef.current.forEach((image) => {
+      if (image.kind === 'new') URL.revokeObjectURL(image.preview);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!artworkId) {
+      setIsLoadingArtwork(false);
+      return;
+    }
+
+    let isCurrent = true;
+    const loadArtwork = async () => {
+      setIsLoadingArtwork(true);
+      try {
+        const artwork = await artworkService.getArtwork(artworkId);
+        if (!isCurrent) return;
+
+        const dimensions = artwork.dimensions;
+        const weight = artwork.weight;
+        const weightValue = typeof weight === 'object' && weight !== null
+          ? weight.value
+          : weight;
+        const weightUnitValue = typeof weight === 'object' && weight !== null
+          ? weight.unit
+          : undefined;
+
+        setForm({
+          title: artwork.title,
+          description: artwork.description || '',
+          year: '',
+          editionRun: '',
+          height: dimensions?.height === undefined ? '' : String(dimensions.height),
+          width: dimensions?.width === undefined ? '' : String(dimensions.width),
+          depth: dimensions?.depth === undefined ? '' : String(dimensions.depth),
+          weight: weightValue === undefined || weightValue === null ? '' : String(weightValue),
+          materials: artwork.materials || '',
+          location: '',
+          customTags: artwork.customTags || [],
+        });
+        setDimensionUnit(dimensions?.unit === 'cm' ? 'cm' : 'in');
+        setWeightUnit(weightUnitValue === 'kg' ? 'kg' : 'lbs');
+        setImages((artwork.images || []).map((image) => ({
+          kind: 'existing' as const,
+          image,
+          preview: image.secureUrl || image.url,
+        })));
+      } catch (error) {
+        console.error('Artwork edit load failed', error);
+        toast.error('Unable to load this artwork. Please try again.');
+        navigate('/inventory', { replace: true });
+      } finally {
+        if (isCurrent) setIsLoadingArtwork(false);
+      }
+    };
+
+    void loadArtwork();
+    return () => { isCurrent = false; };
+  }, [artworkId, navigate]);
 
   const updateForm = (field: keyof ArtworkForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -185,7 +256,7 @@ export default function UploadArtworkPage() {
 
     setImages((current) => [
       ...current,
-      ...validFiles.map((file) => ({ file, preview: URL.createObjectURL(file) })),
+      ...validFiles.map((file) => ({ kind: 'new' as const, file, preview: URL.createObjectURL(file) })),
     ]);
   };
 
@@ -202,7 +273,8 @@ export default function UploadArtworkPage() {
 
   const removeImage = (index: number) => {
     setImages((current) => {
-      URL.revokeObjectURL(current[index].preview);
+      const removedImage = current[index];
+      if (removedImage?.kind === 'new') URL.revokeObjectURL(removedImage.preview);
       return current.filter((_, imageIndex) => imageIndex !== index);
     });
   };
@@ -240,39 +312,73 @@ export default function UploadArtworkPage() {
     if (!user) return;
 
     setIsSaving(true);
-    let saveStage = 'create the artwork';
+    let saveStage = isEditing ? 'update the artwork' : 'create the artwork';
     try {
       const weightValue = Number(form.weight);
       const weight: ArtworkWeight | null = Number.isFinite(weightValue) && form.weight.trim()
         ? { value: weightValue, unit: weightUnit }
         : null;
 
-      const artwork = await artworkService.createArtwork({
+      const artworkInput = {
         title: form.title.trim(),
-        description: form.description.trim() || undefined,
-        status: 'DRAFT',
+        description: form.description.trim(),
+        status: 'DRAFT' as const,
         isPublished: false,
-        materials: form.materials.trim() || undefined,
+        materials: form.materials.trim(),
         dimensions: buildDimensions(),
         weight,
         ...(form.year ? { creationYear: Number(form.year) } : {}),
         ...(form.editionRun.trim() ? { editionRun: form.editionRun.trim() } : {}),
         ...(form.location.trim() ? { location: form.location.trim() } : {}),
-        ...(form.customTags.length > 0 ? { customTags: form.customTags } : {}),
-      });
+        customTags: form.customTags,
+      };
 
-      saveStage = 'upload the artwork images';
-      const uploadedImages = await artworkService.uploadArtworkImages({
-        // The draft exists before files can be stored under its artwork ID.
-        files: images.map((image) => image.file),
-        sellerId: user.id,
-        artworkId: artwork.id,
-        altText: form.title.trim(),
-      });
+      const existingImages = images.flatMap((image) => image.kind === 'existing' ? [image.image] : []);
+      const newFiles = images.flatMap((image) => image.kind === 'new' ? [image.file] : []);
 
-      saveStage = 'save the image details';
-      await artworkService.updateArtwork(artwork.id, { images: uploadedImages });
-      toast.success('Artwork saved as a draft.');
+      if (artworkId) {
+        let uploadedImages: ArtworkImage[] = [];
+        if (newFiles.length > 0) {
+          saveStage = 'upload the artwork images';
+          uploadedImages = await artworkService.uploadArtworkImages({
+            files: newFiles,
+            sellerId: user.id,
+            artworkId,
+            altText: form.title.trim(),
+          });
+        }
+
+        saveStage = 'update the artwork';
+        await artworkService.updateArtwork(artworkId, {
+          ...artworkInput,
+          images: [...existingImages, ...uploadedImages].map((image, index) => ({
+            ...image,
+            order: index,
+            isPrimary: index === 0,
+          })),
+        });
+        toast.success('Artwork updated.');
+      } else {
+        const artwork = await artworkService.createArtwork(artworkInput);
+        saveStage = 'upload the artwork images';
+        const uploadedImages = await artworkService.uploadArtworkImages({
+          // The draft exists before files can be stored under its artwork ID.
+          files: newFiles,
+          sellerId: user.id,
+          artworkId: artwork.id,
+          altText: form.title.trim(),
+        });
+
+        saveStage = 'save the image details';
+        await artworkService.updateArtwork(artwork.id, {
+          images: uploadedImages.map((image, index) => ({
+            ...image,
+            order: index,
+            isPrimary: index === 0,
+          })),
+        });
+        toast.success('Artwork saved as a draft.');
+      }
       navigate('/inventory');
     } catch (error) {
       const responseMessage = axios.isAxiosError<ApiFailure>(error)
@@ -295,6 +401,14 @@ export default function UploadArtworkPage() {
 
   const artistName = user?.email.split('@')[0] || 'Your account';
 
+  if (isLoadingArtwork) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-sm font-medium text-slate-500">
+        Loading artwork…
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white pb-28 text-slate-950">
       <header className="flex h-20 items-center justify-center border-b border-slate-200 px-5">
@@ -302,7 +416,7 @@ export default function UploadArtworkPage() {
           <ArrowLeft size={18} />
           Inventory
         </Link>
-        <h1 className="text-[26px] font-bold tracking-[-0.03em]">Upload Artwork</h1>
+        <h1 className="text-[26px] font-bold tracking-[-0.03em]">{isEditing ? 'Edit Artwork' : 'Upload Artwork'}</h1>
       </header>
 
       <main className="mx-auto grid max-w-[1560px] gap-7 px-5 py-6 lg:grid-cols-[1fr_1fr] lg:px-8">
@@ -352,10 +466,10 @@ export default function UploadArtworkPage() {
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {images.map((image, index) => (
-                    <div key={`${image.file.name}-${index}`} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                    <div key={image.kind === 'new' ? `${image.file.name}-${index}` : `${image.image.publicId || image.image.url}-${index}`} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
                       <img src={image.preview} alt={`Artwork preview ${index + 1}`} className="h-full w-full object-cover" />
                       {index === 0 && <span className="absolute bottom-2 left-2 rounded-full bg-slate-950/80 px-2 py-1 text-xs font-semibold text-white">Primary</span>}
-                      <button type="button" onClick={() => removeImage(index)} aria-label={`Remove ${image.file.name}`} className="absolute right-2 top-2 rounded-full bg-white p-1.5 text-red-600 shadow-sm opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100">
+                      <button type="button" onClick={() => removeImage(index)} aria-label={`Remove artwork image ${index + 1}`} className="absolute right-2 top-2 rounded-full bg-white p-1.5 text-red-600 shadow-sm opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -400,7 +514,7 @@ export default function UploadArtworkPage() {
               <button type="button" onClick={() => setStep(1)} disabled={isSaving} className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-bold hover:bg-slate-50 disabled:opacity-50">Back</button>
               <button type="button" onClick={saveDraft} disabled={isSaving} className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">
                 {isSaving && <LoaderCircle size={16} className="animate-spin" />}
-                Save draft
+                {isEditing ? 'Save changes' : 'Save draft'}
               </button>
             </div>
           )}

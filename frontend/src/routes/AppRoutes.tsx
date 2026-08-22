@@ -71,6 +71,7 @@ export default function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/inventory/upload" element={<UploadArtworkPage />} />
+          <Route path="/inventory/upload/:id" element={<UploadArtworkPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

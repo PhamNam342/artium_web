@@ -5,6 +5,8 @@ export interface ArtworkImage {
   format?: string;
   width?: number;
   height?: number;
+  size?: number;
+  bucket?: string;
   alt?: string;
   altText?: string;
   order?: number;

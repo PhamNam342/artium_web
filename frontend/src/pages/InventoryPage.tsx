@@ -10,9 +10,13 @@ import {
   List,
   LockKeyhole,
   MoreHorizontal,
+  Folder,
+  Pencil,
   Plus,
+  Repeat2,
   Search,
   SlidersHorizontal,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { artworkService, getArtworkImage } from '../features/artworks/artworkService';
@@ -300,7 +304,12 @@ export default function InventoryPage() {
             ) : (
               <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-5'}>
                 {items.map((item) => (
-                  <InventoryCard key={item.id} item={item} viewMode={viewMode} />
+                  <InventoryCard
+                    key={item.id}
+                    item={item}
+                    viewMode={viewMode}
+                    onEdit={() => navigate(`/inventory/upload/${item.id}`)}
+                  />
                 ))}
               </div>
             )}
@@ -321,7 +330,8 @@ export default function InventoryPage() {
   );
 }
 
-function InventoryCard({ item, viewMode }: { item: Artwork; viewMode: ViewMode }) {
+function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: ViewMode; onEdit: () => void }) {
+  const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
   const image = getArtworkImage(item.images);
   const dimensions = item.dimensions
     ? `${[item.dimensions.height, item.dimensions.width, item.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${item.dimensions.unit ?? ''}`.trim()
@@ -334,7 +344,7 @@ function InventoryCard({ item, viewMode }: { item: Artwork; viewMode: ViewMode }
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
-          <MoreHorizontal size={22} />
+          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onEdit={onEdit} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
@@ -350,7 +360,7 @@ function InventoryCard({ item, viewMode }: { item: Artwork; viewMode: ViewMode }
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
-          <button type="button" aria-label={`More options for ${item.title}`} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
+          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onEdit={onEdit} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
@@ -360,6 +370,31 @@ function InventoryCard({ item, viewMode }: { item: Artwork; viewMode: ViewMode }
         <InventoryField label="Listing status" value={listingStatus} />
       </div>
     </article>
+  );
+}
+
+function DraftActionsMenu({ isOpen, onToggle, onEdit }: { isOpen: boolean; onToggle: () => void; onEdit: () => void }) {
+  return (
+    <div className="relative">
+      <button type="button" aria-label="Draft artwork actions" aria-expanded={isOpen} onClick={onToggle} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
+      {isOpen && (
+        <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
+          <DraftAction icon={Pencil} label="Edit Artwork" onClick={onEdit} />
+          <DraftAction icon={Repeat2} label="Change to Publish" />
+          <DraftAction icon={Folder} label="Move to folder" />
+          <DraftAction icon={Trash2} label="Delete Artwork" destructive />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DraftAction({ icon: Icon, label, destructive = false, onClick }: { icon: typeof Pencil; label: string; destructive?: boolean; onClick?: () => void }) {
+  return (
+    <button type="button" role="menuitem" onClick={onClick} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-base font-bold transition-colors ${destructive ? 'text-red-600 hover:bg-red-50' : 'text-slate-950 hover:bg-slate-50'}`}>
+      <Icon size={25} strokeWidth={2} />
+      {label}
+    </button>
   );
 }
 
