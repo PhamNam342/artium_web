@@ -245,10 +245,23 @@ export class ArtworksService {
     });
   }
 
-  async findOne(id: string): Promise<ArtworkResponseDto> {
+  async findOne(
+    id: string,
+    viewerId?: string,
+  ): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
+    const normalizedViewerId = viewerId
+      ? this.cleanRequiredUuid(viewerId, 'viewerId')
+      : undefined;
     const artwork = await this.artworkRepository.findOne({
-      where: { id: artworkId },
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+        ...(normalizedViewerId ? [{ id: artworkId, sellerId: normalizedViewerId }] : []),
+      ],
       relations: { tags: true },
     });
 

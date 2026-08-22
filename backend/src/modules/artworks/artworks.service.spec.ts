@@ -191,7 +191,44 @@ describe('ArtworksService', () => {
       weight: '2.50',
     });
     expect(artworkRepository.findOne).toHaveBeenCalledWith({
-      where: { id: artworkId },
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+      ],
+      relations: { tags: true },
+    });
+  });
+
+  it('allows an artwork owner to read an unpublished draft', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.findOne?.mockResolvedValue({
+      id: artworkId,
+      sellerId,
+      title: 'Private Draft',
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      images: [],
+      tags: [],
+      customTags: [],
+    } as Artwork);
+
+    await expect(service.findOne(artworkId, sellerId)).resolves.toMatchObject({
+      id: artworkId,
+      status: ArtworkStatus.DRAFT,
+    });
+
+    expect(artworkRepository.findOne).toHaveBeenCalledWith({
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+        { id: artworkId, sellerId },
+      ],
       relations: { tags: true },
     });
   });

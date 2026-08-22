@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../../identity/auth/optional-jwt-auth.guard';
 import { ArtworksService } from './artworks.service';
 import {
   ArtworkResponseDto,
@@ -63,8 +64,12 @@ export class ArtworksController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<ArtworkResponseDto> {
-    return this.artworksService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ): Promise<ArtworkResponseDto> {
+    return this.artworksService.findOne(id, req.user?.id);
   }
 
   @Post()
