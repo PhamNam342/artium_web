@@ -26,7 +26,6 @@ import { useAuth } from '../features/auth/AuthContext';
 import { artworkService, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
 
-type InventoryTab = 'artworks' | 'artists';
 type ViewMode = 'list' | 'compact' | 'grid';
 
 type InventoryFilters = {
@@ -52,7 +51,6 @@ const EMPTY_FILTERS: InventoryFilters = {
 export default function InventoryPage() {
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<InventoryTab>('artworks');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -257,22 +255,7 @@ export default function InventoryPage() {
 
         <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
           <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
-            <div className="flex items-center gap-5 sm:gap-7">
-              <button
-                type="button"
-                onClick={() => setActiveTab('artworks')}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'artworks' ? 'bg-slate-100 text-slate-950' : 'text-slate-800 hover:bg-slate-50'}`}
-              >
-                Artworks
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('artists')}
-                className={`rounded-full px-2 py-2 text-sm font-semibold transition-colors ${activeTab === 'artists' ? 'bg-slate-100 px-4 text-slate-950' : 'text-slate-800 hover:text-slate-950'}`}
-              >
-                Artists
-              </button>
-            </div>
+            <div className="text-sm font-semibold text-slate-950">Artworks</div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <label className="relative block sm:w-[280px]">
@@ -353,14 +336,7 @@ export default function InventoryPage() {
           </div>
 
           <div className="min-h-[440px] px-4 py-5 sm:px-5 lg:px-6">
-            {activeTab === 'artists' ? (
-              <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
-                <div>
-                  <p className="text-lg font-semibold text-slate-700">No artists yet</p>
-                  <p className="mt-1 text-sm">Artists associated with your inventory will appear here.</p>
-                </div>
-              </div>
-            ) : isLoadingArtworks ? (
+            {isLoadingArtworks ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
                 <p className="text-sm font-medium">Loading your artworks…</p>
               </div>

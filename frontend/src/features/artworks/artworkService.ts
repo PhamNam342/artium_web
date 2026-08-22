@@ -91,13 +91,11 @@ export const artworkService = {
 
   async uploadArtworkImages(input: {
     files: File[];
-    sellerId: string;
     artworkId: string;
     altText?: string;
   }): Promise<ArtworkImage[]> {
     const formData = new FormData();
     input.files.forEach((file) => formData.append('files', file));
-    formData.append('sellerId', input.sellerId);
     formData.append('artworkId', input.artworkId);
     if (input.altText) formData.append('altText', input.altText);
 

@@ -186,6 +186,7 @@ describe('ArtworksService', () => {
       customTags: ['Framed'],
       createdAt: '2026-08-18T10:37:05.141Z',
       materials: 'Oil on canvas',
+      location: null,
       dimensions: { height: 60, width: 80, unit: 'cm' },
       weight: '2.50',
     });

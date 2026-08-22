@@ -33,8 +33,9 @@ function GuestRoute() {
   return <Outlet />;
 }
 
-function ProtectedRoute() {
+function ArtistRoute() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -45,7 +46,11 @@ function ProtectedRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  if (user.role !== 'ARTIST') {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
@@ -59,7 +64,9 @@ export default function AppRoutes() {
           <Route path="/" element={<HomePage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
+          <Route element={<ArtistRoute />}>
+            <Route path="/inventory" element={<InventoryPage />} />
+          </Route>
         </Route>
 
         <Route element={<GuestRoute />}>
@@ -69,7 +76,7 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
-        <Route element={<ProtectedRoute />}>
+        <Route element={<ArtistRoute />}>
           <Route path="/inventory/upload" element={<UploadArtworkPage />} />
           <Route path="/inventory/upload/:id" element={<UploadArtworkPage />} />
         </Route>

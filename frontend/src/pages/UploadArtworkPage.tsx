@@ -342,7 +342,6 @@ export default function UploadArtworkPage() {
           saveStage = 'upload the artwork images';
           uploadedImages = await artworkService.uploadArtworkImages({
             files: newFiles,
-            sellerId: user.id,
             artworkId,
             altText: form.title.trim(),
           });
@@ -364,7 +363,6 @@ export default function UploadArtworkPage() {
         const uploadedImages = await artworkService.uploadArtworkImages({
           // The draft exists before files can be stored under its artwork ID.
           files: newFiles,
-          sellerId: user.id,
           artworkId: artwork.id,
           altText: form.title.trim(),
         });
