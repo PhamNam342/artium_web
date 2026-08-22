@@ -40,6 +40,8 @@ export default function InventoryPage() {
   const [isLoadingArtworks, setIsLoadingArtworks] = useState(true);
   const [artworkLoadError, setArtworkLoadError] = useState(false);
   const [changingPublicationArtworkId, setChangingPublicationArtworkId] = useState<string | null>(null);
+  const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null);
+  const [isDeletingArtwork, setIsDeletingArtwork] = useState(false);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -113,6 +115,23 @@ export default function InventoryPage() {
       toast.error(shouldPublish ? 'Unable to publish this artwork. Please try again.' : 'Unable to move this artwork to drafts. Please try again.');
     } finally {
       setChangingPublicationArtworkId(null);
+    }
+  };
+
+  const deleteArtwork = async () => {
+    if (!artworkToDelete) return;
+
+    setIsDeletingArtwork(true);
+    try {
+      await artworkService.deleteArtwork(artworkToDelete.id);
+      setArtworks((current) => current.filter((artwork) => artwork.id !== artworkToDelete.id));
+      setArtworkToDelete(null);
+      toast.success('Artwork deleted.');
+    } catch (error) {
+      console.error('Artwork deletion failed', error);
+      toast.error('Unable to delete this artwork. Please try again.');
+    } finally {
+      setIsDeletingArtwork(false);
     }
   };
 
@@ -333,6 +352,7 @@ export default function InventoryPage() {
                     onEdit={() => navigate(`/inventory/upload/${item.id}`)}
                     onChangePublication={() => void changeArtworkPublication(item)}
                     isChangingPublication={changingPublicationArtworkId === item.id}
+                    onDelete={() => setArtworkToDelete(item)}
                   />
                 ))}
               </div>
@@ -350,16 +370,25 @@ export default function InventoryPage() {
           </div>
         </section>
       </div>
+      {artworkToDelete && (
+        <DeleteArtworkDialog
+          artworkTitle={artworkToDelete.title}
+          isDeleting={isDeletingArtwork}
+          onCancel={() => setArtworkToDelete(null)}
+          onConfirm={() => void deleteArtwork()}
+        />
+      )}
     </div>
   );
 }
 
-function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication }: {
+function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication, onDelete }: {
   item: Artwork;
   viewMode: ViewMode;
   onEdit: () => void;
   onChangePublication: () => void;
   isChangingPublication: boolean;
+  onDelete: () => void;
 }) {
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
   const closeDraftMenu = () => setIsDraftMenuOpen(false);
@@ -375,7 +404,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
-          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
@@ -391,7 +420,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
-          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
@@ -404,7 +433,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   );
 }
 
-function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublication, isPublished, isChangingPublication }: {
+function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublication, isPublished, isChangingPublication, onDelete }: {
   isOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
@@ -412,6 +441,7 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
   onChangePublication: () => void;
   isPublished: boolean;
   isChangingPublication: boolean;
+  onDelete: () => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -438,12 +468,32 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
       <button type="button" aria-label="Draft artwork actions" aria-expanded={isOpen} onClick={onToggle} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
       {isOpen && (
         <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
-          <DraftAction icon={Pencil} label="Edit Artwork" onClick={onEdit} />
-          <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? 'Moving to draft…' : 'Publishing…') : (isPublished ? 'Change to Draft' : 'Change to Publish')} onClick={onChangePublication} disabled={isChangingPublication} />
+          <DraftAction icon={Pencil} label="Edit Artwork" onClick={() => { onEdit(); onClose(); }} />
+          <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? 'Moving to draft…' : 'Publishing…') : (isPublished ? 'Change to Draft' : 'Change to Publish')} onClick={() => { onChangePublication(); onClose(); }} disabled={isChangingPublication} />
           <DraftAction icon={Folder} label="Move to folder" />
-          <DraftAction icon={Trash2} label="Delete Artwork" destructive />
+          <DraftAction icon={Trash2} label="Delete Artwork" destructive onClick={() => { onDelete(); onClose(); }} />
         </div>
       )}
+    </div>
+  );
+}
+
+function DeleteArtworkDialog({ artworkTitle, isDeleting, onCancel, onConfirm }: {
+  artworkTitle: string;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-5" role="presentation">
+      <section role="dialog" aria-modal="true" aria-labelledby="delete-artwork-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <h2 id="delete-artwork-title" className="text-xl font-bold text-slate-950">Delete artwork?</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600">&ldquo;{artworkTitle}&rdquo; will be permanently deleted. This action cannot be undone.</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={onCancel} disabled={isDeleting} className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
+          <button type="button" onClick={onConfirm} disabled={isDeleting} className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300">{isDeleting ? 'Deleting…' : 'Delete artwork'}</button>
+        </div>
+      </section>
     </div>
   );
 }

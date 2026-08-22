@@ -85,6 +85,10 @@ export const artworkService = {
     return response.data;
   },
 
+  async deleteArtwork(id: string): Promise<void> {
+    await api.delete(`/artwork/${id}`);
+  },
+
   async uploadArtworkImages(input: {
     files: File[];
     sellerId: string;
