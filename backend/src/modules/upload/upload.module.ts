@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Artwork } from '../artworks/artwork.entity';
 import { CloudStorageService } from './storage/cloud-storage.service';
 import { STORAGE_SERVICE } from './storage/storage.constants';
 import type { StorageDriver } from './storage/storage.constants';
@@ -29,6 +31,7 @@ const storageServiceProvider = {
 };
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Artwork])],
   controllers: [UploadController],
   providers: [
     UploadService,

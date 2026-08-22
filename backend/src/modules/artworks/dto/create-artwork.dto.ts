@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   Allow,
   IsArray,
+  ArrayMaxSize,
   IsBoolean,
   IsIn,
   IsNotEmpty,
@@ -105,10 +106,6 @@ export class ArtworkDimensionsDto {
 }
 
 export class CreateArtworkDto {
-  @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
-  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
-  sellerId?: string;
-
   @IsString({ message: artworkValidationMessage('string') })
   @IsNotEmpty({ message: artworkValidationMessage('not_empty') })
   @MaxLength(100, { message: artworkValidationMessage('max_length') })
@@ -156,6 +153,13 @@ export class CreateArtworkDto {
   tagIds?: string[];
 
   @IsOptional()
+  @IsArray({ message: artworkValidationMessage('array') })
+  @ArrayMaxSize(10, { message: artworkValidationMessage('max_length') })
+  @IsString({ each: true, message: artworkValidationMessage('string') })
+  @MaxLength(40, { each: true, message: artworkValidationMessage('max_length') })
+  customTags?: string[];
+
+  @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
   @MaxLength(80, { message: artworkValidationMessage('max_length') })
   materials?: string;
@@ -189,6 +193,7 @@ export class CreateArtworkDto {
 
   @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
+  @MaxLength(120, { message: artworkValidationMessage('max_length') })
   location?: string;
 
   @IsOptional()

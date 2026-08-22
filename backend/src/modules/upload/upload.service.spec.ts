@@ -1,7 +1,9 @@
 import { readFile, rm, mkdtemp } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import type { Repository } from 'typeorm';
+import { Artwork } from '../artworks/artwork.entity';
 import { LocalStorageService } from './storage/local-storage.service';
 import { UploadService } from './upload.service';
 import { UploadedArtworkFile } from './upload.types';
@@ -10,12 +12,17 @@ describe('UploadService', () => {
   let previousUploadRoot: string | undefined;
   let uploadRoot: string;
   let service: UploadService;
+  let artworkRepository: { findOneBy: jest.Mock };
 
   beforeEach(async () => {
     previousUploadRoot = process.env.UPLOAD_ROOT;
     uploadRoot = await mkdtemp(join(tmpdir(), 'artium-upload-'));
     process.env.UPLOAD_ROOT = uploadRoot;
-    service = new UploadService(new LocalStorageService());
+    artworkRepository = { findOneBy: jest.fn().mockResolvedValue({}) };
+    service = new UploadService(
+      new LocalStorageService(),
+      artworkRepository as unknown as Repository<Artwork>,
+    );
   });
 
   afterEach(async () => {
@@ -39,10 +46,10 @@ describe('UploadService', () => {
     const result = await service.uploadArtworkImages(
       [file],
       {
-        sellerId: 'seller/id',
         artworkId: 'artwork id',
         altText: 'Sunset Study',
       },
+      'seller/id',
       'http://localhost:3000',
     );
 
@@ -74,7 +81,8 @@ describe('UploadService', () => {
     await expect(
       service.uploadArtworkImages(
         [],
-        { sellerId: 'seller', artworkId: 'art' },
+        { artworkId: 'art' },
+        'seller',
         'http://localhost:3000',
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
@@ -91,9 +99,35 @@ describe('UploadService', () => {
             size: 4,
           },
         ],
-        { sellerId: 'seller', artworkId: 'art' },
+        { artworkId: 'art' },
+        'seller',
         'http://localhost:3000',
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects uploads for an artwork not owned by the authenticated seller', async () => {
+    artworkRepository.findOneBy.mockResolvedValueOnce(null);
+
+    await expect(
+      service.uploadArtworkImages(
+        [
+          {
+            buffer: Buffer.from('fake image'),
+            originalname: 'test.png',
+            mimetype: 'image/png',
+            size: 10,
+          },
+        ],
+        { artworkId: 'artwork-id' },
+        'authenticated-seller',
+        'http://localhost:3000',
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(artworkRepository.findOneBy).toHaveBeenCalledWith({
+      id: 'artwork-id',
+      sellerId: 'authenticated-seller',
+    });
   });
 });
