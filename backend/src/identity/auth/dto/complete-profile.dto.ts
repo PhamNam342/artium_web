@@ -1,10 +1,12 @@
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 
 import { UserRole } from '../../user/entities/user.entity';
-
+const ALLOWED_ROLES = [UserRole.ARTIST, UserRole.COLLECTOR] as const;
 export class CompleteProfileDto {
-  @IsEnum(UserRole)
-  role!: UserRole;
+  @IsIn(ALLOWED_ROLES, {
+    message: `role must be one of: ${[UserRole.ARTIST, UserRole.COLLECTOR].join(', ')}`,
+  })
+  role!: UserRole.ARTIST | UserRole.COLLECTOR;
 
   @IsString()
   @MaxLength(100)

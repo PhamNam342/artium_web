@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 
 import { SellerProfile } from './entities/seller_profile.entity';
 import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
-
+import { t } from '../../common/utils/i18n.util';
 @Injectable()
 export class SellerProfilesService {
   constructor(
@@ -24,7 +24,7 @@ export class SellerProfilesService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Seller profile not found');
+      throw new NotFoundException(t('seller_profile.not_found'));
     }
 
     return profile;
@@ -38,7 +38,7 @@ export class SellerProfilesService {
     const profile = await this.findById(profileId);
 
     if (profile.userId !== userId) {
-      throw new ForbiddenException('You cannot update this seller profile');
+      throw new ForbiddenException(t('seller_profile.cannot_update'));
     }
 
     if (dto.bio !== undefined) {
@@ -60,7 +60,7 @@ export class SellerProfilesService {
     const profile = await this.findById(profileId);
 
     if (profile.userId !== userId) {
-      throw new ForbiddenException('You cannot update this seller profile');
+      throw new ForbiddenException(t('seller_profile.cannot_update'));
     }
 
     profile.isVisible = isVisible;

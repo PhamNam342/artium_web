@@ -22,7 +22,6 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyForgotPasswordDto } from './dto/verify-forgot-password.dto.ts';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -129,7 +128,7 @@ export class AuthController {
     await this.authService.resetPassword(dto.resetToken, dto.newPassword);
 
     return {
-      message: 'Password reset successfully',
+      message: t('auth.password_reset_successfully'),
     };
   }
 

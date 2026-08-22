@@ -32,10 +32,15 @@ export class UserController {
     private readonly uploadService: UploadService,
     private readonly configService: ConfigService,
   ) {}
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@Req() req: RequestWithUser) {
+    return this.userService.findById(req.user.id);
+  }
 
   @Get(':userId')
   async getUser(@Param('userId', ParseUUIDPipe) userId: string) {
-    return this.userService.findById(userId);
+    return this.userService.findPublicProfile(userId);
   }
 
   @Patch('profile')

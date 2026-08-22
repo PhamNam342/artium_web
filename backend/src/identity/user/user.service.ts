@@ -5,6 +5,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User } from './entities/user.entity';
 import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
 import { UserRole } from './entities/user.entity';
+import { t } from '../../common/utils/i18n.util';
 @Injectable()
 export class UserService {
   constructor(
@@ -25,7 +26,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(t('user.user_not_found'));
     }
 
     return {
@@ -48,6 +49,36 @@ export class UserService {
         : null,
     };
   }
+  async findPublicProfile(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: {
+        sellerProfile: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    return {
+      id: user.id,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      location: user.location,
+
+      seller_profile:
+        user.role === UserRole.ARTIST && user.sellerProfile?.isVisible
+          ? {
+              bio: user.sellerProfile.bio,
+              website_url: user.sellerProfile.websiteUrl,
+            }
+          : null,
+    };
+  }
   async updateProfile(userId: string, dto: UpdateProfileDto) {
     const user = await this.userRepository.findOne({
       where: {
@@ -59,7 +90,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(t('user.user_not_found'));
     }
 
     // =========================
@@ -106,7 +137,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(t('user.user_not_found'));
     }
 
     user.avatar_url = avatarUrl;
