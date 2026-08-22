@@ -22,7 +22,7 @@ export default function OrderDetailPage() {
       try {
         if (!user || !id) return;
         setLoading(true);
-        const orderData = await orderService.getOrderById(id, user.id);
+        const orderData = await orderService.getOrderById(id);
         setOrder(orderData);
         if (orderData.artworkId) {
           const artworkData = await artworkService.getArtwork(orderData.artworkId);

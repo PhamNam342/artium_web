@@ -2,30 +2,18 @@ import api from '../../services/api';
 import type { Order, CreateOrderDto } from './types';
 
 export const orderService = {
-  async getUserOrders(userId?: string): Promise<Order[]> {
-    const config: any = {};
-    if (userId) {
-      config.headers = { 'x-user-id': userId };
-    }
-    const response = await api.get<Order[]>('/orders', config);
+  async getUserOrders(): Promise<Order[]> {
+    const response = await api.get<Order[]>('/orders');
     return response.data;
   },
 
-  async getOrderById(id: string, userId?: string): Promise<Order> {
-    const config: any = {};
-    if (userId) {
-      config.headers = { 'x-user-id': userId };
-    }
-    const response = await api.get<Order>(`/orders/${id}`, config);
+  async getOrderById(id: string): Promise<Order> {
+    const response = await api.get<Order>(`/orders/${id}`);
     return response.data;
   },
 
-  async createOrder(data: CreateOrderDto, userId?: string): Promise<Order> {
-    const config: any = {};
-    if (userId) {
-      config.headers = { 'x-user-id': userId };
-    }
-    const response = await api.post<Order>('/orders', data, config);
+  async createOrder(data: CreateOrderDto): Promise<Order> {
+    const response = await api.post<Order>('/orders', data);
     return response.data;
   },
 };

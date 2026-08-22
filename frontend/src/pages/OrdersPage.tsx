@@ -19,7 +19,7 @@ export default function OrdersPage() {
       try {
         if (!user) return;
         setLoading(true);
-        const data = await orderService.getUserOrders(user.id);
+        const data = await orderService.getUserOrders();
         setOrders(data);
       } catch (err) {
         console.error(err);

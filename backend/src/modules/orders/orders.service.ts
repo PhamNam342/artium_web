@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
@@ -12,7 +12,7 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
   ) {}
 
-  async createOrder(collectorId: string, createOrderDto: CreateOrderDto): Promise<{ orderId: string }> {
+  async createOrder(collectorId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     const order = this.orderRepository.create({
       collectorId,
       status: OrderStatus.PENDING,
@@ -26,7 +26,7 @@ export class OrdersService {
 
     const savedOrder = await this.orderRepository.save(order);
 
-    return { orderId: savedOrder.id };
+    return savedOrder;
   }
 
   async getUserOrders(collectorId: string): Promise<Order[]> {
@@ -36,7 +36,7 @@ export class OrdersService {
     });
   }
 
-  async getOrderById(id: string): Promise<Order> {
+  async getOrderById(id: string, user: { id: string; role: string | null }): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
       relations: { collector: true },
@@ -46,11 +46,19 @@ export class OrdersService {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
 
+    if (order.collectorId !== user.id && user.role !== 'ADMIN') {
+      throw new ForbiddenException('You do not have permission to access this order');
+    }
+
     return order;
   }
 
-  async updateOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<Order> {
-    const order = await this.getOrderById(id);
+  async updateOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto, user: { id: string; role: string | null }): Promise<Order> {
+    if (user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can update order status');
+    }
+
+    const order = await this.getOrderById(id, user);
     
     order.status = updateOrderStatusDto.status;
     return this.orderRepository.save(order);

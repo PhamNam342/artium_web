@@ -74,7 +74,7 @@ export default function CheckoutPage() {
         totalAmount,
       };
 
-      const newOrder = await orderService.createOrder(orderData, user.id);
+      const newOrder = await orderService.createOrder(orderData);
       toast.success(t('checkout.success'));
       navigate(`/orders/${newOrder.id}`);
     } catch (err) {
