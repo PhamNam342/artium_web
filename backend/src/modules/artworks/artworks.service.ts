@@ -601,7 +601,11 @@ export class ArtworksService {
 
   private normalizeCurrency(value: unknown) {
     const currency = this.cleanString(value);
-    return currency ? currency.toUpperCase() : null;
+    const normalizedCurrency = currency ? currency.toUpperCase() : null;
+    if (normalizedCurrency && normalizedCurrency !== 'VND') {
+      throw new BadRequestException('Only VND currency is supported');
+    }
+    return normalizedCurrency;
   }
 
   private normalizeArtworkStatus(value: ArtworkStatus | string | undefined) {

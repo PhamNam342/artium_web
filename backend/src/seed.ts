@@ -12,7 +12,7 @@ const artworkSeeds = [
     title: 'Amber Horizon',
     description:
       'Warm amber layers inspired by the final light over a distant coastline.',
-    price: '760.00',
+    price: '19760000.00',
     materials: 'acrylic on canvas',
     dimensions: { height: 70, width: 90, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5',
@@ -22,7 +22,7 @@ const artworkSeeds = [
     title: 'Tidal Memory',
     description:
       'A fluid blue composition that recalls changing tides and quiet mornings.',
-    price: '540.00',
+    price: '14040000.00',
     materials: 'oil on linen',
     dimensions: { height: 60, width: 60, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1549490349-8643362247b5',
@@ -32,7 +32,7 @@ const artworkSeeds = [
     title: 'Garden After Rain',
     description:
       'A small botanical study of rain-washed leaves and soft afternoon light.',
-    price: '390.00',
+    price: '10140000.00',
     materials: 'watercolor on paper',
     dimensions: { height: 42, width: 30, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1515405295579-ba7b45403062',
@@ -42,7 +42,7 @@ const artworkSeeds = [
     title: 'Stone Vessel No. 3',
     description:
       'Hand-built vessel with a matte charcoal surface and subtle carved marks.',
-    price: '610.00',
+    price: '15860000.00',
     materials: 'stoneware ceramic',
     dimensions: { height: 32, width: 25, depth: 25, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa',
@@ -52,7 +52,7 @@ const artworkSeeds = [
     title: 'Red Thread',
     description:
       'A gestural work exploring movement, connection, and the energy of a single line.',
-    price: '880.00',
+    price: '22880000.00',
     materials: 'mixed media on canvas',
     dimensions: { height: 100, width: 80, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262',
@@ -62,7 +62,7 @@ const artworkSeeds = [
     title: 'Fields of Blue',
     description:
       'A luminous landscape built from layered ultramarine and pale green washes.',
-    price: '470.00',
+    price: '12220000.00',
     materials: 'gouache on paper',
     dimensions: { height: 50, width: 70, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4',
@@ -72,7 +72,7 @@ const artworkSeeds = [
     title: 'Quiet Form',
     description:
       'A sculptural study in balance, texture, and a restrained ivory glaze.',
-    price: '720.00',
+    price: '18720000.00',
     materials: 'porcelain',
     dimensions: { height: 38, width: 22, depth: 20, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1493106819501-66d381c466f1',
@@ -82,7 +82,7 @@ const artworkSeeds = [
     title: 'Violet Noon',
     description:
       'An abstracted urban scene where violet shadows meet a bright summer sky.',
-    price: '1050.00',
+    price: '27300000.00',
     materials: 'oil on canvas',
     dimensions: { height: 90, width: 120, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988f7',
@@ -92,7 +92,7 @@ const artworkSeeds = [
     title: 'Mangrove Study',
     description:
       'A detailed view of coastal roots and still water in late afternoon.',
-    price: '650.00',
+    price: '16900000.00',
     materials: 'ink and watercolor',
     dimensions: { height: 56, width: 76, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1448375240586-882707db888b',
@@ -102,7 +102,7 @@ const artworkSeeds = [
     title: 'Earth Bowl',
     description:
       'A low, wide bowl finished with natural iron-rich glaze and an unglazed foot.',
-    price: '320.00',
+    price: '8320000.00',
     materials: 'ceramic',
     dimensions: { height: 12, width: 34, depth: 34, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa',
@@ -112,7 +112,7 @@ const artworkSeeds = [
     title: 'Night Bloom',
     description:
       'Deep indigo and crimson flowers emerge from a dark, textured ground.',
-    price: '930.00',
+    price: '24180000.00',
     materials: 'acrylic on canvas',
     dimensions: { height: 80, width: 80, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5',
@@ -122,7 +122,7 @@ const artworkSeeds = [
     title: 'Limestone Figure',
     description:
       'A compact carved form with softened edges and a tactile honed finish.',
-    price: '1180.00',
+    price: '30680000.00',
     materials: 'limestone',
     dimensions: { height: 45, width: 18, depth: 16, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1549887534-1541e9326642',
@@ -132,7 +132,7 @@ const artworkSeeds = [
     title: 'Golden Monsoon',
     description:
       'A bright atmospheric landscape celebrating the gold and green of monsoon season.',
-    price: '580.00',
+    price: '15080000.00',
     materials: 'oil pastel on paper',
     dimensions: { height: 45, width: 65, unit: 'cm' },
     image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9',
@@ -223,7 +223,7 @@ async function bootstrap() {
           title: artwork.title,
           description: artwork.description,
           price: artwork.price,
-          currency: 'USD',
+          currency: 'VND',
           status: ArtworkStatus.ACTIVE,
           isPublished: true,
           images: [{ url: artwork.image, alt: artwork.title, isPrimary: true }],
