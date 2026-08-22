@@ -38,8 +38,8 @@ export interface UpdateSellerProfilePayload {
  * GET /identity/users/:userId
  * Lấy thông tin đầy đủ của user, bao gồm seller_profile nếu là ARTIST
  */
-export async function getUserProfile(userId: string): Promise<UserProfile> {
-  const res = await api.get<UserProfile>(`/identity/users/${userId}`);
+export async function getUserProfile(): Promise<UserProfile> {
+  const res = await api.get<UserProfile>('/identity/users/me');
   return res.data;
 }
 
