@@ -30,7 +30,16 @@ describe('ArtworksService', () => {
       ),
     };
     tagRepository = {
+      create: jest.fn((data: Partial<Tag>) => data as Tag),
       find: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      save: jest.fn((tag: Tag) =>
+        Promise.resolve({
+          ...tag,
+          id: tag.id ?? '123e4567-e89b-12d3-a456-426614174444',
+        }),
+      ),
     };
 
     service = new ArtworksService(
@@ -71,6 +80,18 @@ describe('ArtworksService', () => {
       }),
     );
     expect(created.id).toBe('123e4567-e89b-12d3-a456-426614174111');
+  });
+
+  it('creates a reusable custom artwork tag', async () => {
+    tagRepository.findOne?.mockResolvedValue(null);
+
+    await expect(service.createTag({ name: '  Commissioned  ' })).resolves.toEqual({
+      id: '123e4567-e89b-12d3-a456-426614174444',
+      name: 'Commissioned',
+    });
+
+    expect(tagRepository.create).toHaveBeenCalledWith({ name: 'Commissioned' });
+    expect(tagRepository.save).toHaveBeenCalledWith({ name: 'Commissioned' });
   });
 
   it('rejects an invalid seller id before saving', async () => {
