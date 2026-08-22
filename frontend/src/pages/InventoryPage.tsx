@@ -18,6 +18,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
 import { artworkService, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
@@ -38,6 +39,7 @@ export default function InventoryPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [isLoadingArtworks, setIsLoadingArtworks] = useState(true);
   const [artworkLoadError, setArtworkLoadError] = useState(false);
+  const [changingPublicationArtworkId, setChangingPublicationArtworkId] = useState<string | null>(null);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,6 +94,26 @@ export default function InventoryPage() {
   const selectArtworkFiles = () => {
     setIsUploadMenuOpen(false);
     navigate('/inventory/upload');
+  };
+
+  const changeArtworkPublication = async (artwork: Artwork) => {
+    const shouldPublish = !artwork.isPublished;
+    setChangingPublicationArtworkId(artwork.id);
+    try {
+      const updatedArtwork = await artworkService.updateArtwork(artwork.id, {
+        status: shouldPublish ? 'ACTIVE' : 'DRAFT',
+        isPublished: shouldPublish,
+      });
+      setArtworks((current) => current.map((artwork) => (
+        artwork.id === updatedArtwork.id ? updatedArtwork : artwork
+      )));
+      toast.success(shouldPublish ? 'Artwork is now published.' : 'Artwork moved to drafts.');
+    } catch (error) {
+      console.error('Artwork publication update failed', error);
+      toast.error(shouldPublish ? 'Unable to publish this artwork. Please try again.' : 'Unable to move this artwork to drafts. Please try again.');
+    } finally {
+      setChangingPublicationArtworkId(null);
+    }
   };
 
   const items = useMemo(() => {
@@ -309,6 +331,8 @@ export default function InventoryPage() {
                     item={item}
                     viewMode={viewMode}
                     onEdit={() => navigate(`/inventory/upload/${item.id}`)}
+                    onChangePublication={() => void changeArtworkPublication(item)}
+                    isChangingPublication={changingPublicationArtworkId === item.id}
                   />
                 ))}
               </div>
@@ -330,7 +354,13 @@ export default function InventoryPage() {
   );
 }
 
-function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: ViewMode; onEdit: () => void }) {
+function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication }: {
+  item: Artwork;
+  viewMode: ViewMode;
+  onEdit: () => void;
+  onChangePublication: () => void;
+  isChangingPublication: boolean;
+}) {
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
   const closeDraftMenu = () => setIsDraftMenuOpen(false);
   const image = getArtworkImage(item.images);
@@ -345,7 +375,7 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
-          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
@@ -361,7 +391,7 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
-          {item.status === 'DRAFT' && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
@@ -374,7 +404,15 @@ function InventoryCard({ item, viewMode, onEdit }: { item: Artwork; viewMode: Vi
   );
 }
 
-function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit }: { isOpen: boolean; onToggle: () => void; onClose: () => void; onEdit: () => void }) {
+function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublication, isPublished, isChangingPublication }: {
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onEdit: () => void;
+  onChangePublication: () => void;
+  isPublished: boolean;
+  isChangingPublication: boolean;
+}) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -401,7 +439,7 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit }: { isOpen: boole
       {isOpen && (
         <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
           <DraftAction icon={Pencil} label="Edit Artwork" onClick={onEdit} />
-          <DraftAction icon={Repeat2} label="Change to Publish" />
+          <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? 'Moving to draft…' : 'Publishing…') : (isPublished ? 'Change to Draft' : 'Change to Publish')} onClick={onChangePublication} disabled={isChangingPublication} />
           <DraftAction icon={Folder} label="Move to folder" />
           <DraftAction icon={Trash2} label="Delete Artwork" destructive />
         </div>
@@ -410,9 +448,15 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit }: { isOpen: boole
   );
 }
 
-function DraftAction({ icon: Icon, label, destructive = false, onClick }: { icon: typeof Pencil; label: string; destructive?: boolean; onClick?: () => void }) {
+function DraftAction({ icon: Icon, label, destructive = false, onClick, disabled = false }: {
+  icon: typeof Pencil;
+  label: string;
+  destructive?: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <button type="button" role="menuitem" onClick={onClick} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-base font-bold transition-colors ${destructive ? 'text-red-600 hover:bg-red-50' : 'text-slate-950 hover:bg-slate-50'}`}>
+    <button type="button" role="menuitem" onClick={onClick} disabled={disabled} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${destructive ? 'text-red-600 hover:bg-red-50' : 'text-slate-950 hover:bg-slate-50'}`}>
       <Icon size={25} strokeWidth={2} />
       {label}
     </button>
