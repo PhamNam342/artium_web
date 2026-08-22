@@ -1,26 +1,10 @@
-import { IsString, IsNumber, IsOptional, IsObject } from 'class-validator';
+import { IsObject, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateOrderDto {
-  @IsString()
+  @IsUUID()
   artworkId: string;
 
   @IsOptional()
-  @IsNumber()
-  subtotal?: number;
-
-  @IsOptional()
-  @IsNumber()
-  shippingCost?: number;
-
-  @IsOptional()
-  @IsNumber()
-  totalAmount?: number;
-
-  @IsOptional()
   @IsObject()
-  shippingAddress?: any;
-
-  @IsOptional()
-  @IsString()
-  paymentStatus?: string;
+  shippingAddress?: Record<string, unknown>;
 }

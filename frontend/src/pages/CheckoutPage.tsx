@@ -62,16 +62,9 @@ export default function CheckoutPage() {
 
     try {
       setSubmitting(true);
-      const subtotal = Number(artwork.price);
-      const shippingCost = 0; // Free shipping mock
-      const totalAmount = subtotal + shippingCost;
-
       const orderData = {
         artworkId: artwork.id,
         shippingAddress: formData,
-        subtotal,
-        shippingCost,
-        totalAmount,
       };
 
       const newOrder = await orderService.createOrder(orderData);
