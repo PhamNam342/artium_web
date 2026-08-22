@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { SellerProfilesModule } from './identity/seller_profile/seller_profile.module';
+import { UserModule } from './identity/user/user.module';
 import * as path from 'path';
 import {
   AcceptLanguageResolver,
@@ -65,6 +67,8 @@ import { UploadModule } from './modules/upload/upload.module';
     UploadModule,
     MailModule,
     AuthModule,
+    UserModule,
+    SellerProfilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

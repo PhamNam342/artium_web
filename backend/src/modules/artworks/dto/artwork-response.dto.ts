@@ -101,10 +101,16 @@ export class ArtworkResponseDto {
   tags!: ArtworkTagResponseDto[];
 
   @Expose()
+  customTags!: string[];
+
+  @Expose()
   createdAt!: string | null;
 
   @Expose()
   materials!: string | null;
+
+  @Expose()
+  location!: string | null;
 
   @Expose()
   @Type(() => ArtworkDimensionsResponseDto)

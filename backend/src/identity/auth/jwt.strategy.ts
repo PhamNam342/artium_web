@@ -25,6 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     role: string;
     jti: string;
   }) {
+    console.log('🔥 JWT PAYLOAD:', payload);
     const revoked = await this.redisService.exists(
       `auth:revoked:${payload.jti}`,
     );

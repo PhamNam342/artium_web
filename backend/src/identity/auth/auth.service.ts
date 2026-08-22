@@ -8,13 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 
-import { User } from '../../user/entities/user.entity';
+import { User, UserRole } from '../user/entities/user.entity';
 import { MailService } from '../../common/mail/mail.service';
 import { RedisService } from '../../common/redis/redis.service';
 import { randomUUID } from 'crypto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { t } from '../../common/utils/i18n.util';
+import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
 @Injectable()
 export class AuthService {
   private readonly OTP_TTL = 5 * 60 * 1000;
@@ -25,6 +26,8 @@ export class AuthService {
     @InjectRepository(User)
     private readonly users: Repository<User>,
 
+    @InjectRepository(SellerProfile)
+    private readonly sellerProfiles: Repository<SellerProfile>,
     private readonly jwt: JwtService,
 
     private readonly config: ConfigService,
@@ -236,17 +239,37 @@ export class AuthService {
       );
     }
 
+    // Artist bắt buộc phải có bio
+    if (dto.role === UserRole.ARTIST && !dto.bio?.trim()) {
+      throw new HttpException('Artist bio is required', HttpStatus.BAD_REQUEST);
+    }
+
+    // =========================
+    // Update User
+    // =========================
+
     user.role = dto.role;
-
-    if (dto.full_name !== undefined) {
-      user.full_name = dto.full_name;
-    }
-
-    if (dto.location !== undefined) {
-      user.location = dto.location;
-    }
+    user.full_name = dto.full_name;
+    user.location = dto.location;
 
     await this.users.save(user);
+
+    // =========================
+    // Artist profile
+    // =========================
+
+    if (dto.role === UserRole.ARTIST) {
+      const sellerProfile = this.sellerProfiles.create({
+        userId: user.id,
+        bio: dto.bio?.trim() || null,
+      });
+
+      await this.sellerProfiles.save(sellerProfile);
+    }
+
+    // =========================
+    // Generate JWT
+    // =========================
 
     return this.generateToken(user);
   }
@@ -260,5 +283,115 @@ export class AuthService {
       role: user.role,
       jti: randomUUID(),
     });
+  }
+  // forgot password
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.users.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.cacheManager.set(
+      `forgot-password:otp:${email}`,
+      otp,
+      this.OTP_TTL,
+    );
+
+    await this.mailService.sendOtp(email, otp);
+  }
+  async verifyForgotPassword(email: string, otp: string): Promise<string> {
+    const storedOtp = await this.cacheManager.get<string>(
+      `forgot-password:otp:${email}`,
+    );
+
+    if (!storedOtp || storedOtp !== otp) {
+      throw new HttpException(
+        t('auth.invalid_or_expired_otp'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const user = await this.users.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new HttpException(t('auth.user_not_found'), HttpStatus.NOT_FOUND);
+    }
+
+    const resetToken = randomUUID();
+
+    await this.cacheManager.set(
+      `forgot-password:reset:${resetToken}`,
+      user.id,
+      this.OTP_TTL,
+    );
+
+    await this.cacheManager.del(`forgot-password:otp:${email}`);
+    // dùng để lưu vào redis
+    return resetToken;
+  }
+  async resetPassword(resetToken: string, newPassword: string): Promise<void> {
+    const userId = await this.cacheManager.get<string>(
+      `forgot-password:reset:${resetToken}`,
+    );
+
+    if (!userId) {
+      throw new HttpException(
+        t('auth.invalid_or_expired_reset_token'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const user = await this.users.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new HttpException(t('auth.user_not_found'), HttpStatus.NOT_FOUND);
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    await this.users.save(user);
+
+    await this.cacheManager.del(`forgot-password:reset:${resetToken}`);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.users.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new HttpException(t('auth.user_not_found'), HttpStatus.NOT_FOUND);
+    }
+
+    if (!user.password) {
+      throw new HttpException(
+        t('auth.password_not_set'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+
+    if (!validPassword) {
+      throw new HttpException(
+        t('auth.invalid_current_password'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.users.save(user);
   }
 }

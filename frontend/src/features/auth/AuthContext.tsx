@@ -81,6 +81,7 @@ interface AuthContextType {
     role: UserRole,
     full_name: string,
     location: string,
+    bio?: string,
   ) => Promise<void>;
 
   logout: () => Promise<void>;
@@ -223,12 +224,14 @@ export function AuthProvider({
       role: UserRole,
       full_name: string,
       location: string,
+      bio?: string,
     ) => {
       const response =
         await authService.completeProfile({
           role,
           full_name,
           location,
+          bio,
         });
 
       saveSession(response.access_token);

@@ -4,8 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
-
+import { SellerProfile } from '../../seller_profile/entities/seller_profile.entity';
 export enum UserRole {
   ADMIN = 'ADMIN',
   ARTIST = 'ARTIST',
@@ -90,4 +91,6 @@ export class User {
     nullable: true,
   })
   location?: string;
+  @OneToOne(() => SellerProfile, (sellerProfile) => sellerProfile.user)
+  sellerProfile!: SellerProfile;
 }

@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../../identity/user/entities/user.entity';
 // Note: If you have an Artwork entity, you can add ManyToOne relation here later
 
 export enum OrderStatus {
@@ -20,43 +20,60 @@ export enum OrderStatus {
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'collector_id' })
-  collector: User;
+  collector!: User;
 
   @Column({ name: 'collector_id', type: 'uuid' })
-  collectorId: string;
+  collectorId!: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  subtotal: number;
+  subtotal!: number;
 
   @Column({ name: 'artwork_id', type: 'uuid' })
-  artworkId: string;
+  artworkId!: string;
 
-  @Column({ name: 'shipping_cost', type: 'decimal', precision: 12, scale: 2, nullable: true })
-  shippingCost: number;
+  @Column({
+    name: 'shipping_cost',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  shippingCost!: number;
 
-  @Column({ name: 'total_amount', type: 'decimal', precision: 12, scale: 2, nullable: true })
-  totalAmount: number;
+  @Column({
+    name: 'total_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  totalAmount!: number;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.PENDING,
   })
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @Column({ name: 'shipping_address', type: 'jsonb', nullable: true })
   shippingAddress: any;
 
-  @Column({ name: 'payment_status', type: 'varchar', length: 50, nullable: true })
-  paymentStatus: string;
+  @Column({
+    name: 'payment_status',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  paymentStatus!: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

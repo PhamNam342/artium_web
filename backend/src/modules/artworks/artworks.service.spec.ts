@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 import { Artwork, ArtworkStatus } from './artwork.entity';
 import { ArtworksService } from './artworks.service';
@@ -7,12 +8,25 @@ import {
   ArtworkResponseDto,
 } from './dto/artwork-response.dto';
 import { Tag } from './tag.entity';
+import { UpdateArtworkDto } from './dto/update-artwork.dto';
 
 describe('ArtworksService', () => {
   const sellerId = '123e4567-e89b-12d3-a456-426614174000';
 
-  let artworkRepository: jest.Mocked<Partial<Repository<Artwork>>>;
-  let tagRepository: jest.Mocked<Partial<Repository<Tag>>>;
+  let artworkRepository: {
+    create: jest.Mock;
+    createQueryBuilder: jest.Mock;
+    delete: jest.Mock;
+    findOne: jest.Mock;
+    save: jest.Mock;
+  };
+  let tagRepository: {
+    create: jest.Mock;
+    find: jest.Mock;
+    findOne: jest.Mock;
+    findOneBy: jest.Mock;
+    save: jest.Mock;
+  };
   let service: ArtworksService;
 
   beforeEach(() => {
@@ -30,23 +44,34 @@ describe('ArtworksService', () => {
       ),
     };
     tagRepository = {
+      create: jest.fn((data: Partial<Tag>) => data as Tag),
       find: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      save: jest.fn((tag: Tag) =>
+        Promise.resolve({
+          ...tag,
+          id: tag.id ?? '123e4567-e89b-12d3-a456-426614174444',
+        }),
+      ),
     };
 
     service = new ArtworksService(
-      artworkRepository as Repository<Artwork>,
-      tagRepository as Repository<Tag>,
+      artworkRepository as unknown as Repository<Artwork>,
+      tagRepository as unknown as Repository<Tag>,
     );
   });
 
   it('creates an artwork with normalized defaults', async () => {
-    const created = await service.create({
+    const created = await service.create(
+      {
+        title: '  New Piece  ',
+        price: 1500,
+        currency: 'usd',
+        materials: 'Oil on canvas',
+      },
       sellerId,
-      title: '  New Piece  ',
-      price: 1500,
-      currency: 'usd',
-      materials: 'Oil on canvas',
-    });
+    );
 
     expect(artworkRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -59,6 +84,7 @@ describe('ArtworksService', () => {
         isPublished: false,
         images: [],
         folderId: null,
+        customTags: [],
         viewCount: 0,
         materials: 'Oil on canvas',
         dimensions: null,
@@ -69,23 +95,41 @@ describe('ArtworksService', () => {
     expect(created.id).toBe('123e4567-e89b-12d3-a456-426614174111');
   });
 
+  it('creates a reusable custom artwork tag', async () => {
+    tagRepository.findOne.mockResolvedValue(null);
+
+    await expect(
+      service.createTag({ name: '  Commissioned  ' }),
+    ).resolves.toEqual({
+      id: '123e4567-e89b-12d3-a456-426614174444',
+      name: 'Commissioned',
+    });
+
+    expect(tagRepository.create).toHaveBeenCalledWith({ name: 'Commissioned' });
+    expect(tagRepository.save).toHaveBeenCalledWith({ name: 'Commissioned' });
+  });
+
   it('rejects an invalid seller id before saving', async () => {
     await expect(
-      service.create({
-        sellerId: 'not-a-uuid',
-        title: 'New Piece',
-      }),
+      service.create(
+        {
+          title: 'New Piece',
+        },
+        'not-a-uuid',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
   it('maps legacy available status to active', async () => {
-    await service.create({
+    await service.create(
+      {
+        title: 'Published Piece',
+        status: 'available',
+      },
       sellerId,
-      title: 'Published Piece',
-      status: 'available',
-    });
+    );
 
     expect(artworkRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -115,15 +159,15 @@ describe('ArtworksService', () => {
       folderId: null,
       viewCount: 4,
       tags: [{ id: '123e4567-e89b-12d3-a456-426614174333', name: 'Oil' }],
+      customTags: ['Framed'],
       createdAt: new Date('2026-08-18T10:37:05.141Z'),
       materials: 'Oil on canvas',
       dimensions: { height: 60, width: 80, unit: 'cm' },
       weight: '2.50',
       internalNote: 'hidden',
-    } as Artwork & { internalNote: string };
+    } as unknown as Artwork & { internalNote: string };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(artwork);
+    artworkRepository.findOne.mockResolvedValue(artwork);
 
     const response = await service.findOne(artworkId);
 
@@ -149,13 +193,52 @@ describe('ArtworksService', () => {
       folderId: null,
       viewCount: 4,
       tags: [{ id: '123e4567-e89b-12d3-a456-426614174333', name: 'Oil' }],
+      customTags: ['Framed'],
       createdAt: '2026-08-18T10:37:05.141Z',
       materials: 'Oil on canvas',
+      location: null,
       dimensions: { height: 60, width: 80, unit: 'cm' },
       weight: '2.50',
     });
     expect(artworkRepository.findOne).toHaveBeenCalledWith({
-      where: { id: artworkId },
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+      ],
+      relations: { tags: true },
+    });
+  });
+
+  it('allows an artwork owner to read an unpublished draft', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.findOne.mockResolvedValue({
+      id: artworkId,
+      sellerId,
+      title: 'Private Draft',
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      images: [],
+      tags: [],
+      customTags: [],
+    });
+
+    await expect(service.findOne(artworkId, sellerId)).resolves.toMatchObject({
+      id: artworkId,
+      status: ArtworkStatus.DRAFT,
+    });
+
+    expect(artworkRepository.findOne).toHaveBeenCalledWith({
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+        { id: artworkId, sellerId },
+      ],
       relations: { tags: true },
     });
   });
@@ -170,7 +253,7 @@ describe('ArtworksService', () => {
       images: [],
       tags: [],
       createdAt: new Date('2026-08-18T10:37:05.141Z'),
-    } as Artwork;
+    } as unknown as Artwork;
     const queryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -180,10 +263,7 @@ describe('ArtworksService', () => {
       take: jest.fn().mockReturnThis(),
       getManyAndCount: jest.fn().mockResolvedValue([[artwork], 1]),
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.createQueryBuilder?.mockReturnValue(
-      queryBuilder as never,
-    );
+    artworkRepository.createQueryBuilder.mockReturnValue(queryBuilder);
 
     await expect(service.findMine(sellerId, {})).resolves.toEqual({
       data: [
@@ -221,8 +301,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when artwork detail does not exist', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(null);
+    artworkRepository.findOne.mockResolvedValue(null);
 
     await expect(service.findOne(artworkId)).rejects.toBeInstanceOf(
       NotFoundException,
@@ -243,25 +322,27 @@ describe('ArtworksService', () => {
       status: ArtworkStatus.DRAFT,
       isPublished: false,
       tags: [],
-    } as Artwork;
+    } as unknown as Artwork;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(artwork);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    tagRepository.find?.mockResolvedValue([tag]);
+    artworkRepository.findOne.mockResolvedValue(artwork);
+    tagRepository.find.mockResolvedValue([tag]);
 
-    const updated = await service.update(artworkId, {
-      title: '  Updated Piece  ',
-      price: 250,
-      currency: 'usd',
-      status: 'available',
-      isPublished: true,
-      materials: 'Oil on canvas',
-      tagIds: [tag.id],
-    });
+    const updated = await service.update(
+      artworkId,
+      {
+        title: '  Updated Piece  ',
+        price: 250,
+        currency: 'usd',
+        status: 'available',
+        isPublished: true,
+        materials: 'Oil on canvas',
+        tagIds: [tag.id],
+      },
+      sellerId,
+    );
 
     expect(artworkRepository.findOne).toHaveBeenCalledWith({
-      where: { id: artworkId },
+      where: { id: artworkId, sellerId },
       relations: { tags: true },
     });
     expect(artworkRepository.save).toHaveBeenCalledWith(
@@ -285,12 +366,61 @@ describe('ArtworksService', () => {
     );
   });
 
+  it('updates image metadata after the validation pipe adds undefined fields', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174555';
+    const artwork = {
+      id: artworkId,
+      sellerId,
+      title: 'Image update',
+      description: null,
+      price: null,
+      currency: null,
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      images: [],
+      folderId: null,
+      viewCount: 0,
+      customTags: [],
+      tags: [],
+      createdAt: new Date('2026-08-18T10:37:05.141Z'),
+      materials: null,
+      dimensions: null,
+      weight: null,
+    } as unknown as Artwork;
+
+    artworkRepository.findOne.mockResolvedValue(artwork);
+
+    const updateInput = plainToInstance(UpdateArtworkDto, {
+      images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
+    });
+
+    await expect(
+      service.update(artworkId, updateInput, sellerId),
+    ).resolves.toMatchObject({
+      id: artworkId,
+      images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
+    });
+
+    expect(artworkRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        images: [
+          {
+            url: 'http://localhost:3000/uploads/image.jpg',
+            secureUrl: undefined,
+            alt: undefined,
+            altText: undefined,
+          },
+        ],
+      }),
+    );
+  });
+
   it('rejects an empty artwork update body', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
 
-    await expect(service.update(artworkId, {})).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(
+      service.update(artworkId, {}, sellerId),
+    ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(artworkRepository.findOne).not.toHaveBeenCalled();
     expect(artworkRepository.save).not.toHaveBeenCalled();
@@ -298,32 +428,49 @@ describe('ArtworksService', () => {
 
   it('throws not found when updating a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(null);
+    artworkRepository.findOne.mockResolvedValue(null);
 
     await expect(
-      service.update(artworkId, { title: 'Updated Piece' }),
+      service.update(artworkId, { title: 'Updated Piece' }, sellerId),
     ).rejects.toBeInstanceOf(NotFoundException);
 
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
+  it('only updates artwork owned by the authenticated seller', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
+    artworkRepository.findOne.mockResolvedValue(null);
+
+    await expect(
+      service.update(artworkId, { title: 'Not mine' }, otherSellerId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(artworkRepository.findOne).toHaveBeenCalledWith({
+      where: { id: artworkId, sellerId: otherSellerId },
+      relations: { tags: true },
+    });
+    expect(artworkRepository.save).not.toHaveBeenCalled();
+  });
+
   it('deletes artwork by id', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.delete?.mockResolvedValue({
+    artworkRepository.delete.mockResolvedValue({
       affected: 1,
       raw: {},
     });
 
-    await expect(service.remove(artworkId)).resolves.toEqual({
+    await expect(service.remove(artworkId, sellerId)).resolves.toEqual({
       success: true,
     });
-    expect(artworkRepository.delete).toHaveBeenCalledWith({ id: artworkId });
+    expect(artworkRepository.delete).toHaveBeenCalledWith({
+      id: artworkId,
+      sellerId,
+    });
   });
 
   it('rejects an invalid artwork delete id', async () => {
-    await expect(service.remove('bad-id')).rejects.toBeInstanceOf(
+    await expect(service.remove('bad-id', sellerId)).rejects.toBeInstanceOf(
       BadRequestException,
     );
 
@@ -332,14 +479,30 @@ describe('ArtworksService', () => {
 
   it('throws not found when deleting a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.delete?.mockResolvedValue({
+    artworkRepository.delete.mockResolvedValue({
       affected: 0,
       raw: {},
     });
 
-    await expect(service.remove(artworkId)).rejects.toBeInstanceOf(
+    await expect(service.remove(artworkId, sellerId)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('only deletes artwork owned by the authenticated seller', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
+    artworkRepository.delete.mockResolvedValue({
+      affected: 0,
+      raw: {},
+    });
+
+    await expect(
+      service.remove(artworkId, otherSellerId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(artworkRepository.delete).toHaveBeenCalledWith({
+      id: artworkId,
+      sellerId: otherSellerId,
+    });
   });
 });

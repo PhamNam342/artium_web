@@ -11,6 +11,7 @@ export interface CompleteProfileRequest {
   role: 'ARTIST' | 'COLLECTOR';
   full_name: string;
   location: string;
+  bio?: string;
 }
 
 export async function login(data: LoginRequest): Promise<AuthResponse> {
@@ -53,4 +54,42 @@ export async function completeProfile(
   );
 
   return response.data;
+}
+
+export async function forgotPassword(email: string): Promise<MessageResponse> {
+  const res = await api.post<MessageResponse>('/auth/forgot-password', { email });
+  return res.data;
+}
+
+export async function verifyForgotPassword(
+  email: string,
+  otp: string,
+): Promise<{ reset_token: string }> {
+  const res = await api.post<{ reset_token: string }>('/auth/forgot-password/verify', {
+    email,
+    otp,
+  });
+  return res.data;
+}
+
+export async function resetPassword(
+  resetToken: string,
+  newPassword: string,
+): Promise<MessageResponse> {
+  const res = await api.post<MessageResponse>('/auth/forgot-password/reset', {
+    resetToken,
+    newPassword,
+  });
+  return res.data;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<MessageResponse> {
+  const res = await api.patch<MessageResponse>('/auth/change-password', {
+    currentPassword,
+    newPassword,
+  });
+  return res.data;
 }

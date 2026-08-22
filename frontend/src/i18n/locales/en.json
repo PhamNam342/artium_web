@@ -10,6 +10,7 @@
   "nav": {
     "home": "Home",
     "artworks": "Artworks",
+    "inventory": "Inventory",
     "pricing": "Pricing",
     "login": "Sign In",
     "register": "Sign Up",
