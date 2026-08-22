@@ -16,12 +16,14 @@ import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
 import { ArtworksService } from './artworks.service';
 import {
   ArtworkResponseDto,
+  ArtworkTagResponseDto,
   DeleteArtworkResponseDto,
   ListArtworksResponseDto,
 } from './dto/artwork-response.dto';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import {
   UpdateArtworkPublishDto,
   UpdateArtworkStatusDto,
@@ -45,6 +47,19 @@ export class ArtworksController {
     @Query() query: ListArtworksQueryDto,
   ): Promise<ListArtworksResponseDto> {
     return this.artworksService.findMine(req.user.id, query);
+  }
+
+  @Get('tags')
+  findTags(): Promise<ArtworkTagResponseDto[]> {
+    return this.artworksService.findTags();
+  }
+
+  @Post('tags')
+  @UseGuards(JwtAuthGuard)
+  createTag(
+    @Body() body: CreateArtworkTagDto,
+  ): Promise<ArtworkTagResponseDto> {
+    return this.artworksService.createTag(body);
   }
 
   @Get(':id')

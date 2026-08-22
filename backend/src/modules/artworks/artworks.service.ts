@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { t } from '../../common/utils/i18n.util';
 import {
   Artwork,
@@ -24,6 +24,7 @@ import {
 } from './dto/artwork-response.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
 
 type NormalizedListArtworksQuery = {
@@ -94,6 +95,29 @@ export class ArtworksService {
     });
 
     return this.toArtworkResponse(await this.artworkRepository.save(artwork));
+  }
+
+  async findTags(): Promise<ArtworkTagResponseDto[]> {
+    const tags = await this.tagRepository.find({
+      order: { name: 'ASC' },
+    });
+
+    return this.toTagResponses(tags);
+  }
+
+  async createTag(input: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
+    const name = this.cleanRequiredString(input.name, 'name');
+    this.assertMaxLength(name, 'name', 40);
+
+    const existingTag = await this.tagRepository.findOne({
+      where: { name: ILike(name) },
+    });
+    if (existingTag) {
+      return this.toTagResponse(existingTag);
+    }
+
+    const tag = this.tagRepository.create({ name });
+    return this.toTagResponse(await this.tagRepository.save(tag));
   }
 
   async findAll(query: ListArtworksQueryDto): Promise<ListArtworksResponseDto> {
@@ -867,10 +891,14 @@ export class ArtworksService {
   }
 
   private toTagResponses(tags: Tag[] | undefined): ArtworkTagResponseDto[] {
-    return (tags ?? []).map((tag) => ({
+    return (tags ?? []).map((tag) => this.toTagResponse(tag));
+  }
+
+  private toTagResponse(tag: Tag): ArtworkTagResponseDto {
+    return {
       id: tag.id,
       name: tag.name,
-    }));
+    };
   }
 
   private toIsoDateString(value: Date | string | undefined) {
