@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -13,7 +14,6 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 type InventoryTab = 'artworks' | 'artists';
 type ViewMode = 'list' | 'compact' | 'grid';
@@ -50,6 +50,7 @@ const INVENTORY_ITEMS: InventoryItem[] = [
 ];
 
 export default function InventoryPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<InventoryTab>('artworks');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -58,7 +59,6 @@ export default function InventoryPage() {
   const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
   const [sortLabel, setSortLabel] = useState('Date Created (Newest)');
   const uploadMenuRef = useRef<HTMLDivElement>(null);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const closeUploadMenu = (event: MouseEvent) => {
@@ -82,15 +82,7 @@ export default function InventoryPage() {
 
   const selectArtworkFiles = () => {
     setIsUploadMenuOpen(false);
-    uploadInputRef.current?.click();
-  };
-
-  const handleArtworkFileSelection = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    if (!selectedFiles?.length) return;
-
-    toast.success(`${selectedFiles.length} artwork image${selectedFiles.length > 1 ? 's' : ''} selected.`);
-    event.target.value = '';
+    navigate('/inventory/upload');
   };
 
   const items = useMemo(() => {
@@ -130,14 +122,6 @@ export default function InventoryPage() {
                 <CirclePlus size={19} strokeWidth={1.9} />
                 Upload Artwork
               </button>
-              <input
-                ref={uploadInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="sr-only"
-                onChange={handleArtworkFileSelection}
-              />
               {isUploadMenuOpen && (
                 <div
                   role="menu"

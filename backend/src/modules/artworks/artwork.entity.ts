@@ -79,6 +79,13 @@ export class Artwork {
   @Column({ name: 'view_count', type: 'int', default: 0 })
   viewCount!: number;
 
+  @Column({
+    name: 'custom_tags',
+    type: 'jsonb',
+    default: () => "'[]'::jsonb",
+  })
+  customTags!: string[];
+
   @ManyToMany(() => Tag, (tag) => tag.artworks, {
     onDelete: 'CASCADE',
   })

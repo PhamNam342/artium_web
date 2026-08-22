@@ -47,6 +47,7 @@ type NormalizedCreateArtworkInput = {
   images: ArtworkImage[];
   folderId: string | null;
   tagIds: string[];
+  customTags: string[];
   materials: string | null;
   dimensions: ArtworkDimensions | null;
   weight: string | null;
@@ -84,6 +85,7 @@ export class ArtworksService {
       isPublished: normalizedInput.isPublished,
       images: normalizedInput.images,
       folderId: normalizedInput.folderId,
+      customTags: normalizedInput.customTags,
       viewCount: 0,
       materials: normalizedInput.materials,
       dimensions: normalizedInput.dimensions,
@@ -401,6 +403,7 @@ export class ArtworksService {
     const title = this.cleanRequiredString(input.title, 'title');
     const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
     const tagIds = this.normalizeTagIds(input.tagIds);
+    const customTags = this.normalizeCustomTags(input.customTags);
     const currency = this.normalizeCurrency(input.currency);
     const materials = this.cleanNullableString(
       input.materials ?? input.material,
@@ -421,6 +424,7 @@ export class ArtworksService {
       images: this.normalizeImages(input.images),
       folderId,
       tagIds,
+      customTags,
       materials,
       dimensions: this.normalizeDimensions(input.dimensions),
       weight: this.normalizeWeight(input.weight),
@@ -482,6 +486,10 @@ export class ArtworksService {
 
     if (this.hasOwn(input, 'tagIds')) {
       normalizedInput.tagIds = this.normalizeTagIds(input.tagIds);
+    }
+
+    if (this.hasOwn(input, 'customTags')) {
+      normalizedInput.customTags = this.normalizeCustomTags(input.customTags);
     }
 
     if (this.hasOwn(input, 'materials') || this.hasOwn(input, 'material')) {
@@ -746,6 +754,36 @@ export class ArtworksService {
     return Array.from(new Set(normalizedTagIds));
   }
 
+  private normalizeCustomTags(customTags: string[] | undefined) {
+    if (customTags === undefined) {
+      return [];
+    }
+
+    if (!Array.isArray(customTags)) {
+      throw new BadRequestException(
+        t('artwork.validation.array', { args: { field: 'customTags' } }),
+      );
+    }
+
+    if (customTags.length > 10) {
+      throw new BadRequestException(
+        t('artwork.validation.max_length', {
+          args: { field: 'customTags', maxLength: 10 },
+        }),
+      );
+    }
+
+    const normalizedTags = customTags.map((tag, index) => {
+      const cleanedTag = this.cleanRequiredString(tag, `customTags.${index}`);
+      this.assertMaxLength(cleanedTag, `customTags.${index}`, 40);
+      return cleanedTag;
+    });
+
+    return Array.from(
+      new Map(normalizedTags.map((tag) => [tag.toLocaleLowerCase(), tag])).values(),
+    );
+  }
+
   private async findTagsByIds(tagIds: string[]) {
     if (tagIds.length === 0) {
       return [];
@@ -780,6 +818,7 @@ export class ArtworksService {
       folderId: artwork.folderId ?? null,
       viewCount: artwork.viewCount ?? 0,
       tags: this.toTagResponses(artwork.tags),
+      customTags: artwork.customTags ?? [],
       createdAt: this.toIsoDateString(artwork.createdAt),
       materials: artwork.materials ?? null,
       dimensions: this.toDimensionsResponse(artwork.dimensions),

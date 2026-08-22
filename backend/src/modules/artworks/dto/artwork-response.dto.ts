@@ -101,6 +101,9 @@ export class ArtworkResponseDto {
   tags!: ArtworkTagResponseDto[];
 
   @Expose()
+  customTags!: string[];
+
+  @Expose()
   createdAt!: string | null;
 
   @Expose()

@@ -1,5 +1,11 @@
 import api from '../../services/api';
-import type { Artwork, ArtworkImage, ArtworkListQuery, ArtworkListResponse } from './types';
+import type {
+  Artwork,
+  ArtworkImage,
+  ArtworkListQuery,
+  ArtworkListResponse,
+  ArtworkUpsertInput,
+} from './types';
 
 const cleanQuery = (query: ArtworkListQuery) =>
   Object.fromEntries(
@@ -52,6 +58,35 @@ export const artworkService = {
 
   async getArtwork(id: string): Promise<Artwork> {
     const response = await api.get<Artwork>(`/artwork/${id}`);
+    return response.data;
+  },
+
+  async createArtwork(input: ArtworkUpsertInput): Promise<Artwork> {
+    const response = await api.post<Artwork>('/artwork', input);
+    return response.data;
+  },
+
+  async updateArtwork(id: string, input: ArtworkUpsertInput): Promise<Artwork> {
+    const response = await api.put<Artwork>(`/artwork/${id}`, input);
+    return response.data;
+  },
+
+  async uploadArtworkImages(input: {
+    files: File[];
+    sellerId: string;
+    artworkId: string;
+    altText?: string;
+  }): Promise<ArtworkImage[]> {
+    const formData = new FormData();
+    input.files.forEach((file) => formData.append('files', file));
+    formData.append('sellerId', input.sellerId);
+    formData.append('artworkId', input.artworkId);
+    if (input.altText) formData.append('altText', input.altText);
+
+    const response = await api.post<ArtworkImage[]>('/upload/artwork-images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
     return response.data;
   },
 };

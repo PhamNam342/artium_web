@@ -10,6 +10,7 @@ import RegisterPage from '../pages/RegisterPage';
 import ArtworksPage from '../pages/ArtworksPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
 import InventoryPage from '../pages/InventoryPage';
+import UploadArtworkPage from '../pages/UploadArtworkPage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 function GuestRoute() {
@@ -69,9 +70,7 @@ export default function AppRoutes() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<MainLayout />}>
-            {/* Protected routes go here */}
-          </Route>
+          <Route path="/inventory/upload" element={<UploadArtworkPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

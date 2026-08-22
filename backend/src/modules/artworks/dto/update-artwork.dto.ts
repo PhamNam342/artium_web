@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   Allow,
   IsArray,
+  ArrayMaxSize,
   IsBoolean,
   IsIn,
   IsNotEmpty,
@@ -69,6 +70,13 @@ export class UpdateArtworkDto {
     message: artworkValidationMessage('uuid'),
   })
   tagIds?: string[];
+
+  @IsOptional()
+  @IsArray({ message: artworkValidationMessage('array') })
+  @ArrayMaxSize(10, { message: artworkValidationMessage('max_length') })
+  @IsString({ each: true, message: artworkValidationMessage('string') })
+  @MaxLength(40, { each: true, message: artworkValidationMessage('max_length') })
+  customTags?: string[];
 
   @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
