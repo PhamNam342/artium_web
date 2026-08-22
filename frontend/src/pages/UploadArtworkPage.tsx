@@ -54,6 +54,13 @@ const ARTWORK_TAG_GROUPS = [
   },
 ];
 
+const PRESET_TAGS_BY_NAME = new Map(
+  ARTWORK_TAG_GROUPS.flatMap((group) => group.tags).map((tag) => [
+    tag.toLocaleLowerCase(),
+    tag,
+  ]),
+);
+
 const EMPTY_FORM: ArtworkForm = {
   title: '',
   description: '',
@@ -105,7 +112,7 @@ export default function UploadArtworkPage() {
     });
   };
 
-  const addCustomTag = (value: string) => {
+  const addCustomTag = async (value: string) => {
     const tag = value.trim().replace(/\s+/g, ' ');
     if (!tag) return false;
     if (tag.length > 40) {
@@ -121,8 +128,27 @@ export default function UploadArtworkPage() {
       return false;
     }
 
-    setForm((current) => ({ ...current, customTags: [...current.customTags, tag] }));
-    return true;
+    const presetTag = PRESET_TAGS_BY_NAME.get(tag.toLocaleLowerCase());
+    if (presetTag) {
+      setForm((current) => ({
+        ...current,
+        customTags: [...current.customTags, presetTag],
+      }));
+      toast(`${presetTag} is already available and has been selected.`);
+      return true;
+    }
+
+    try {
+      const createdTag = await artworkService.createArtworkTag(tag);
+      setForm((current) => ({
+        ...current,
+        customTags: [...current.customTags, createdTag.name],
+      }));
+      return true;
+    } catch {
+      toast.error('Unable to add your custom tag. Please try again.');
+      return false;
+    }
   };
 
   const addFiles = (files: FileList | File[]) => {
@@ -421,10 +447,16 @@ function ArtworkDetailsForm({
   );
 }
 
-function ArtworkTagsBoard({ tags, onToggle, onAdd }: { tags: string[]; onToggle: (tag: string) => void; onAdd: (tag: string) => boolean }) {
+function ArtworkTagsBoard({ tags, onToggle, onAdd }: { tags: string[]; onToggle: (tag: string) => void; onAdd: (tag: string) => Promise<boolean> }) {
   const [customTag, setCustomTag] = useState('');
-  const addTag = () => {
-    if (onAdd(customTag)) setCustomTag('');
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const addTag = async () => {
+    setIsAddingTag(true);
+    try {
+      if (await onAdd(customTag)) setCustomTag('');
+    } finally {
+      setIsAddingTag(false);
+    }
   };
 
   return (
@@ -439,13 +471,13 @@ function ArtworkTagsBoard({ tags, onToggle, onAdd }: { tags: string[]; onToggle:
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              addTag();
+              void addTag();
             }
           }}
           placeholder="Add a custom tag"
           className="field-input min-w-0 flex-1"
         />
-        <button type="button" onClick={addTag} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Add</button>
+        <button type="button" disabled={isAddingTag} onClick={() => void addTag()} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300">{isAddingTag ? 'Adding…' : 'Add'}</button>
       </div>
       {tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">

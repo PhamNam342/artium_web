@@ -4,6 +4,7 @@ import type {
   ArtworkImage,
   ArtworkListQuery,
   ArtworkListResponse,
+  ArtworkTag,
   ArtworkUpsertInput,
 } from './types';
 
@@ -48,6 +49,11 @@ export function formatArtworkPrice(
 }
 
 export const artworkService = {
+  async createArtworkTag(name: string): Promise<ArtworkTag> {
+    const response = await api.post<ArtworkTag>('/artwork/tags', { name });
+    return response.data;
+  },
+
   async getArtworks(query: ArtworkListQuery = {}): Promise<ArtworkListResponse> {
     const response = await api.get<ArtworkListResponse>('/artwork', {
       params: cleanQuery(query),
