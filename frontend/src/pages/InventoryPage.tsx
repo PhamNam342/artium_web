@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowUpDown,
+  AlignJustify,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -50,7 +51,7 @@ const EMPTY_FILTERS: InventoryFilters = {
 
 export default function InventoryPage() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [activeTab, setActiveTab] = useState<InventoryTab>('artworks');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -288,7 +289,7 @@ export default function InventoryPage() {
 
               <div className="inline-flex h-[46px] overflow-hidden rounded-[16px] bg-slate-100 p-1">
                 {([
-                  ['list', List, 'List view'],
+                  ['list', AlignJustify, 'List view'],
                   ['compact', List, 'Compact view'],
                   ['grid', Grid2X2, 'Grid view'],
                 ] as const).map(([mode, Icon, label]) => (
@@ -307,7 +308,6 @@ export default function InventoryPage() {
 
               <div className="relative">
                 <button
-                  ref={filterButtonRef}
                   type="button"
                   onClick={() => setIsSortOpen((open) => !open)}
                   className="inline-flex h-[46px] items-center gap-2 rounded-[12px] bg-slate-100 px-3 text-sm font-semibold text-slate-900 hover:bg-slate-200"
@@ -337,6 +337,7 @@ export default function InventoryPage() {
 
               <div>
                 <button
+                  ref={filterButtonRef}
                   type="button"
                   onClick={() => {
                     setFilterDraft(appliedFilters);
@@ -379,19 +380,30 @@ export default function InventoryPage() {
                 </div>
               </div>
             ) : (
-              <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-5'}>
-                {items.map((item) => (
-                  <InventoryCard
-                    key={item.id}
-                    item={item}
-                    viewMode={viewMode}
-                    onEdit={() => navigate(`/inventory/upload/${item.id}`)}
-                    onChangePublication={() => void changeArtworkPublication(item)}
-                    isChangingPublication={changingPublicationArtworkId === item.id}
-                    onDelete={() => setArtworkToDelete(item)}
-                  />
-                ))}
-              </div>
+              viewMode === 'compact' ? (
+                <InventoryTable
+                  artworks={items}
+                  artistName={user?.email.split('@')[0] || 'Your account'}
+                  onEdit={(item) => navigate(`/inventory/upload/${item.id}`)}
+                  onChangePublication={(item) => void changeArtworkPublication(item)}
+                  changingPublicationArtworkId={changingPublicationArtworkId}
+                  onDelete={setArtworkToDelete}
+                />
+              ) : (
+                <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-5'}>
+                  {items.map((item) => (
+                    <InventoryCard
+                      key={item.id}
+                      item={item}
+                      viewMode={viewMode}
+                      onEdit={() => navigate(`/inventory/upload/${item.id}`)}
+                      onChangePublication={() => void changeArtworkPublication(item)}
+                      isChangingPublication={changingPublicationArtworkId === item.id}
+                      onDelete={() => setArtworkToDelete(item)}
+                    />
+                  ))}
+                </div>
+              )
             )}
 
             <div className="mt-8 flex items-center justify-center gap-10 text-slate-900">
@@ -428,6 +440,90 @@ export default function InventoryPage() {
         />
       )}
     </div>
+  );
+}
+
+const INVENTORY_TABLE_COLUMNS = 'grid-cols-[minmax(220px,1.35fr)_minmax(120px,.8fr)_minmax(130px,.8fr)_minmax(85px,.55fr)_minmax(65px,.4fr)_minmax(150px,.9fr)_minmax(130px,.8fr)_minmax(150px,.9fr)_minmax(160px,1fr)_minmax(180px,1.1fr)_44px]';
+
+function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onDelete }: {
+  artworks: Artwork[];
+  artistName: string;
+  onEdit: (artwork: Artwork) => void;
+  onChangePublication: (artwork: Artwork) => void;
+  changingPublicationArtworkId: string | null;
+  onDelete: (artwork: Artwork) => void;
+}) {
+  return (
+    <div className="overflow-x-auto pb-1">
+      <div className="min-w-[1520px]">
+        <div className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950`}>
+          <div className="flex items-center gap-4"><input aria-label="Select all artworks" type="checkbox" className="h-5 w-5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" /><span className="inline-flex items-center gap-2">Title <ArrowUpDown size={16} className="text-slate-400" /></span></div>
+          <span>Artist name</span>
+          <span>Listing status</span>
+          <span>Price</span>
+          <span>Qty</span>
+          <span>Dimensions</span>
+          <span>Location</span>
+          <span>Custom tags</span>
+          <span>Profile Visibility</span>
+          <span>Marketplace Visibility</span>
+          <span className="sr-only">Actions</span>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {artworks.map((artwork) => (
+            <InventoryTableRow
+              key={artwork.id}
+              artwork={artwork}
+              artistName={artistName}
+              onEdit={() => onEdit(artwork)}
+              onChangePublication={() => onChangePublication(artwork)}
+              isChangingPublication={changingPublicationArtworkId === artwork.id}
+              onDelete={() => onDelete(artwork)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, isChangingPublication, onDelete }: {
+  artwork: Artwork;
+  artistName: string;
+  onEdit: () => void;
+  onChangePublication: () => void;
+  isChangingPublication: boolean;
+  onDelete: () => void;
+}) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const image = getArtworkImage(artwork.images);
+  const dimensions = artwork.dimensions
+    ? `${[artwork.dimensions.height, artwork.dimensions.width, artwork.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${artwork.dimensions.unit ?? ''}`.trim()
+    : '—';
+  const profileVisibility = artwork.isPublished ? 'Shown on profile' : 'Hidden on profile';
+  const marketplaceVisibility = artwork.isPublished ? 'Listed' : 'Unlisted';
+
+  return (
+    <article className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-xl bg-slate-50 px-5 py-4 text-sm text-slate-800`}>
+      <div className="flex min-w-0 items-center gap-4">
+        <input aria-label={`Select ${artwork.title}`} type="checkbox" className="h-5 w-5 shrink-0 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || artwork.title} className="h-full w-full object-cover" /> : <ImageOff size={15} />}</div>
+        <h2 className="line-clamp-2 font-semibold text-slate-950">{artwork.title}</h2>
+      </div>
+      <span>{artistName}</span>
+      <span className="font-bold tracking-wide text-slate-500">{artwork.status}</span>
+      <span>{artwork.price || '—'}</span>
+      <span>—</span>
+      <span>{dimensions}</span>
+      <span className="truncate">{artwork.location || '—'}</span>
+      <span className="truncate">{artwork.customTags.length > 0 ? artwork.customTags.join(', ') : '—'}</span>
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{profileVisibility}</span>
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{marketplaceVisibility}</span>
+      <div className="justify-self-end">
+        {(artwork.status === 'DRAFT' || artwork.isPublished) && <DraftActionsMenu isOpen={isMenuOpen} onToggle={() => setIsMenuOpen((open) => !open)} onClose={() => setIsMenuOpen(false)} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={artwork.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
+      </div>
+    </article>
   );
 }
 
