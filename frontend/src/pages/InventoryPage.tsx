@@ -14,43 +14,16 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
+import { useAuth } from '../features/auth/AuthContext';
+import { artworkService, getArtworkImage } from '../features/artworks/artworkService';
+import type { Artwork } from '../features/artworks/types';
 
 type InventoryTab = 'artworks' | 'artists';
 type ViewMode = 'list' | 'compact' | 'grid';
 
-interface InventoryItem {
-  id: number;
-  title: string;
-  status: 'DRAFT';
-  material: string;
-  dimensions: string;
-  location: string;
-  listingStatus: string;
-}
-
-const INVENTORY_ITEMS: InventoryItem[] = [
-  {
-    id: 1,
-    title: 'Vy Hồ',
-    status: 'DRAFT',
-    material: '-',
-    dimensions: '-',
-    location: '-',
-    listingStatus: '-',
-  },
-  {
-    id: 2,
-    title: 'Vy Hồ',
-    status: 'DRAFT',
-    material: '-',
-    dimensions: '-',
-    location: '-',
-    listingStatus: '-',
-  },
-];
-
 export default function InventoryPage() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState<InventoryTab>('artworks');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -58,6 +31,9 @@ export default function InventoryPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
   const [sortLabel, setSortLabel] = useState('Date Created (Newest)');
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [isLoadingArtworks, setIsLoadingArtworks] = useState(true);
+  const [artworkLoadError, setArtworkLoadError] = useState(false);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,6 +56,35 @@ export default function InventoryPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadArtworks = async () => {
+      if (!token) {
+        if (isCurrent) {
+          setArtworks([]);
+          setIsLoadingArtworks(false);
+        }
+        return;
+      }
+
+      setIsLoadingArtworks(true);
+      setArtworkLoadError(false);
+
+      try {
+        const response = await artworkService.getMyArtworks({ limit: 100 });
+        if (isCurrent) setArtworks(response.data);
+      } catch {
+        if (isCurrent) setArtworkLoadError(true);
+      } finally {
+        if (isCurrent) setIsLoadingArtworks(false);
+      }
+    };
+
+    void loadArtworks();
+    return () => { isCurrent = false; };
+  }, [token]);
+
   const selectArtworkFiles = () => {
     setIsUploadMenuOpen(false);
     navigate('/inventory/upload');
@@ -87,9 +92,17 @@ export default function InventoryPage() {
 
   const items = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return INVENTORY_ITEMS;
-    return INVENTORY_ITEMS.filter((item) => item.title.toLowerCase().includes(query));
-  }, [search]);
+    const filtered = query
+      ? artworks.filter((artwork) => artwork.title.toLowerCase().includes(query))
+      : artworks;
+
+    return [...filtered].sort((first, second) => {
+      if (sortLabel === 'Title (A–Z)') return first.title.localeCompare(second.title);
+      const firstDate = first.createdAt ? new Date(first.createdAt).getTime() : 0;
+      const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
+      return sortLabel === 'Date Created (Oldest)' ? firstDate - secondDate : secondDate - firstDate;
+    });
+  }, [artworks, search, sortLabel]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
@@ -265,6 +278,17 @@ export default function InventoryPage() {
                   <p className="mt-1 text-sm">Artists associated with your inventory will appear here.</p>
                 </div>
               </div>
+            ) : isLoadingArtworks ? (
+              <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
+                <p className="text-sm font-medium">Loading your artworks…</p>
+              </div>
+            ) : artworkLoadError ? (
+              <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
+                <div>
+                  <p className="text-lg font-semibold text-slate-700">We couldn&apos;t load your inventory</p>
+                  <p className="mt-1 text-sm">Please refresh and try again.</p>
+                </div>
+              </div>
             ) : items.length === 0 ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
                 <div>
@@ -297,15 +321,22 @@ export default function InventoryPage() {
   );
 }
 
-function InventoryCard({ item, viewMode }: { item: InventoryItem; viewMode: ViewMode }) {
+function InventoryCard({ item, viewMode }: { item: Artwork; viewMode: ViewMode }) {
+  const image = getArtworkImage(item.images);
+  const dimensions = item.dimensions
+    ? `${[item.dimensions.height, item.dimensions.width, item.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${item.dimensions.unit ?? ''}`.trim()
+    : '—';
+  const material = item.materials || '—';
+  const listingStatus = item.isPublished ? 'Listed' : 'Not listed';
+
   if (viewMode === 'grid') {
     return (
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
-          <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={16} /></div>
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
           <MoreHorizontal size={22} />
         </div>
-        <h2 className="mt-3 text-lg font-medium text-slate-500">{item.title}</h2>
+        <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
       </article>
     );
@@ -315,18 +346,18 @@ function InventoryCard({ item, viewMode }: { item: InventoryItem; viewMode: View
     <article className={`rounded-2xl border border-slate-200 px-6 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.08)] ${viewMode === 'compact' ? 'min-h-[126px]' : 'min-h-[168px]'}`}>
       <div className="flex items-start gap-4">
         <input aria-label={`Select ${item.title}`} type="checkbox" className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
-        <div className="flex h-[48px] w-[45px] shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-400"><ImageOff size={12} /></div>
-        <h2 className="pt-1 text-[17px] font-medium text-slate-500">{item.title}</h2>
+        <div className="flex h-[48px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={12} />}</div>
+        <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
           <button type="button" aria-label={`More options for ${item.title}`} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
-        <InventoryField label="Material" value={item.material} />
-        <InventoryField label="Location" value={item.location} />
-        <InventoryField label="Dimensions" value={item.dimensions} />
-        <InventoryField label="Listing status" value={item.listingStatus} />
+        <InventoryField label="Material" value={material} />
+        <InventoryField label="Location" value="—" />
+        <InventoryField label="Dimensions" value={dimensions} />
+        <InventoryField label="Listing status" value={listingStatus} />
       </div>
     </article>
   );

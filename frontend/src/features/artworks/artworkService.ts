@@ -62,6 +62,14 @@ export const artworkService = {
     return response.data;
   },
 
+  async getMyArtworks(query: ArtworkListQuery = {}): Promise<ArtworkListResponse> {
+    const response = await api.get<ArtworkListResponse>('/artwork/mine', {
+      params: cleanQuery(query),
+    });
+
+    return response.data;
+  },
+
   async getArtwork(id: string): Promise<Artwork> {
     const response = await api.get<Artwork>(`/artwork/${id}`);
     return response.data;
