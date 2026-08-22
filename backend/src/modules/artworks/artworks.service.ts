@@ -948,6 +948,9 @@ export class ArtworksService {
   }
 
   private hasOwn(value: object, key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(value, key) as boolean;
+    return (
+      Object.prototype.hasOwnProperty.call(value, key) &&
+      (value as Record<string, unknown>)[key] !== undefined
+    );
   }
 }

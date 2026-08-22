@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 import { Artwork, ArtworkStatus } from './artwork.entity';
 import { ArtworksService } from './artworks.service';
@@ -7,6 +8,7 @@ import {
   ArtworkResponseDto,
 } from './dto/artwork-response.dto';
 import { Tag } from './tag.entity';
+import { UpdateArtworkDto } from './dto/update-artwork.dto';
 
 describe('ArtworksService', () => {
   const sellerId = '123e4567-e89b-12d3-a456-426614174000';
@@ -316,6 +318,46 @@ describe('ArtworksService', () => {
         id: artworkId,
         title: 'Updated Piece',
         status: ArtworkStatus.ACTIVE,
+      }),
+    );
+  });
+
+  it('updates image metadata after the validation pipe adds undefined fields', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174555';
+    const artwork = {
+      id: artworkId,
+      sellerId,
+      title: 'Image update',
+      description: null,
+      price: null,
+      currency: null,
+      status: ArtworkStatus.DRAFT,
+      isPublished: false,
+      images: [],
+      folderId: null,
+      viewCount: 0,
+      customTags: [],
+      tags: [],
+      createdAt: new Date('2026-08-18T10:37:05.141Z'),
+      materials: null,
+      dimensions: null,
+      weight: null,
+    } as Artwork;
+
+    artworkRepository.findOne?.mockResolvedValue(artwork);
+
+    const updateInput = plainToInstance(UpdateArtworkDto, {
+      images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
+    });
+
+    await expect(service.update(artworkId, updateInput, sellerId)).resolves.toMatchObject({
+      id: artworkId,
+      images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
+    });
+
+    expect(artworkRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        images: [{ url: 'http://localhost:3000/uploads/image.jpg', secureUrl: undefined, alt: undefined, altText: undefined }],
       }),
     );
   });

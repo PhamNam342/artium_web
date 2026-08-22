@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -23,6 +24,10 @@ type Step = 1 | 2;
 type SelectedImage = {
   file: File;
   preview: string;
+};
+
+type ApiFailure = {
+  message?: string | string[];
 };
 
 type ArtworkForm = {
@@ -235,6 +240,7 @@ export default function UploadArtworkPage() {
     if (!user) return;
 
     setIsSaving(true);
+    let saveStage = 'create the artwork';
     try {
       const weightValue = Number(form.weight);
       const weight: ArtworkWeight | null = Number.isFinite(weightValue) && form.weight.trim()
@@ -255,18 +261,33 @@ export default function UploadArtworkPage() {
         ...(form.customTags.length > 0 ? { customTags: form.customTags } : {}),
       });
 
+      saveStage = 'upload the artwork images';
       const uploadedImages = await artworkService.uploadArtworkImages({
+        // The draft exists before files can be stored under its artwork ID.
         files: images.map((image) => image.file),
         sellerId: user.id,
         artworkId: artwork.id,
         altText: form.title.trim(),
       });
 
+      saveStage = 'save the image details';
       await artworkService.updateArtwork(artwork.id, { images: uploadedImages });
       toast.success('Artwork saved as a draft.');
       navigate('/inventory');
-    } catch {
-      toast.error('Unable to upload your artwork. Please try again.');
+    } catch (error) {
+      const responseMessage = axios.isAxiosError<ApiFailure>(error)
+        ? error.response?.data?.message
+        : undefined;
+      const detail = Array.isArray(responseMessage)
+        ? responseMessage.join(', ')
+        : responseMessage || (error instanceof Error ? error.message : undefined);
+
+      console.error('Artwork draft save failed', { saveStage, error });
+      toast.error(
+        detail
+          ? `Unable to ${saveStage}: ${detail}`
+          : `Unable to ${saveStage}. Please try again.`,
+      );
     } finally {
       setIsSaving(false);
     }
