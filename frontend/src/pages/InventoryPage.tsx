@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
-import { artworkService, getArtworkImage } from '../features/artworks/artworkService';
+import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
 
 type ViewMode = 'list' | 'compact' | 'grid';
@@ -489,7 +489,7 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
       </div>
       <span>{artistName}</span>
       <span className="font-bold tracking-wide text-slate-500">{artwork.status}</span>
-      <span>{artwork.price || '—'}</span>
+      <span>{formatArtworkPrice(artwork.price, artwork.currency, 'en-US', 'Price on request')}</span>
       <span>—</span>
       <span>{dimensions}</span>
       <span className="truncate">{artwork.location || '—'}</span>

@@ -42,6 +42,8 @@ type ApiFailure = {
 type ArtworkForm = {
   title: string;
   description: string;
+  price: string;
+  currency: string;
   year: string;
   editionRun: string;
   height: string;
@@ -78,6 +80,8 @@ const PRESET_TAGS_BY_NAME = new Map(
 const EMPTY_FORM: ArtworkForm = {
   title: '',
   description: '',
+  price: '',
+  currency: 'USD',
   year: '',
   editionRun: '',
   height: '',
@@ -140,6 +144,8 @@ export default function UploadArtworkPage() {
         setForm({
           title: artwork.title,
           description: artwork.description || '',
+          price: artwork.price || '',
+          currency: artwork.currency || 'USD',
           year: '',
           editionRun: '',
           height: dimensions?.height === undefined ? '' : String(dimensions.height),
@@ -218,7 +224,11 @@ export default function UploadArtworkPage() {
       const createdTag = await artworkService.createArtworkTag(tag);
       setForm((current) => ({
         ...current,
-        customTags: [...current.customTags, createdTag.name],
+        customTags: current.customTags.some(
+          (currentTag) => currentTag.toLocaleLowerCase() === createdTag.name.toLocaleLowerCase(),
+        ) || current.customTags.length >= 10
+          ? current.customTags
+          : [...current.customTags, createdTag.name],
       }));
       return true;
     } catch {
@@ -318,12 +328,19 @@ export default function UploadArtworkPage() {
       const weight: ArtworkWeight | null = Number.isFinite(weightValue) && form.weight.trim()
         ? { value: weightValue, unit: weightUnit }
         : null;
+      const price = form.price.trim();
+      const priceValue = Number(price);
+      if (price && (!Number.isFinite(priceValue) || priceValue < 0)) {
+        toast.error('Enter a valid non-negative price.');
+        return;
+      }
 
       const artworkInput = {
         title: form.title.trim(),
         description: form.description.trim(),
         status: 'DRAFT' as const,
         isPublished: false,
+        ...(price ? { price: priceValue, currency: form.currency } : {}),
         materials: form.materials.trim(),
         dimensions: buildDimensions(),
         weight,
@@ -350,6 +367,7 @@ export default function UploadArtworkPage() {
         saveStage = 'update the artwork';
         await artworkService.updateArtwork(artworkId, {
           ...artworkInput,
+          ...(price ? {} : { price: null, currency: null }),
           images: [...existingImages, ...uploadedImages].map((image, index) => ({
             ...image,
             order: index,
@@ -548,6 +566,18 @@ function ArtworkDetailsForm({
       <textarea value={form.description} maxLength={5000} onChange={(event) => onChange('description', event.target.value)} placeholder="Artwork description" className="field-input min-h-[125px] resize-y py-4" />
       <CharacterCount current={form.description.length} max={5000} />
 
+      <FieldLabel label="PRICING" />
+      <div className="grid gap-3 sm:grid-cols-[1fr_130px]">
+        <NumberField label="Price" value={form.price} onChange={(value) => onChange('price', value)} />
+        <label className="block text-xs font-medium text-slate-500">Currency
+          <select value={form.currency} onChange={(event) => onChange('currency', event.target.value)} className="field-input mt-2">
+            <option value="USD">USD</option>
+            <option value="VND">VND</option>
+          </select>
+        </label>
+      </div>
+      <p className="mt-2 text-xs text-slate-400">Leave the price blank to show “Price on request”.</p>
+
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <div><FieldLabel label="YEAR" /><input inputMode="numeric" value={form.year} maxLength={4} onChange={(event) => onChange('year', event.target.value.replace(/\D/g, ''))} placeholder="2001" className="field-input" /></div>
         <div><FieldLabel label="TOTAL EDITION RUN" /><input value={form.editionRun} maxLength={24} onChange={(event) => onChange('editionRun', event.target.value)} placeholder="12/100, Limited Edition, etc." className="field-input" /><CharacterCount current={form.editionRun.length} max={24} /></div>
@@ -583,11 +613,16 @@ function ArtworkDetailsForm({
 function ArtworkTagsBoard({ tags, onToggle, onAdd }: { tags: string[]; onToggle: (tag: string) => void; onAdd: (tag: string) => Promise<boolean> }) {
   const [customTag, setCustomTag] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
+  const isAddingTagRef = useRef(false);
   const addTag = async () => {
+    if (isAddingTagRef.current) return;
+
+    isAddingTagRef.current = true;
     setIsAddingTag(true);
     try {
       if (await onAdd(customTag)) setCustomTag('');
     } finally {
+      isAddingTagRef.current = false;
       setIsAddingTag(false);
     }
   };

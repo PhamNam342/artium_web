@@ -245,10 +245,7 @@ export class ArtworksService {
     });
   }
 
-  async findOne(
-    id: string,
-    viewerId?: string,
-  ): Promise<ArtworkResponseDto> {
+  async findOne(id: string, viewerId?: string): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const normalizedViewerId = viewerId
       ? this.cleanRequiredUuid(viewerId, 'viewerId')
@@ -260,7 +257,9 @@ export class ArtworksService {
           status: ArtworkStatus.ACTIVE,
           isPublished: true,
         },
-        ...(normalizedViewerId ? [{ id: artworkId, sellerId: normalizedViewerId }] : []),
+        ...(normalizedViewerId
+          ? [{ id: artworkId, sellerId: normalizedViewerId }]
+          : []),
       ],
       relations: { tags: true },
     });
@@ -825,7 +824,9 @@ export class ArtworksService {
     });
 
     return Array.from(
-      new Map(normalizedTags.map((tag) => [tag.toLocaleLowerCase(), tag])).values(),
+      new Map(
+        normalizedTags.map((tag) => [tag.toLocaleLowerCase(), tag]),
+      ).values(),
     );
   }
 
@@ -970,9 +971,12 @@ export class ArtworksService {
   }
 
   private hasOwn(value: object, key: string): boolean {
-    return (
-      Object.prototype.hasOwnProperty.call(value, key) &&
-      (value as Record<string, unknown>)[key] !== undefined
-    );
+    const record = value as Record<string, unknown>;
+    const hasOwnKey = Object.prototype.hasOwnProperty.call(
+      record,
+      key,
+    ) as boolean;
+
+    return hasOwnKey && record[key] !== undefined;
   }
 }

@@ -12,7 +12,7 @@ describe('UploadService', () => {
   let previousUploadRoot: string | undefined;
   let uploadRoot: string;
   let service: UploadService;
-  let artworkRepository: Pick<Repository<Artwork>, 'findOneBy'>;
+  let artworkRepository: { findOneBy: jest.Mock };
 
   beforeEach(async () => {
     previousUploadRoot = process.env.UPLOAD_ROOT;
@@ -21,7 +21,7 @@ describe('UploadService', () => {
     artworkRepository = { findOneBy: jest.fn().mockResolvedValue({}) };
     service = new UploadService(
       new LocalStorageService(),
-      artworkRepository as Repository<Artwork>,
+      artworkRepository as unknown as Repository<Artwork>,
     );
   });
 
@@ -111,7 +111,14 @@ describe('UploadService', () => {
 
     await expect(
       service.uploadArtworkImages(
-        [{ buffer: Buffer.from('fake image'), originalname: 'test.png', mimetype: 'image/png', size: 10 }],
+        [
+          {
+            buffer: Buffer.from('fake image'),
+            originalname: 'test.png',
+            mimetype: 'image/png',
+            size: 10,
+          },
+        ],
         { artworkId: 'artwork-id' },
         'authenticated-seller',
         'http://localhost:3000',

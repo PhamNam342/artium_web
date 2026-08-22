@@ -13,8 +13,20 @@ import { UpdateArtworkDto } from './dto/update-artwork.dto';
 describe('ArtworksService', () => {
   const sellerId = '123e4567-e89b-12d3-a456-426614174000';
 
-  let artworkRepository: jest.Mocked<Partial<Repository<Artwork>>>;
-  let tagRepository: jest.Mocked<Partial<Repository<Tag>>>;
+  let artworkRepository: {
+    create: jest.Mock;
+    createQueryBuilder: jest.Mock;
+    delete: jest.Mock;
+    findOne: jest.Mock;
+    save: jest.Mock;
+  };
+  let tagRepository: {
+    create: jest.Mock;
+    find: jest.Mock;
+    findOne: jest.Mock;
+    findOneBy: jest.Mock;
+    save: jest.Mock;
+  };
   let service: ArtworksService;
 
   beforeEach(() => {
@@ -45,8 +57,8 @@ describe('ArtworksService', () => {
     };
 
     service = new ArtworksService(
-      artworkRepository as Repository<Artwork>,
-      tagRepository as Repository<Tag>,
+      artworkRepository as unknown as Repository<Artwork>,
+      tagRepository as unknown as Repository<Tag>,
     );
   });
 
@@ -84,9 +96,11 @@ describe('ArtworksService', () => {
   });
 
   it('creates a reusable custom artwork tag', async () => {
-    tagRepository.findOne?.mockResolvedValue(null);
+    tagRepository.findOne.mockResolvedValue(null);
 
-    await expect(service.createTag({ name: '  Commissioned  ' })).resolves.toEqual({
+    await expect(
+      service.createTag({ name: '  Commissioned  ' }),
+    ).resolves.toEqual({
       id: '123e4567-e89b-12d3-a456-426614174444',
       name: 'Commissioned',
     });
@@ -151,10 +165,9 @@ describe('ArtworksService', () => {
       dimensions: { height: 60, width: 80, unit: 'cm' },
       weight: '2.50',
       internalNote: 'hidden',
-    } as Artwork & { internalNote: string };
+    } as unknown as Artwork & { internalNote: string };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(artwork);
+    artworkRepository.findOne.mockResolvedValue(artwork);
 
     const response = await service.findOne(artworkId);
 
@@ -201,7 +214,7 @@ describe('ArtworksService', () => {
 
   it('allows an artwork owner to read an unpublished draft', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    artworkRepository.findOne?.mockResolvedValue({
+    artworkRepository.findOne.mockResolvedValue({
       id: artworkId,
       sellerId,
       title: 'Private Draft',
@@ -210,7 +223,7 @@ describe('ArtworksService', () => {
       images: [],
       tags: [],
       customTags: [],
-    } as Artwork);
+    });
 
     await expect(service.findOne(artworkId, sellerId)).resolves.toMatchObject({
       id: artworkId,
@@ -240,7 +253,7 @@ describe('ArtworksService', () => {
       images: [],
       tags: [],
       createdAt: new Date('2026-08-18T10:37:05.141Z'),
-    } as Artwork;
+    } as unknown as Artwork;
     const queryBuilder = {
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
@@ -250,8 +263,7 @@ describe('ArtworksService', () => {
       take: jest.fn().mockReturnThis(),
       getManyAndCount: jest.fn().mockResolvedValue([[artwork], 1]),
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.createQueryBuilder?.mockReturnValue(queryBuilder);
+    artworkRepository.createQueryBuilder.mockReturnValue(queryBuilder);
 
     await expect(service.findMine(sellerId, {})).resolves.toEqual({
       data: [
@@ -289,8 +301,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when artwork detail does not exist', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(null);
+    artworkRepository.findOne.mockResolvedValue(null);
 
     await expect(service.findOne(artworkId)).rejects.toBeInstanceOf(
       NotFoundException,
@@ -311,12 +322,10 @@ describe('ArtworksService', () => {
       status: ArtworkStatus.DRAFT,
       isPublished: false,
       tags: [],
-    } as Artwork;
+    } as unknown as Artwork;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(artwork);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    tagRepository.find?.mockResolvedValue([tag]);
+    artworkRepository.findOne.mockResolvedValue(artwork);
+    tagRepository.find.mockResolvedValue([tag]);
 
     const updated = await service.update(
       artworkId,
@@ -377,22 +386,31 @@ describe('ArtworksService', () => {
       materials: null,
       dimensions: null,
       weight: null,
-    } as Artwork;
+    } as unknown as Artwork;
 
-    artworkRepository.findOne?.mockResolvedValue(artwork);
+    artworkRepository.findOne.mockResolvedValue(artwork);
 
     const updateInput = plainToInstance(UpdateArtworkDto, {
       images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
     });
 
-    await expect(service.update(artworkId, updateInput, sellerId)).resolves.toMatchObject({
+    await expect(
+      service.update(artworkId, updateInput, sellerId),
+    ).resolves.toMatchObject({
       id: artworkId,
       images: [{ url: 'http://localhost:3000/uploads/image.jpg' }],
     });
 
     expect(artworkRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
-        images: [{ url: 'http://localhost:3000/uploads/image.jpg', secureUrl: undefined, alt: undefined, altText: undefined }],
+        images: [
+          {
+            url: 'http://localhost:3000/uploads/image.jpg',
+            secureUrl: undefined,
+            alt: undefined,
+            altText: undefined,
+          },
+        ],
       }),
     );
   });
@@ -410,8 +428,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when updating a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(null);
+    artworkRepository.findOne.mockResolvedValue(null);
 
     await expect(
       service.update(artworkId, { title: 'Updated Piece' }, sellerId),
@@ -423,8 +440,7 @@ describe('ArtworksService', () => {
   it('only updates artwork owned by the authenticated seller', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
     const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.findOne?.mockResolvedValue(null);
+    artworkRepository.findOne.mockResolvedValue(null);
 
     await expect(
       service.update(artworkId, { title: 'Not mine' }, otherSellerId),
@@ -439,8 +455,7 @@ describe('ArtworksService', () => {
 
   it('deletes artwork by id', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.delete?.mockResolvedValue({
+    artworkRepository.delete.mockResolvedValue({
       affected: 1,
       raw: {},
     });
@@ -464,8 +479,7 @@ describe('ArtworksService', () => {
 
   it('throws not found when deleting a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.delete?.mockResolvedValue({
+    artworkRepository.delete.mockResolvedValue({
       affected: 0,
       raw: {},
     });
@@ -478,8 +492,7 @@ describe('ArtworksService', () => {
   it('only deletes artwork owned by the authenticated seller', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
     const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    artworkRepository.delete?.mockResolvedValue({
+    artworkRepository.delete.mockResolvedValue({
       affected: 0,
       raw: {},
     });

@@ -87,8 +87,8 @@ export interface ArtworkListResponse {
 export interface ArtworkUpsertInput {
   title?: string;
   description?: string;
-  price?: number;
-  currency?: string;
+  price?: number | null;
+  currency?: string | null;
   status?: ArtworkStatus;
   isPublished?: boolean;
   images?: ArtworkImage[];
