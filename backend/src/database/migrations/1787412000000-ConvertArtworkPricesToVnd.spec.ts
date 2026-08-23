@@ -15,4 +15,17 @@ describe('ConvertArtworkPricesToVnd migration', () => {
     expect(queries.join('\n')).toContain('artwork_price_vnd_migration_backup');
     expect(queries.join('\n')).toContain('order_price_vnd_migration_backup');
   });
+
+  it('qualifies the artwork price in the conversion query', async () => {
+    const queries: string[] = [];
+    const queryRunner = {
+      query: jest.fn((query: string) => {
+        queries.push(query);
+      }),
+    } as unknown as QueryRunner;
+
+    await new ConvertArtworkPricesToVnd1787412000000().up(queryRunner);
+
+    expect(queries.join('\n')).toContain('"price" = a."price" * 26000');
+  });
 });

@@ -160,6 +160,23 @@ describe('OrdersService payments', () => {
     ).resolves.toBe(orderRecord);
   });
 
+  it('acknowledges a verified PayOS webhook validation callback', async () => {
+    const { service, payosService, orderRepository } = createService({});
+    (payosService.verifyWebhook as jest.Mock).mockResolvedValue({
+      orderCode: 123,
+      amount: 100000,
+      currency: 'VND',
+      code: '00',
+      reference: 'validation-reference',
+      paymentLinkId: 'link-id',
+    });
+
+    await expect(
+      service.handlePayOSWebhook({ signature: 'valid' }),
+    ).resolves.toBeUndefined();
+    expect(orderRepository.manager.transaction).not.toHaveBeenCalled();
+  });
+
   it('expires unpaid orders and releases their reserved artwork', async () => {
     const order = {
       id: 'order-id',

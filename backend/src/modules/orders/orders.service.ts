@@ -257,11 +257,15 @@ export class OrdersService {
     }
   }
 
-  async handlePayOSWebhook(webhook: Webhook): Promise<Order> {
+  async handlePayOSWebhook(webhook: Webhook): Promise<Order | undefined> {
     const payment = await this.payOSService.verifyWebhook(webhook);
 
     if (payment.code !== '00' || payment.currency !== 'VND') {
       throw new BadRequestException('PayOS payment was not successful');
+    }
+
+    if (payment.orderCode === 123) {
+      return undefined;
     }
 
     return this.orderRepository.manager.transaction(async (manager) => {
