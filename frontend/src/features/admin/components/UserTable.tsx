@@ -1,14 +1,15 @@
 import type { AdminUser } from '../../../services/adminService';
-import { User, Shield, Briefcase, Ban, CheckCircle } from 'lucide-react';
+import { User, Shield, Briefcase, Ban, CheckCircle, Eye } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nContext';
 
 interface UserTableProps {
   users: AdminUser[];
   isLoading: boolean;
   onActionClick: (user: AdminUser) => void;
+  onViewClick: (user: AdminUser) => void;
 }
 
-export default function UserTable({ users, isLoading, onActionClick }: UserTableProps) {
+export default function UserTable({ users, isLoading, onActionClick, onViewClick }: UserTableProps) {
   const { t } = useI18n();
 
   if (isLoading) {
@@ -89,15 +90,23 @@ export default function UserTable({ users, isLoading, onActionClick }: UserTable
                 {new Date(user.created_at).toLocaleDateString()}
               </td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <button
-                  onClick={() => onActionClick(user)}
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${
-                    user.is_active 
-                      ? 'text-red-700 bg-red-50 hover:bg-red-100' 
-                      : 'text-green-700 bg-green-50 hover:bg-green-100'
-                  }`}
-                >
-                  {user.is_active ? (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => onViewClick(user)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100"
+                    title="View details"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onActionClick(user)}
+                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${
+                      user.is_active 
+                        ? 'text-red-700 bg-red-50 hover:bg-red-100' 
+                        : 'text-green-700 bg-green-50 hover:bg-green-100'
+                    }`}
+                  >
+                    {user.is_active ? (
                     <>
                       <Ban className="w-4 h-4" />
                       {t('admin.users.actions.disable')}
@@ -108,7 +117,8 @@ export default function UserTable({ users, isLoading, onActionClick }: UserTable
                       {t('admin.users.actions.enable')}
                     </>
                   )}
-                </button>
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

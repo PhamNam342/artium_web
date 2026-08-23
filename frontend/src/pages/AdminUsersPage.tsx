@@ -5,6 +5,7 @@ import { getAdminUsers, updateUserStatus } from '../services/adminService';
 import UserTable from '../features/admin/components/UserTable';
 import UserFilters from '../features/admin/components/UserFilters';
 import ConfirmActionModal from '../features/admin/components/ConfirmActionModal';
+import UserDetailsModal from '../features/admin/components/UserDetailsModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -67,6 +68,10 @@ export default function AdminUsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  
+  // Details Modal State
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [viewedUser, setViewedUser] = useState<AdminUser | null>(null);
 
   const handleActionClick = (user: AdminUser) => {
     setSelectedUser(user);
@@ -128,6 +133,10 @@ export default function AdminUsersPage() {
         users={data?.data || []}
         isLoading={isLoading}
         onActionClick={handleActionClick}
+        onViewClick={(user) => {
+          setViewedUser(user);
+          setIsDetailsOpen(true);
+        }}
       />
 
       {/* Pagination */}
@@ -182,6 +191,15 @@ export default function AdminUsersPage() {
           onCancel={() => setIsModalOpen(false)}
         />
       )}
+
+      <UserDetailsModal
+        isOpen={isDetailsOpen}
+        user={viewedUser}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setTimeout(() => setViewedUser(null), 300); // Wait for transition
+        }}
+      />
     </div>
   );
 }
