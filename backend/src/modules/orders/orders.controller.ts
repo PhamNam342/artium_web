@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Put, Body, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -18,6 +27,19 @@ export class OrdersController {
     return this.ordersService.createOrder(req.user.id, createOrderDto);
   }
 
+  @Post(':id/payment')
+  async createPaymentLink(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    return this.ordersService.createPaymentLink(id, req.user);
+  }
+
+  @Post(':id/payment/cancel')
+  async cancelPayment(@Req() req: RequestWithUser, @Param('id') id: string) {
+    return this.ordersService.cancelPayment(id, req.user);
+  }
+
   @Get()
   async getUserOrders(@Req() req: RequestWithUser) {
     return this.ordersService.getUserOrders(req.user.id);
@@ -34,6 +56,10 @@ export class OrdersController {
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
-    return this.ordersService.updateOrderStatus(id, updateOrderStatusDto, req.user);
+    return this.ordersService.updateOrderStatus(
+      id,
+      updateOrderStatusDto,
+      req.user,
+    );
   }
 }

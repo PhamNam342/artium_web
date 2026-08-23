@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
@@ -19,9 +20,11 @@ import { AppService } from './app.service';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
@@ -63,6 +66,7 @@ import { UploadModule } from './modules/upload/upload.module';
       }),
     }),
     OrdersModule,
+    PaymentsModule,
     ArtworksModule,
     UploadModule,
     MailModule,

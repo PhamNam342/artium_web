@@ -17,6 +17,14 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum OrderPaymentStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+  EXPIRED = 'EXPIRED',
+}
+
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
@@ -71,9 +79,42 @@ export class Order {
     name: 'payment_status',
     type: 'varchar',
     length: 50,
+    default: OrderPaymentStatus.PENDING,
+  })
+  paymentStatus!: OrderPaymentStatus;
+
+  @Column({
+    name: 'payos_order_code',
+    type: 'bigint',
+    nullable: true,
+    unique: true,
+  })
+  payosOrderCode!: string | null;
+
+  @Column({
+    name: 'payos_payment_link_id',
+    type: 'varchar',
+    length: 100,
     nullable: true,
   })
-  paymentStatus!: string;
+  paymentLinkId!: string | null;
+
+  @Column({ name: 'payos_checkout_url', type: 'text', nullable: true })
+  paymentCheckoutUrl!: string | null;
+
+  @Column({ name: 'payment_expires_at', type: 'timestamp', nullable: true })
+  paymentExpiresAt!: Date | null;
+
+  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
+  paidAt!: Date | null;
+
+  @Column({
+    name: 'payment_reference',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  paymentReference!: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

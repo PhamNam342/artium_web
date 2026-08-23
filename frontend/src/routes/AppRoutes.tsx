@@ -17,6 +17,7 @@ import CompleteProfileModal from '../features/auth/components/CompleteProfileMod
 import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import PaymentResultPage from '../pages/PaymentResultPage';
 
 function GuestRoute() {
   const { user, isLoading } = useAuth();
@@ -51,7 +52,13 @@ function ArtistRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: `${location.pathname}${location.search}${location.hash}` }}
+        replace
+      />
+    );
   }
 
   if (user.role !== 'ARTIST') {
@@ -110,6 +117,11 @@ export default function AppRoutes() {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/checkout/:artworkId" element={<CheckoutPage />} />
+            <Route path="/payment/success" element={<PaymentResultPage />} />
+            <Route
+              path="/payment/cancel"
+              element={<PaymentResultPage cancelled />}
+            />
             {/* Protected routes go here */}
             <Route path="/profile" element={<ProfilePage />} />
           </Route>

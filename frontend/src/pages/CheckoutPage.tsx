@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import { artworkService, formatArtworkPrice } from '../features/artworks/artworkService';
@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
   const { artworkId } = useParams<{ artworkId: string }>();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useI18n();
 
@@ -68,8 +67,11 @@ export default function CheckoutPage() {
       };
 
       const newOrder = await orderService.createOrder(orderData);
-      toast.success(t('checkout.success'));
-      navigate(`/orders/${newOrder.id}`);
+      const payment = await orderService.createPaymentLink(newOrder.id);
+      if (!payment.checkoutUrl) {
+        throw new Error('PayOS did not return a checkout URL');
+      }
+      window.location.assign(payment.checkoutUrl);
     } catch (err) {
       console.error(err);
       toast.error(t('checkout.error'));
