@@ -153,4 +153,52 @@ export class UserService {
       location: updatedUser.location,
     };
   }
+
+  // =========================
+  // Admin Endpoints
+  // =========================
+
+  async findAllUsers(page: number = 1, limit: number = 10) {
+    const [users, total] = await this.userRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+
+    return {
+      data: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        is_active: user.is_active,
+        created_at: user.created_at,
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async toggleUserStatus(userId: string, isActive: boolean) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    user.is_active = isActive;
+    await this.userRepository.save(user);
+
+    return {
+      message: isActive ? 'Tài khoản đã được kích hoạt' : 'Tài khoản đã bị vô hiệu hóa',
+      user: {
+        id: user.id,
+        is_active: user.is_active,
+      },
+    };
+  }
 }

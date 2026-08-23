@@ -127,6 +127,13 @@ export class AuthService {
       );
     }
 
+    if (!user.is_active) {
+      throw new HttpException(
+        t('auth.account_disabled') || 'Tài khoản của bạn đã bị vô hiệu hóa',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
@@ -182,6 +189,13 @@ export class AuthService {
 
         await this.users.save(user);
       }
+    }
+
+    if (!user.is_active) {
+      throw new HttpException(
+        t('auth.account_disabled') || 'Tài khoản của bạn đã bị vô hiệu hóa',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     return this.generateToken(user);

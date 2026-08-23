@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,6 +25,9 @@ import { UploadService } from '../../modules/upload/upload.service';
 import type { UploadedAvatarFile } from '../../modules/upload/upload.types';
 
 import { ConfigService } from '@nestjs/config';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from './entities/user.entity';
 
 @Controller('identity/users')
 export class UserController {
@@ -31,7 +35,38 @@ export class UserController {
     private readonly userService: UserService,
     private readonly uploadService: UploadService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
+
+  // =========================
+  // Admin Endpoints
+  // =========================
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAllUsers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.userService.findAllUsers(pageNum, limitNum);
+  }
+
+  @Patch('admin/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async toggleUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('is_active') isActive: boolean,
+  ) {
+    return this.userService.toggleUserStatus(id, isActive);
+  }
+
+  // =========================
+  // Public & User Endpoints
+  // =========================
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: RequestWithUser) {
