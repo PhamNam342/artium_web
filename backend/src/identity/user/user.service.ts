@@ -181,6 +181,39 @@ export class UserService {
     };
   }
 
+  async getAdminUserDetail(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        sellerProfile: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      location: user.location,
+      is_active: user.is_active,
+      created_at: user.created_at,
+      seller_profile: user.sellerProfile
+        ? {
+            id: user.sellerProfile.id,
+            bio: user.sellerProfile.bio,
+            website_url: user.sellerProfile.websiteUrl,
+            is_visible: user.sellerProfile.isVisible,
+            is_verified: user.sellerProfile.isVerified,
+          }
+        : null,
+    };
+  }
+
   async toggleUserStatus(userId: string, isActive: boolean) {
     const user = await this.userRepository.findOne({
       where: { id: userId },

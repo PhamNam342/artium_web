@@ -53,6 +53,13 @@ export class UserController {
     return this.userService.findAllUsers(pageNum, limitNum);
   }
 
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAdminUserDetail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.userService.getAdminUserDetail(id);
+  }
+
   @Patch('admin/:id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

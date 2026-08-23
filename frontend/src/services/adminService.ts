@@ -38,6 +38,11 @@ export async function getAdminUsers(params: GetUsersParams): Promise<PaginatedAd
   return res.data;
 }
 
+export async function getAdminUserDetail(userId: string): Promise<any> {
+  const res = await api.get(`/identity/users/admin/${userId}`);
+  return res.data;
+}
+
 export async function updateUserStatus(userId: string, isActive: boolean): Promise<unknown> {
   const res = await api.patch(`/identity/users/admin/${userId}/status`, { is_active: isActive });
   return res.data;

@@ -22,7 +22,7 @@ import AdminUsersPage from '../pages/AdminUsersPage';
 function GuestRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
+  let redirectPath = (location.state as { from?: string } | null)?.from || '/';
 
   if (isLoading) {
     return (
@@ -33,6 +33,9 @@ function GuestRoute() {
   }
 
   if (user) {
+    if (user.role === 'ADMIN' && redirectPath === '/') {
+      redirectPath = '/admin/users';
+    }
     return <Navigate to={redirectPath} replace />;
   }
 

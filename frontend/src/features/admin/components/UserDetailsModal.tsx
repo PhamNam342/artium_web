@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, User, MapPin, Link as LinkIcon, Shield, Briefcase, Calendar } from 'lucide-react';
-import { getPublicUserProfile, UserProfile } from '../../../services/userService';
+import { getAdminUserDetail } from '../../../services/adminService';
 import type { AdminUser } from '../../../services/adminService';
 
 interface UserDetailsModalProps {
@@ -10,7 +10,7 @@ interface UserDetailsModalProps {
 }
 
 export default function UserDetailsModal({ isOpen, user, onClose }: UserDetailsModalProps) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function UserDetailsModal({ isOpen, user, onClose }: UserDetailsM
       const fetchProfile = async () => {
         setIsLoading(true);
         try {
-          const data = await getPublicUserProfile(user.id);
+          const data = await getAdminUserDetail(user.id);
           setProfile(data);
         } catch (error) {
           console.error("Failed to fetch user profile", error);
