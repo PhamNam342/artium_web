@@ -15,6 +15,7 @@
     "login": "Sign In",
     "register": "Sign Up",
     "profile": "Profile",
+    "orders": "Orders",
     "logout": "Sign Out"
   },
   "auth": {
@@ -172,5 +173,29 @@
       "good": "Good password",
       "strong": "Strong password"
     }
+  },
+  "orders": {
+    "title": "Your Orders",
+    "empty": "You have no orders yet.",
+    "viewDetails": "View Details",
+    "orderId": "Order ID",
+    "status": "Status",
+    "date": "Date",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "address": "Shipping Address",
+    "payment": "Payment",
+    "backToList": "Back to orders"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingAddress": "Shipping Address",
+    "addressPlaceholder": "Enter your shipping address",
+    "confirm": "Confirm Order",
+    "processing": "Processing...",
+    "success": "Order placed successfully!",
+    "error": "Failed to place order. Please try again.",
+    "orderSummary": "Order Summary"
   }
 }

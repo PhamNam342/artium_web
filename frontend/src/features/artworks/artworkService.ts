@@ -13,8 +13,6 @@ const cleanQuery = (query: ArtworkListQuery) =>
     Object.entries(query).filter(([, value]) => value !== undefined && value !== ''),
   );
 
-const USD_TO_VND_RATE = 26_000;
-
 export function getArtworkImage(images: ArtworkImage[] = []) {
   return [...images].sort((first, second) => {
     if (first.isPrimary !== second.isPrimary) return first.isPrimary ? -1 : 1;
@@ -33,9 +31,8 @@ export function formatArtworkPrice(
   const value = Number(price);
   if (!Number.isFinite(value)) return price;
 
-  const shouldConvertToVnd = locale === 'vi-VN' && currency === 'USD';
-  const displayValue = shouldConvertToVnd ? value * USD_TO_VND_RATE : value;
-  const displayCurrency = shouldConvertToVnd ? 'VND' : currency || 'VND';
+  const displayValue = value;
+  const displayCurrency = currency || 'VND';
 
   try {
     return new Intl.NumberFormat(locale, {

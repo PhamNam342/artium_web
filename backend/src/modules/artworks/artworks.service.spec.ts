@@ -67,7 +67,7 @@ describe('ArtworksService', () => {
       {
         title: '  New Piece  ',
         price: 1500,
-        currency: 'usd',
+        currency: 'vnd',
         materials: 'Oil on canvas',
       },
       sellerId,
@@ -79,7 +79,7 @@ describe('ArtworksService', () => {
         title: 'New Piece',
         description: null,
         price: '1500.00',
-        currency: 'USD',
+        currency: 'VND',
         status: ArtworkStatus.DRAFT,
         isPublished: false,
         images: [],
@@ -146,7 +146,7 @@ describe('ArtworksService', () => {
       title: 'Sunset Study',
       description: 'Oil study on canvas',
       price: '1500.00',
-      currency: 'USD',
+      currency: 'VND',
       status: ArtworkStatus.ACTIVE,
       isPublished: true,
       images: [
@@ -181,7 +181,7 @@ describe('ArtworksService', () => {
       title: 'Sunset Study',
       description: 'Oil study on canvas',
       price: '1500.00',
-      currency: 'USD',
+      currency: 'VND',
       status: ArtworkStatus.ACTIVE,
       isPublished: true,
       images: [
@@ -332,7 +332,7 @@ describe('ArtworksService', () => {
       {
         title: '  Updated Piece  ',
         price: 250,
-        currency: 'usd',
+        currency: 'vnd',
         status: 'available',
         isPublished: true,
         materials: 'Oil on canvas',
@@ -350,7 +350,7 @@ describe('ArtworksService', () => {
         id: artworkId,
         title: 'Updated Piece',
         price: '250.00',
-        currency: 'USD',
+        currency: 'VND',
         status: ArtworkStatus.ACTIVE,
         isPublished: true,
         materials: 'Oil on canvas',

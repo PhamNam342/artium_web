@@ -31,7 +31,7 @@ async function bootstrap() {
     origin: frontendOrigins,
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang', 'x-user-id'],
   });
 
   app.setGlobalPrefix('api');

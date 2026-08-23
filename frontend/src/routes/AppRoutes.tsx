@@ -14,6 +14,10 @@ import InventoryPage from '../pages/InventoryPage';
 import UploadArtworkPage from '../pages/UploadArtworkPage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
+import OrdersPage from '../pages/OrdersPage';
+import OrderDetailPage from '../pages/OrderDetailPage';
+import CheckoutPage from '../pages/CheckoutPage';
+
 function GuestRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -103,6 +107,9 @@ export default function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/:id" element={<OrderDetailPage />} />
+            <Route path="/checkout/:artworkId" element={<CheckoutPage />} />
             {/* Protected routes go here */}
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
