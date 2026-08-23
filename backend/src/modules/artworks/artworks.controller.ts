@@ -62,9 +62,7 @@ export class ArtworksController {
   @Post('tags')
   @Roles(UserRole.ARTIST)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  createTag(
-    @Body() body: CreateArtworkTagDto,
-  ): Promise<ArtworkTagResponseDto> {
+  createTag(@Body() body: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
     return this.artworksService.createTag(body);
   }
 

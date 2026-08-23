@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 import { artworkValidationMessage } from '../../../common/utils/artwork-validation-message.util';
 
 export class ListArtworksQueryDto {
@@ -29,4 +29,8 @@ export class ListArtworksQueryDto {
   @IsOptional()
   @IsString({ message: artworkValidationMessage('string') })
   material?: string;
+
+  @IsOptional()
+  @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
+  sellerId?: string;
 }

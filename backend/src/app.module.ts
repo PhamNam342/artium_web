@@ -19,7 +19,7 @@ import { AppService } from './app.service';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
-
+import { CommunityModule } from './modules/community/community.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
@@ -69,6 +69,7 @@ import { UploadModule } from './modules/upload/upload.module';
     AuthModule,
     UserModule,
     SellerProfilesModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
