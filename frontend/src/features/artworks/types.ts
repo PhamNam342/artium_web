@@ -5,6 +5,8 @@ export interface ArtworkImage {
   format?: string;
   width?: number;
   height?: number;
+  size?: number;
+  bucket?: string;
   alt?: string;
   altText?: string;
   order?: number;
@@ -49,8 +51,10 @@ export interface Artwork {
   images: ArtworkImage[];
   viewCount: number;
   tags: ArtworkTag[];
+  customTags: string[];
   createdAt: string | null;
   materials: string | null;
+  location: string | null;
   dimensions: ArtworkDimensions | null;
   weight: string | number | ArtworkWeight | null;
 }
@@ -79,4 +83,21 @@ export interface ArtworkListMeta {
 export interface ArtworkListResponse {
   data: Artwork[];
   meta: ArtworkListMeta;
+}
+
+export interface ArtworkUpsertInput {
+  title?: string;
+  description?: string;
+  price?: number | null;
+  currency?: string | null;
+  status?: ArtworkStatus;
+  isPublished?: boolean;
+  images?: ArtworkImage[];
+  materials?: string;
+  dimensions?: ArtworkDimensions | null;
+  weight?: number | ArtworkWeight | null;
+  creationYear?: number;
+  editionRun?: string;
+  location?: string;
+  customTags?: string[];
 }

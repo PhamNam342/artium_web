@@ -1,12 +1,17 @@
 import api from '../../services/api';
-import type { Artwork, ArtworkImage, ArtworkListQuery, ArtworkListResponse } from './types';
+import type {
+  Artwork,
+  ArtworkImage,
+  ArtworkListQuery,
+  ArtworkListResponse,
+  ArtworkTag,
+  ArtworkUpsertInput,
+} from './types';
 
 const cleanQuery = (query: ArtworkListQuery) =>
   Object.fromEntries(
     Object.entries(query).filter(([, value]) => value !== undefined && value !== ''),
   );
-
-const USD_TO_VND_RATE = 26_000;
 
 export function getArtworkImage(images: ArtworkImage[] = []) {
   return [...images].sort((first, second) => {
@@ -26,9 +31,8 @@ export function formatArtworkPrice(
   const value = Number(price);
   if (!Number.isFinite(value)) return price;
 
-  const shouldConvertToVnd = locale === 'vi-VN' && currency === 'USD';
-  const displayValue = shouldConvertToVnd ? value * USD_TO_VND_RATE : value;
-  const displayCurrency = shouldConvertToVnd ? 'VND' : currency || 'VND';
+  const displayValue = value;
+  const displayCurrency = currency || 'VND';
 
   try {
     return new Intl.NumberFormat(locale, {
@@ -42,8 +46,21 @@ export function formatArtworkPrice(
 }
 
 export const artworkService = {
+  async createArtworkTag(name: string): Promise<ArtworkTag> {
+    const response = await api.post<ArtworkTag>('/artwork/tags', { name });
+    return response.data;
+  },
+
   async getArtworks(query: ArtworkListQuery = {}): Promise<ArtworkListResponse> {
     const response = await api.get<ArtworkListResponse>('/artwork', {
+      params: cleanQuery(query),
+    });
+
+    return response.data;
+  },
+
+  async getMyArtworks(query: ArtworkListQuery = {}): Promise<ArtworkListResponse> {
+    const response = await api.get<ArtworkListResponse>('/artwork/mine', {
       params: cleanQuery(query),
     });
 
@@ -58,14 +75,6 @@ export const artworkService = {
   sellerId: string,
   limit = 20,
 ): Promise<ArtworkListResponse> {
-  console.log('===== GET ARTIST ARTWORKS =====');
-  console.log('sellerId:', sellerId);
-  console.log('params:', {
-    sellerId,
-    page: 1,
-    limit,
-  });
-
   const response = await api.get<ArtworkListResponse>('/artwork', {
     params: {
       sellerId,
@@ -79,9 +88,38 @@ export const artworkService = {
     'response sellerIds:',
     response.data.data.map((artwork) => artwork.sellerId),
   );
-  console.log('response meta:', response.data.meta);
-  console.log('================================');
 
   return response.data;
-}
+},
+
+  async createArtwork(input: ArtworkUpsertInput): Promise<Artwork> {
+    const response = await api.post<Artwork>('/artwork', input);
+    return response.data;
+  },
+
+  async updateArtwork(id: string, input: ArtworkUpsertInput): Promise<Artwork> {
+    const response = await api.put<Artwork>(`/artwork/${id}`, input);
+    return response.data;
+  },
+
+  async deleteArtwork(id: string): Promise<void> {
+    await api.delete(`/artwork/${id}`);
+  },
+
+  async uploadArtworkImages(input: {
+    files: File[];
+    artworkId: string;
+    altText?: string;
+  }): Promise<ArtworkImage[]> {
+    const formData = new FormData();
+    input.files.forEach((file) => formData.append('files', file));
+    formData.append('artworkId', input.artworkId);
+    if (input.altText) formData.append('altText', input.altText);
+
+    const response = await api.post<ArtworkImage[]>('/upload/artwork-images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    return response.data;
+  },
 };

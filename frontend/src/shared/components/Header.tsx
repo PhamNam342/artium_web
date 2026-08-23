@@ -34,12 +34,22 @@ export default function Header() {
             <Link to="/home" className="text-sm text-gray-600 hover:text-black transition-colors">
               {t('nav.home')}
             </Link>
-            <Link to="/artworks" className="text-sm text-gray-600 hover:text-black transition-colors">
+            <Link to="/artworks" className="text-xs text-gray-600 hover:text-black transition-colors">
               {t('nav.artworks')}
             </Link>
-            <Link to="/pricing" className="text-sm text-gray-600 hover:text-black transition-colors">
+            {user?.role === 'ARTIST' && (
+              <Link to="/inventory" className="text-xs text-gray-600 hover:text-black transition-colors">
+                {t('nav.inventory')}
+              </Link>
+            )}
+            <Link to="/pricing" className="text-xs text-gray-600 hover:text-black transition-colors">
               {t('nav.pricing')}
             </Link>
+            {user && (
+              <Link to="/orders" className="text-sm text-gray-600 hover:text-black transition-colors">
+                {t('nav.orders')}
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -90,7 +100,7 @@ export default function Header() {
             ) : (
               <Link
                 to="/login"
-                className="hidden sm:inline-flex px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors"
+                className="hidden sm:inline-flex rounded-full bg-blue-600 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
               >
                 {t('nav.login')}
               </Link>

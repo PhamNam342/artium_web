@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../identity/user/entities/user.entity';
-// Note: If you have an Artwork entity, you can add ManyToOne relation here later
+import { Artwork } from '../artworks/artwork.entity';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -34,6 +34,10 @@ export class Order {
 
   @Column({ name: 'artwork_id', type: 'uuid' })
   artworkId!: string;
+
+  @ManyToOne(() => Artwork)
+  @JoinColumn({ name: 'artwork_id' })
+  artwork!: Artwork;
 
   @Column({
     name: 'shipping_cost',

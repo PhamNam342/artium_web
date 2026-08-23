@@ -10,10 +10,12 @@
   "nav": {
     "home": "Trang chủ",
     "artworks": "Tác phẩm",
+    "inventory": "Kho tác phẩm",
     "pricing": "Bảng giá",
     "login": "Đăng nhập",
     "register": "Đăng ký",
     "profile": "Hồ sơ cá nhân",
+    "orders": "Đơn hàng",
     "logout": "Đăng xuất"
   },
   "auth": {
@@ -200,5 +202,29 @@
       "good": "Mật khẩu khá mạnh",
       "strong": "Mật khẩu mạnh"
     }
+  },
+  "orders": {
+    "title": "Đơn hàng của bạn",
+    "empty": "Bạn chưa có đơn hàng nào.",
+    "viewDetails": "Xem chi tiết",
+    "orderId": "Mã đơn hàng",
+    "status": "Trạng thái",
+    "date": "Ngày đặt",
+    "total": "Tổng tiền",
+    "subtotal": "Tạm tính",
+    "shipping": "Phí vận chuyển",
+    "address": "Địa chỉ giao hàng",
+    "payment": "Thanh toán",
+    "backToList": "Quay lại danh sách"
+  },
+  "checkout": {
+    "title": "Thanh toán",
+    "shippingAddress": "Địa chỉ giao hàng",
+    "addressPlaceholder": "Nhập địa chỉ giao hàng của bạn",
+    "confirm": "Xác nhận đặt hàng",
+    "processing": "Đang xử lý...",
+    "success": "Đặt hàng thành công!",
+    "error": "Đặt hàng thất bại. Vui lòng thử lại.",
+    "orderSummary": "Tóm tắt đơn hàng"
   }
 }

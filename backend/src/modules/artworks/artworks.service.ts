@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { t } from '../../common/utils/i18n.util';
 import {
   Artwork,
@@ -24,6 +24,7 @@ import {
 } from './dto/artwork-response.dto';
 import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
 
 type NormalizedListArtworksQuery = {
@@ -48,7 +49,9 @@ type NormalizedCreateArtworkInput = {
   images: ArtworkImage[];
   folderId: string | null;
   tagIds: string[];
+  customTags: string[];
   materials: string | null;
+  location: string | null;
   dimensions: ArtworkDimensions | null;
   weight: string | null;
 };
@@ -68,8 +71,11 @@ export class ArtworksService {
     private readonly tagRepository: Repository<Tag>,
   ) {}
 
-  async create(input: CreateArtworkDto): Promise<ArtworkResponseDto> {
-    const normalizedInput = this.normalizeCreateInput(input);
+  async create(
+    input: CreateArtworkDto,
+    sellerId: string,
+  ): Promise<ArtworkResponseDto> {
+    const normalizedInput = this.normalizeCreateInput(input, sellerId);
     const tags = await this.findTagsByIds(normalizedInput.tagIds);
 
     const artwork = this.artworkRepository.create({
@@ -82,14 +88,39 @@ export class ArtworksService {
       isPublished: normalizedInput.isPublished,
       images: normalizedInput.images,
       folderId: normalizedInput.folderId,
+      customTags: normalizedInput.customTags,
       viewCount: 0,
       materials: normalizedInput.materials,
+      location: normalizedInput.location,
       dimensions: normalizedInput.dimensions,
       weight: normalizedInput.weight,
       tags,
     });
 
     return this.toArtworkResponse(await this.artworkRepository.save(artwork));
+  }
+
+  async findTags(): Promise<ArtworkTagResponseDto[]> {
+    const tags = await this.tagRepository.find({
+      order: { name: 'ASC' },
+    });
+
+    return this.toTagResponses(tags);
+  }
+
+  async createTag(input: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
+    const name = this.cleanRequiredString(input.name, 'name');
+    this.assertMaxLength(name, 'name', 40);
+
+    const existingTag = await this.tagRepository.findOne({
+      where: { name: ILike(name) },
+    });
+    if (existingTag) {
+      return this.toTagResponse(existingTag);
+    }
+
+    const tag = this.tagRepository.create({ name });
+    return this.toTagResponse(await this.tagRepository.save(tag));
   }
 
   async findAll(query: ListArtworksQueryDto): Promise<ListArtworksResponseDto> {
@@ -205,7 +236,7 @@ export class ArtworksService {
     }
 
     const [data, total] = await queryBuilder
-      .orderBy('artwork.created_at', 'DESC')
+      .orderBy('artwork.createdAt', 'DESC')
       .skip((filters.page - 1) * filters.limit)
       .take(filters.limit)
       .getManyAndCount();
@@ -223,10 +254,22 @@ export class ArtworksService {
     });
   }
 
-  async findOne(id: string): Promise<ArtworkResponseDto> {
+  async findOne(id: string, viewerId?: string): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
+    const normalizedViewerId = viewerId
+      ? this.cleanRequiredUuid(viewerId, 'viewerId')
+      : undefined;
     const artwork = await this.artworkRepository.findOne({
-      where: { id: artworkId },
+      where: [
+        {
+          id: artworkId,
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+        },
+        ...(normalizedViewerId
+          ? [{ id: artworkId, sellerId: normalizedViewerId }]
+          : []),
+      ],
       relations: { tags: true },
     });
 
@@ -240,8 +283,10 @@ export class ArtworksService {
   async update(
     id: string,
     input: UpdateArtworkDto,
+    ownerId: string,
   ): Promise<ArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
+    const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
     const normalizedInput = this.normalizeUpdateInput(input);
     const { tagIds, ...artworkPatch } = normalizedInput;
 
@@ -250,12 +295,22 @@ export class ArtworksService {
     }
 
     const artwork = await this.artworkRepository.findOne({
-      where: { id: artworkId },
+      where: { id: artworkId, sellerId: normalizedOwnerId },
       relations: { tags: true },
     });
 
     if (!artwork) {
       throw new NotFoundException(t('artwork.not_found'));
+    }
+
+    if (
+      artwork.status === ArtworkStatus.RESERVED &&
+      (artworkPatch.status !== undefined ||
+        artworkPatch.isPublished !== undefined)
+    ) {
+      throw new BadRequestException(
+        'Reserved artwork cannot change listing status',
+      );
     }
 
     Object.assign(artwork, artworkPatch);
@@ -267,15 +322,35 @@ export class ArtworksService {
     return this.toArtworkResponse(await this.artworkRepository.save(artwork));
   }
 
-  async remove(id: string): Promise<DeleteArtworkResponseDto> {
+  async remove(id: string, ownerId: string): Promise<DeleteArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
-    const result = await this.artworkRepository.delete({ id: artworkId });
+    const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
+    const result = await this.artworkRepository.delete({
+      id: artworkId,
+      sellerId: normalizedOwnerId,
+    });
 
     if (!result.affected) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async updateStatus(
+    id: string,
+    status: ArtworkStatus | string,
+    ownerId: string,
+  ): Promise<ArtworkResponseDto> {
+    return this.update(id, { status }, ownerId);
+  }
+
+  async updatePublish(
+    id: string,
+    isPublished: boolean,
+    ownerId: string,
+  ): Promise<ArtworkResponseDto> {
+    return this.update(id, { isPublished }, ownerId);
   }
 
   private normalizeQuery(
@@ -379,19 +454,23 @@ export class ArtworksService {
 
   private normalizeCreateInput(
     input: CreateArtworkDto,
+    sellerIdOverride: string,
   ): NormalizedCreateArtworkInput {
-    const sellerId = this.cleanRequiredUuid(input.sellerId, 'sellerId');
+    const sellerId = this.cleanRequiredUuid(sellerIdOverride, 'sellerId');
     const title = this.cleanRequiredString(input.title, 'title');
     const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
     const tagIds = this.normalizeTagIds(input.tagIds);
+    const customTags = this.normalizeCustomTags(input.customTags);
     const currency = this.normalizeCurrency(input.currency);
     const materials = this.cleanNullableString(
       input.materials ?? input.material,
     );
+    const location = this.cleanNullableString(input.location);
 
     this.assertMaxLength(title, 'title', 100);
     this.assertMaxLength(currency, 'currency', 10);
     this.assertMaxLength(materials, 'materials', 80);
+    this.assertMaxLength(location, 'location', 120);
 
     return {
       sellerId,
@@ -404,7 +483,9 @@ export class ArtworksService {
       images: this.normalizeImages(input.images),
       folderId,
       tagIds,
+      customTags,
       materials,
+      location,
       dimensions: this.normalizeDimensions(input.dimensions),
       weight: this.normalizeWeight(input.weight),
     };
@@ -420,13 +501,6 @@ export class ArtworksService {
     }
 
     const normalizedInput: NormalizedUpdateArtworkInput = {};
-
-    if (this.hasOwn(input, 'sellerId')) {
-      normalizedInput.sellerId = this.cleanRequiredUuid(
-        input.sellerId,
-        'sellerId',
-      );
-    }
 
     if (this.hasOwn(input, 'title')) {
       const title = this.cleanRequiredString(input.title, 'title');
@@ -474,12 +548,22 @@ export class ArtworksService {
       normalizedInput.tagIds = this.normalizeTagIds(input.tagIds);
     }
 
+    if (this.hasOwn(input, 'customTags')) {
+      normalizedInput.customTags = this.normalizeCustomTags(input.customTags);
+    }
+
     if (this.hasOwn(input, 'materials') || this.hasOwn(input, 'material')) {
       const materials = this.cleanNullableString(
         this.hasOwn(input, 'materials') ? input.materials : input.material,
       );
       this.assertMaxLength(materials, 'materials', 80);
       normalizedInput.materials = materials;
+    }
+
+    if (this.hasOwn(input, 'location')) {
+      const location = this.cleanNullableString(input.location);
+      this.assertMaxLength(location, 'location', 120);
+      normalizedInput.location = location;
     }
 
     if (this.hasOwn(input, 'dimensions')) {
@@ -539,7 +623,11 @@ export class ArtworksService {
 
   private normalizeCurrency(value: unknown) {
     const currency = this.cleanString(value);
-    return currency ? currency.toUpperCase() : null;
+    const normalizedCurrency = currency ? currency.toUpperCase() : null;
+    if (normalizedCurrency && normalizedCurrency !== 'VND') {
+      throw new BadRequestException('Only VND currency is supported');
+    }
+    return normalizedCurrency;
   }
 
   private normalizeArtworkStatus(value: ArtworkStatus | string | undefined) {
@@ -736,6 +824,38 @@ export class ArtworksService {
     return Array.from(new Set(normalizedTagIds));
   }
 
+  private normalizeCustomTags(customTags: string[] | undefined) {
+    if (customTags === undefined) {
+      return [];
+    }
+
+    if (!Array.isArray(customTags)) {
+      throw new BadRequestException(
+        t('artwork.validation.array', { args: { field: 'customTags' } }),
+      );
+    }
+
+    if (customTags.length > 10) {
+      throw new BadRequestException(
+        t('artwork.validation.max_length', {
+          args: { field: 'customTags', maxLength: 10 },
+        }),
+      );
+    }
+
+    const normalizedTags = customTags.map((tag, index) => {
+      const cleanedTag = this.cleanRequiredString(tag, `customTags.${index}`);
+      this.assertMaxLength(cleanedTag, `customTags.${index}`, 40);
+      return cleanedTag;
+    });
+
+    return Array.from(
+      new Map(
+        normalizedTags.map((tag) => [tag.toLocaleLowerCase(), tag]),
+      ).values(),
+    );
+  }
+
   private async findTagsByIds(tagIds: string[]) {
     if (tagIds.length === 0) {
       return [];
@@ -770,8 +890,10 @@ export class ArtworksService {
       folderId: artwork.folderId ?? null,
       viewCount: artwork.viewCount ?? 0,
       tags: this.toTagResponses(artwork.tags),
+      customTags: artwork.customTags ?? [],
       createdAt: this.toIsoDateString(artwork.createdAt),
       materials: artwork.materials ?? null,
+      location: artwork.location ?? null,
       dimensions: this.toDimensionsResponse(artwork.dimensions),
       weight: artwork.weight ?? null,
     });
@@ -818,10 +940,14 @@ export class ArtworksService {
   }
 
   private toTagResponses(tags: Tag[] | undefined): ArtworkTagResponseDto[] {
-    return (tags ?? []).map((tag) => ({
+    return (tags ?? []).map((tag) => this.toTagResponse(tag));
+  }
+
+  private toTagResponse(tag: Tag): ArtworkTagResponseDto {
+    return {
       id: tag.id,
       name: tag.name,
-    }));
+    };
   }
 
   private toIsoDateString(value: Date | string | undefined) {
@@ -871,6 +997,12 @@ export class ArtworksService {
   }
 
   private hasOwn(value: object, key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(value, key) as boolean;
+    const record = value as Record<string, unknown>;
+    const hasOwnKey = Object.prototype.hasOwnProperty.call(
+      record,
+      key,
+    ) as boolean;
+
+    return hasOwnKey && record[key] !== undefined;
   }
 }

@@ -79,6 +79,13 @@ export class Artwork {
   @Column({ name: 'view_count', type: 'int', default: 0 })
   viewCount!: number;
 
+  @Column({
+    name: 'custom_tags',
+    type: 'jsonb',
+    default: () => "'[]'::jsonb",
+  })
+  customTags!: string[];
+
   @ManyToMany(() => Tag, (tag) => tag.artworks, {
     onDelete: 'CASCADE',
   })
@@ -94,6 +101,9 @@ export class Artwork {
 
   @Column({ name: 'materials', type: 'varchar', length: 80, nullable: true })
   materials!: string | null;
+
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  location!: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
   dimensions!: ArtworkDimensions | null;

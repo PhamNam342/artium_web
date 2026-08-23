@@ -5,47 +5,48 @@ import {
   Put,
   Body,
   Param,
-  Headers,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
+import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 
-@Controller('api/orders')
+@Controller('orders')
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
   async createOrder(
-    @Headers('x-user-id') collectorId: string, // Mocking authentication since there is no AuthGuard yet
+    @Req() req: RequestWithUser,
     @Body() createOrderDto: CreateOrderDto,
   ) {
-    // In a real scenario, collectorId should be extracted from req.user
-    if (!collectorId) {
-      // Mocking a default user for testing purposes if header is missing
-      collectorId = '00000000-0000-0000-0000-000000000000';
-    }
-    return this.ordersService.createOrder(collectorId, createOrderDto);
+    return this.ordersService.createOrder(req.user.id, createOrderDto);
   }
 
   @Get()
-  async getUserOrders(@Headers('x-user-id') collectorId: string) {
-    if (!collectorId) {
-      collectorId = '00000000-0000-0000-0000-000000000000';
-    }
-    return this.ordersService.getUserOrders(collectorId);
+  async getUserOrders(@Req() req: RequestWithUser) {
+    return this.ordersService.getUserOrders(req.user.id);
   }
 
   @Get(':id')
-  async getOrderById(@Param('id') id: string) {
-    return this.ordersService.getOrderById(id);
+  async getOrderById(@Req() req: RequestWithUser, @Param('id') id: string) {
+    return this.ordersService.getOrderById(id, req.user);
   }
 
   @Put(':id')
   async updateOrderStatus(
+    @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
   ) {
-    return this.ordersService.updateOrderStatus(id, updateOrderStatusDto);
+    return this.ordersService.updateOrderStatus(
+      id,
+      updateOrderStatusDto,
+      req.user,
+    );
   }
 }
