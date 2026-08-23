@@ -1,8 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 import { Loader2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -94,114 +90,85 @@ export default function ArtistProfilePage() {
     useState<ProfileTab>('overview');
 
   // ============================================================
-  // Fetch profile + follow counts
-  // ============================================================
-
-  const fetchProfile = useCallback(async () => {
-    if (!userId) {
-      return;
-    }
-
-    setProfileLoading(true);
-    setError(null);
-
-    try {
-      const [profileData, countsData] =
-        await Promise.all([
-          getPublicUserProfile(userId),
-          getFollowCounts(userId),
-        ]);
-
-      console.log('📌 PROFILE DATA:');
-      console.log(profileData);
-
-      // Artist profile page chỉ dành cho ARTIST
-      if (profileData.role !== 'ARTIST') {
-        setProfile(null);
-        setError('Artist not found');
-        return;
-      }
-
-      setProfile(profileData);
-      setCounts(countsData);
-    } catch {
-      setProfile(null);
-      setError('Artist not found');
-    } finally {
-      setProfileLoading(false);
-    }
-  }, [userId]);
-
-  // ============================================================
-  // Fetch follow status
-  // ============================================================
-
-  const fetchFollowStatus = useCallback(async () => {
-    if (!userId || !user) {
-      setIsFollowing(false);
-      return;
-    }
-
-    // Không cần gọi API nếu đang xem chính mình
-    if (user.id === userId) {
-      setIsFollowing(false);
-      return;
-    }
-
-    try {
-      const status = await getFollowStatus(userId);
-
-      setIsFollowing(status);
-    } catch {
-      setIsFollowing(false);
-    }
-  }, [userId, user]);
-
-  // ============================================================
-  // Fetch artist artworks
-  // ============================================================
-
-  const fetchArtworks = useCallback(async () => {
-    if (!userId) {
-      return;
-    }
-
-    setArtworksLoading(true);
-
-    try {
-      const response =
-        await artworkService.getArtistArtworks(
-          userId,
-          20,
-        );
-
-      setArtworks(response.data ?? []);
-
-      // Lấy tổng số artwork từ backend
-      setArtworkTotal(
-        response.meta?.total ?? 0,
-      );
-    } catch {
-      setArtworks([]);
-      setArtworkTotal(0);
-    } finally {
-      setArtworksLoading(false);
-    }
-  }, [userId]);
-
-  // ============================================================
   // Initial load
   // ============================================================
 
   useEffect(() => {
-    fetchProfile();
-    fetchFollowStatus();
-    fetchArtworks();
-  }, [
-    fetchProfile,
-    fetchFollowStatus,
-    fetchArtworks,
-  ]);
+    if (!userId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void Promise.all([
+      getPublicUserProfile(userId),
+      getFollowCounts(userId),
+    ])
+      .then(([profileData, countsData]) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (profileData.role !== 'ARTIST') {
+          setProfile(null);
+          setError('Artist not found');
+          return;
+        }
+
+        setProfile(profileData);
+        setCounts(countsData);
+        setError(null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProfile(null);
+          setError('Artist not found');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setProfileLoading(false);
+        }
+      });
+
+    void artworkService
+      .getArtistArtworks(userId, 20)
+      .then((response) => {
+        if (!cancelled) {
+          setArtworks(response.data ?? []);
+          setArtworkTotal(response.meta?.total ?? 0);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setArtworks([]);
+          setArtworkTotal(0);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setArtworksLoading(false);
+        }
+      });
+
+    if (user && user.id !== userId) {
+      void getFollowStatus(userId)
+        .then((status) => {
+          if (!cancelled) {
+            setIsFollowing(status);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setIsFollowing(false);
+          }
+        });
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, userId]);
 
   // ============================================================
   // Follow / Unfollow
