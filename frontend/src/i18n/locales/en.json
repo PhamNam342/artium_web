@@ -16,7 +16,45 @@
     "register": "Sign Up",
     "profile": "Profile",
     "orders": "Orders",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "userManagement": "User Management"
+  },
+  "admin": {
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage all registered accounts, roles and their statuses.",
+      "searchPlaceholder": "Search users by name or email...",
+      "filterAll": "All Status",
+      "filterActive": "Active",
+      "filterInactive": "Inactive",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "joinedDate": "Joined Date",
+        "actions": "Actions",
+        "empty": "No users found matching your search.",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "disable": "Disable",
+        "enable": "Enable"
+      },
+      "confirmModal": {
+        "titleDisable": "Disable User Account",
+        "titleEnable": "Enable User Account",
+        "descDisable": "Are you sure you want to disable this user? They will not be able to log in or use the platform.",
+        "descEnable": "Are you sure you want to enable this user? They will regain access to the platform.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "messages": {
+        "fetchError": "Failed to load users",
+        "updateSuccess": "Status updated successfully",
+        "updateError": "Failed to update user status"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "Welcome back",

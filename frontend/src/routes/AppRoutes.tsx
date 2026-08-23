@@ -17,6 +17,7 @@ import CompleteProfileModal from '../features/auth/components/CompleteProfileMod
 import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import AdminUsersPage from '../pages/AdminUsersPage';
 
 function GuestRoute() {
   const { user, isLoading } = useAuth();
@@ -80,6 +81,29 @@ function ProtectedRoute() {
   return <Outlet />;
 }
 
+function AdminRoute() {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  if (user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
 export default function AppRoutes() {
   return (
     <>
@@ -90,6 +114,10 @@ export default function AppRoutes() {
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
           <Route element={<ArtistRoute />}>
             <Route path="/inventory" element={<InventoryPage />} />
+          </Route>
+          
+          <Route element={<AdminRoute />}>
+            <Route path="/admin/users" element={<AdminUsersPage />} />
           </Route>
         </Route>
 

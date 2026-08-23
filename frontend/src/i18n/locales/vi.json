@@ -16,7 +16,45 @@
     "register": "Đăng ký",
     "profile": "Hồ sơ cá nhân",
     "orders": "Đơn hàng",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "userManagement": "Quản lý người dùng"
+  },
+  "admin": {
+    "users": {
+      "title": "Quản lý người dùng",
+      "subtitle": "Quản lý tất cả tài khoản đã đăng ký, vai trò và trạng thái hoạt động.",
+      "searchPlaceholder": "Tìm kiếm theo tên hoặc email...",
+      "filterAll": "Tất cả",
+      "filterActive": "Hoạt động",
+      "filterInactive": "Vô hiệu hóa",
+      "table": {
+        "user": "Người dùng",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "joinedDate": "Ngày tham gia",
+        "actions": "Hành động",
+        "empty": "Không tìm thấy người dùng nào phù hợp.",
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu hóa"
+      },
+      "actions": {
+        "disable": "Vô hiệu hóa",
+        "enable": "Kích hoạt"
+      },
+      "confirmModal": {
+        "titleDisable": "Vô hiệu hóa tài khoản",
+        "titleEnable": "Kích hoạt tài khoản",
+        "descDisable": "Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Họ sẽ không thể đăng nhập và sử dụng hệ thống.",
+        "descEnable": "Bạn có chắc chắn muốn kích hoạt lại người dùng này? Họ sẽ có thể đăng nhập bình thường.",
+        "cancel": "Hủy bỏ",
+        "confirm": "Xác nhận"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách người dùng",
+        "updateSuccess": "Cập nhật trạng thái thành công",
+        "updateError": "Cập nhật trạng thái thất bại"
+      }
+    }
   },
   "auth": {
     "welcomeBack": "Chào mừng trở lại",
