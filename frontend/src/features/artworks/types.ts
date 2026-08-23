@@ -64,6 +64,7 @@ export interface ArtworkFiltersValue {
 export interface ArtworkListQuery extends Partial<ArtworkFiltersValue> {
   page?: number;
   limit?: number;
+  sellerId?: string;
 }
 
 export interface ArtworkListMeta {

@@ -54,4 +54,34 @@ export const artworkService = {
     const response = await api.get<Artwork>(`/artwork/${id}`);
     return response.data;
   },
+  async getArtistArtworks(
+  sellerId: string,
+  limit = 20,
+): Promise<ArtworkListResponse> {
+  console.log('===== GET ARTIST ARTWORKS =====');
+  console.log('sellerId:', sellerId);
+  console.log('params:', {
+    sellerId,
+    page: 1,
+    limit,
+  });
+
+  const response = await api.get<ArtworkListResponse>('/artwork', {
+    params: {
+      sellerId,
+      page: 1,
+      limit,
+    },
+  });
+
+  console.log('response.data:', response.data);
+  console.log(
+    'response sellerIds:',
+    response.data.data.map((artwork) => artwork.sellerId),
+  );
+  console.log('response meta:', response.data.meta);
+  console.log('================================');
+
+  return response.data;
+}
 };

@@ -34,6 +34,11 @@ export class FollowersController {
   ) {
     return this.followersService.unfollow(currentUser.id, userId);
   }
+  @Get('counts/:userId')
+  getCounts(@Param('userId') userId: string) {
+    return this.followersService.getCounts(userId);
+  }
+
   @Get('followers/:userId')
   getFollowers(
     @Param('userId') userId: string,

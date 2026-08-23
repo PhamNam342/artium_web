@@ -26,12 +26,12 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold tracking-tight text-black">
+          <Link to="/home" className="text-xl font-bold tracking-tight text-black">
             ARTIUM
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm text-gray-600 hover:text-black transition-colors">
+            <Link to="/home" className="text-sm text-gray-600 hover:text-black transition-colors">
               {t('nav.home')}
             </Link>
             <Link to="/artworks" className="text-sm text-gray-600 hover:text-black transition-colors">

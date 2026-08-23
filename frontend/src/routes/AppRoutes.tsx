@@ -10,13 +10,13 @@ import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
 import ArtworksPage from '../pages/ArtworksPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
-
+import ArtistProfilePage from '../pages/ArtistProfilePage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
-
-function GuestRoute() {
+import HomePage from '../pages/HomePage';
+function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
+  const redirectPath = (location.state as { from?: string } | null)?.from || defaultRedirect;
 
   if (isLoading) {
     return (
@@ -59,6 +59,7 @@ export default function AppRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
+          <Route path="/artists/:userId" element={<ArtistProfilePage />} />
         </Route>
 
         <Route element={<GuestRoute />}>
@@ -71,6 +72,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             {/* Protected routes go here */}
+            <Route path="/home" element={<HomePage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>

@@ -123,6 +123,19 @@ export class FollowersService {
       location: follow.following.location,
     }));
   }
+  async getCounts(userId: string) {
+    const [followers, following] = await Promise.all([
+      this.followRepository.count({
+        where: { following_id: userId },
+      }),
+      this.followRepository.count({
+        where: { follower_id: userId },
+      }),
+    ]);
+
+    return { followers, following };
+  }
+
   // Check xem đang có follow hay không
   async getStatus(followerId: string, followingId: string) {
     const follow = await this.followRepository.findOne({
