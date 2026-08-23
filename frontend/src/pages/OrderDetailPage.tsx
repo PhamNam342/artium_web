@@ -3,17 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import { orderService } from '../features/orders/orderService';
-import { artworkService, formatArtworkPrice } from '../features/artworks/artworkService';
+import { formatArtworkPrice } from '../features/artworks/artworkService';
 import type { Order } from '../features/orders/types';
-import type { Artwork } from '../features/artworks/types';
-import { Package, Clock, CheckCircle, XCircle, ArrowLeft, MapPin, CreditCard } from 'lucide-react';
+import { ArrowLeft, MapPin, CreditCard } from 'lucide-react';
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { t, language } = useI18n();
   const [order, setOrder] = useState<Order | null>(null);
-  const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,10 +22,6 @@ export default function OrderDetailPage() {
         setLoading(true);
         const orderData = await orderService.getOrderById(id);
         setOrder(orderData);
-        if (orderData.artworkId) {
-          const artworkData = await artworkService.getArtwork(orderData.artworkId);
-          setArtwork(artworkData);
-        }
       } catch (err) {
         console.error(err);
         setError(t('common.unexpectedError'));
@@ -75,6 +69,7 @@ export default function OrderDetailPage() {
     );
   };
 
+  const artwork = order.artwork;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -129,19 +124,19 @@ export default function OrderDetailPage() {
               <div className="flex justify-between">
                 <dt>{t('orders.subtotal')}</dt>
                 <dd className="font-medium text-slate-900">
-                  {formatArtworkPrice(order.subtotal.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatOrderAmount(order.subtotal)}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt>{t('orders.shipping')}</dt>
                 <dd className="font-medium text-slate-900">
-                  {formatArtworkPrice(order.shippingCost.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatOrderAmount(order.shippingCost)}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-slate-100 pt-4 text-base font-semibold text-slate-900">
                 <dt>{t('orders.total')}</dt>
                 <dd>
-                  {formatArtworkPrice(order.totalAmount.toString(), 'USD', language === 'en' ? 'en-US' : 'vi-VN', '')}
+                  {formatOrderAmount(order.totalAmount)}
                 </dd>
               </div>
             </dl>

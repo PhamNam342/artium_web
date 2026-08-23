@@ -81,7 +81,7 @@ export class OrdersService {
   ): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: { collector: true },
+      relations: { collector: true, artwork: true },
     });
 
     if (!order) {
@@ -118,6 +118,12 @@ export class OrdersService {
       }
 
       const previousStatus = order.status;
+      this.assertStatusTransition(previousStatus, updateOrderStatusDto.status);
+
+      if (previousStatus === updateOrderStatusDto.status) {
+        return orderRepository.save(order);
+      }
+
       order.status = updateOrderStatusDto.status;
 
       const artworkRepository = manager.getRepository(Artwork);
@@ -126,26 +132,55 @@ export class OrdersService {
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (artwork) {
-        if (
-          updateOrderStatusDto.status === OrderStatus.CANCELLED &&
-          previousStatus !== OrderStatus.CANCELLED &&
-          artwork.status === ArtworkStatus.RESERVED
-        ) {
-          artwork.status = ArtworkStatus.ACTIVE;
-        }
-
-        if (
-          updateOrderStatusDto.status === OrderStatus.DELIVERED &&
-          artwork.status === ArtworkStatus.RESERVED
-        ) {
-          artwork.status = ArtworkStatus.SOLD;
-        }
-
-        await artworkRepository.save(artwork);
+      if (!artwork) {
+        throw new NotFoundException(
+          `Artwork with ID ${order.artworkId} not found`,
+        );
       }
+
+      if (artwork.status !== ArtworkStatus.RESERVED) {
+        throw new BadRequestException(
+          'Artwork status is inconsistent with the order',
+        );
+      }
+
+      if (updateOrderStatusDto.status === OrderStatus.CANCELLED) {
+        artwork.status = ArtworkStatus.ACTIVE;
+      }
+
+      if (updateOrderStatusDto.status === OrderStatus.DELIVERED) {
+        artwork.status = ArtworkStatus.SOLD;
+      }
+
+      await artworkRepository.save(artwork);
 
       return orderRepository.save(order);
     });
+  }
+
+  private assertStatusTransition(
+    previousStatus: OrderStatus,
+    nextStatus: OrderStatus,
+  ) {
+    const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING]: [
+        OrderStatus.PENDING,
+        OrderStatus.SHIPPED,
+        OrderStatus.CANCELLED,
+      ],
+      [OrderStatus.SHIPPED]: [
+        OrderStatus.SHIPPED,
+        OrderStatus.DELIVERED,
+        OrderStatus.CANCELLED,
+      ],
+      [OrderStatus.DELIVERED]: [OrderStatus.DELIVERED],
+      [OrderStatus.CANCELLED]: [OrderStatus.CANCELLED],
+    };
+
+    if (!allowedTransitions[previousStatus].includes(nextStatus)) {
+      throw new BadRequestException(
+        `Cannot change order status from ${previousStatus} to ${nextStatus}`,
+      );
+    }
   }
 }

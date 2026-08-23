@@ -92,14 +92,13 @@ export default function ArtworkDetailPage() {
   };
 
   const handleBuyNow = () => {
+    if (!artwork) return;
     if (!user) {
-      navigate('/login', { state: { from: `${location.pathname}${location.search}${location.hash}` } });
+      navigate('/login', { state: { from: `/checkout/${artwork.id}` } });
       return;
     }
 
-    if (artwork) {
-      navigate(`/checkout/${artwork.id}`);
-    }
+    navigate(`/checkout/${artwork.id}`);
   };
 
   useEffect(() => {

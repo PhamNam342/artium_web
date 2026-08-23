@@ -294,6 +294,16 @@ export class ArtworksService {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
+    if (
+      artwork.status === ArtworkStatus.RESERVED &&
+      (artworkPatch.status !== undefined ||
+        artworkPatch.isPublished !== undefined)
+    ) {
+      throw new BadRequestException(
+        'Reserved artwork cannot change listing status',
+      );
+    }
+
     Object.assign(artwork, artworkPatch);
 
     if (tagIds !== undefined) {
