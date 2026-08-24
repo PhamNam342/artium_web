@@ -1,7 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { Artwork, ArtworkStatus } from '../artworks/artwork.entity';
-import { Order, OrderStatus } from './order.entity';
+import { PayOSService } from '../payments/payos.service';
+import { Order, OrderPaymentStatus, OrderStatus } from './order.entity';
 import { OrdersService } from './orders.service';
 
 describe('OrdersService', () => {
@@ -20,7 +22,11 @@ describe('OrdersService', () => {
     const orderRepository = {
       findOne,
     } as unknown as Repository<Order>;
-    const service = new OrdersService(orderRepository);
+    const service = new OrdersService(
+      orderRepository,
+      {} as PayOSService,
+      {} as ConfigService,
+    );
 
     await expect(service.getOrderById('order-id', collector)).resolves.toBe(
       order,
@@ -59,7 +65,11 @@ describe('OrdersService', () => {
         ),
       },
     } as unknown as Repository<Order>;
-    const service = new OrdersService(orderRepository);
+    const service = new OrdersService(
+      orderRepository,
+      {} as PayOSService,
+      {} as ConfigService,
+    );
 
     await expect(
       service.updateOrderStatus(
@@ -70,5 +80,49 @@ describe('OrdersService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(orderRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('does not ship an unpaid order', async () => {
+    const order = {
+      id: 'order-id',
+      collectorId: collector.id,
+      artworkId: 'artwork-id',
+      status: OrderStatus.PENDING,
+      paymentStatus: OrderPaymentStatus.PENDING,
+    } as Order;
+    const orderRepo = {
+      findOne: jest.fn().mockResolvedValue(order),
+      save: jest.fn(),
+    };
+    const artworkRepo = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
+    const manager = {
+      getRepository: jest.fn((entity: typeof Order | typeof Artwork) =>
+        entity === Order ? orderRepo : artworkRepo,
+      ),
+    };
+    const orderRepository = {
+      manager: {
+        transaction: jest.fn((callback: (value: typeof manager) => unknown) =>
+          callback(manager),
+        ),
+      },
+    } as unknown as Repository<Order>;
+    const service = new OrdersService(
+      orderRepository,
+      {} as PayOSService,
+      {} as ConfigService,
+    );
+
+    await expect(
+      service.updateOrderStatus(
+        order.id,
+        { status: OrderStatus.SHIPPED },
+        admin,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(artworkRepo.findOne).not.toHaveBeenCalled();
   });
 });
