@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Heart, ImageOff, Maximize2, MessageCircle, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import { useAuth } from '../features/auth/AuthContext';
 import type { Artwork } from '../features/artworks/types';
 import { useI18n } from '../i18n/I18nContext';
-
+import ArtworkLikeButton from '../features/Likes/components/ArtworkLikeButton';
+import ArtworkCommentPopup from '../features/comments/components/ArtworkCommentPopup';
+import ArtworkCommentButton from '../features/comments/components/ArtworkCommentButton';
+import { artworkCommentService } from '../services/commentService';
 function formatDimensions(artwork: Artwork) {
   const dimensions = artwork.dimensions;
   if (!dimensions) return null;
@@ -33,13 +36,13 @@ export default function ArtworkDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorited, setIsFavorited] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
-
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
   useEffect(() => {
     if (!id) return;
     let active = true;
-
+    
     artworkService.getArtwork(id)
       .then((response) => {
         if (active) {
@@ -57,7 +60,29 @@ export default function ArtworkDetailPage() {
 
     return () => { active = false; };
   }, [id, t]);
+  useEffect(() => {
+  if (!id) return;
 
+  let active = true;
+
+  artworkCommentService
+    .countComments(id)
+    .then((count) => {
+      if (active) {
+        setCommentCount(count);
+      }
+    })
+    .catch((error) => {
+      console.error(
+        'Failed to load comment count:',
+        error,
+      );
+    });
+
+  return () => {
+    active = false;
+  };
+}, [id]);
   const images = useMemo(() => {
     if (!artwork) return [];
     return [...artwork.images].sort((first, second) => {
@@ -72,13 +97,6 @@ export default function ArtworkDetailPage() {
   const selectRelativeImage = (offset: number) => {
     if (images.length < 2) return;
     setSelectedIndex((current) => (current + offset + images.length) % images.length);
-  };
-
-  const handleFavorite = () => {
-    setIsFavorited((current) => {
-      toast.success(t(current ? 'artworks.favoriteRemoved' : 'artworks.favoriteAdded'));
-      return !current;
-    });
   };
 
   const handleAddToCart = () => {
@@ -145,12 +163,12 @@ export default function ArtworkDetailPage() {
                 {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2" aria-label={t('artworks.actionsLabel')}>
-                <button type="button" onClick={handleFavorite} className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${isFavorited ? 'border-rose-200 bg-rose-50 text-rose-600' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`} aria-label={t(isFavorited ? 'artworks.unfavorite' : 'artworks.favorite')}>
-                  <Heart className="h-5 w-5" fill={isFavorited ? 'currentColor' : 'none'} />
-                </button>
-                <button type="button" onClick={() => toast(t('artworks.commentComingSoon'))} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50" aria-label={t('artworks.comment')}>
-                  <MessageCircle className="h-5 w-5" />
-                </button>
+                <ArtworkLikeButton artworkId={artwork.id} />
+                <ArtworkCommentButton
+                  artwork={artwork}
+                  commentCount={commentCount}
+                  onCommentCountChange={setCommentCount}
+                />
                 <button type="button" onClick={handleAddToCart} disabled={isInCart} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-blue-600 px-4 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:cursor-default disabled:border-emerald-600 disabled:text-emerald-700">
                   <ShoppingCart className="h-4 w-4" />
                   {t(isInCart ? 'artworks.addedToCart' : 'artworks.addToCart')}
@@ -166,7 +184,73 @@ export default function ArtworkDetailPage() {
         </div>
       </div>
 
-      {isLightboxOpen && currentImage && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 p-4" role="dialog" aria-modal="true" aria-label={t('artworks.lightboxLabel', { title: artwork.title })} onClick={() => setIsLightboxOpen(false)}><button type="button" className="absolute right-4 top-4 rounded-full p-2 text-white transition hover:bg-white/10" aria-label={t('artworks.close')} onClick={() => setIsLightboxOpen(false)}><X className="h-6 w-6" /></button>{images.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); selectRelativeImage(-1); }} className="absolute left-3 rounded-full p-3 text-white transition hover:bg-white/10 sm:left-6" aria-label={t('artworks.previousImage')}><ChevronLeft className="h-7 w-7" /></button>}<img src={currentImage.secureUrl || currentImage.url} alt={currentImage.altText || currentImage.alt || artwork.title} className="max-h-[85vh] max-w-[85vw] object-contain" onClick={(event) => event.stopPropagation()} />{images.length > 1 && <button type="button" onClick={(event) => { event.stopPropagation(); selectRelativeImage(1); }} className="absolute right-3 rounded-full p-3 text-white transition hover:bg-white/10 sm:right-6" aria-label={t('artworks.nextImage')}><ChevronRight className="h-7 w-7" /></button>}</div>}
+            {isLightboxOpen && currentImage && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('artworks.lightboxLabel', {
+            title: artwork.title,
+          })}
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 rounded-full p-2 text-white transition hover:bg-white/10"
+            aria-label={t('artworks.close')}
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {images.length > 1 && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                selectRelativeImage(-1);
+              }}
+              className="absolute left-3 rounded-full p-3 text-white transition hover:bg-white/10 sm:left-6"
+              aria-label={t('artworks.previousImage')}
+            >
+              <ChevronLeft className="h-7 w-7" />
+            </button>
+          )}
+
+          <img
+            src={currentImage.secureUrl || currentImage.url}
+            alt={
+              currentImage.altText ||
+              currentImage.alt ||
+              artwork.title
+            }
+            className="max-h-[85vh] max-w-[85vw] object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
+
+          {images.length > 1 && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                selectRelativeImage(1);
+              }}
+              className="absolute right-3 rounded-full p-3 text-white transition hover:bg-white/10 sm:right-6"
+              aria-label={t('artworks.nextImage')}
+            >
+              <ChevronRight className="h-7 w-7" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Comment popup */}
+      {isCommentOpen && (
+        <ArtworkCommentPopup
+          artwork={artwork}
+          onClose={() => setIsCommentOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -227,6 +227,46 @@
     "error": "Đặt hàng thất bại. Vui lòng thử lại.",
     "orderSummary": "Tóm tắt đơn hàng"
   },
+  "comment": {
+    "popup": {
+      "title": "Bình luận",
+      "close": "Đóng bình luận",
+      "noImage": "Không có hình ảnh",
+      "noComments": "Chưa có bình luận",
+      "beFirst": "Hãy là người đầu tiên bình luận.",
+      "loginRequired": "Vui lòng đăng nhập để bình luận.",
+      "commentsCount": "{{count}} bình luận",
+
+      "loadError": "Không thể tải bình luận",
+      "createError": "Không thể gửi bình luận",
+      "updateError": "Không thể cập nhật bình luận",
+      "deleteError": "Không thể xóa bình luận",
+      "deleteSuccess": "Đã xóa bình luận",
+
+      "deleteTitle": "Xóa bình luận?",
+      "deleteMessage": "Bạn có chắc chắn muốn xóa bình luận này không?",
+      "deleteWarning": "Hành động này không thể hoàn tác.",
+      "cancel": "Hủy",
+      "delete": "Xóa",
+      "deleting": "Đang xóa...",
+
+      "input": {
+        "placeholder": "Viết bình luận...",
+        "send": "Gửi bình luận"
+      },
+
+      "item": {
+        "unknownUser": "Người dùng không xác định",
+        "edit": "Chỉnh sửa",
+        "delete": "Xóa",
+        "save": "Lưu",
+        "saving": "Đang lưu...",
+        "cancel": "Hủy",
+        "emptyContent": "Nội dung bình luận không được để trống",
+        "updateSuccess": "Đã cập nhật bình luận"
+      }
+    }
+  },
   "payment": {
     "checking": "Đang kiểm tra trạng thái thanh toán...",
     "successTitle": "Thanh toán thành công",
