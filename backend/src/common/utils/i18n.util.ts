@@ -5,5 +5,5 @@ export function t(key: string, options?: TranslateOptions): string {
   if (!i18n) {
     return key;
   }
-  return i18n.t(key, options) as string;
+  return i18n.t(key, options);
 }

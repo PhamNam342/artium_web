@@ -3,7 +3,7 @@ import { useI18n } from '../../../i18n/I18nContext';
 import ArtworkCard from './ArtworkCard';
 import { getArtworkImage } from '../artworkService';
 import type { Artwork, ArtworkListMeta } from '../types';
-
+import { useNavigate } from 'react-router-dom';
 interface ArtworkGridProps {
   artworks: Artwork[];
   meta: ArtworkListMeta | null;
@@ -68,10 +68,11 @@ export default function ArtworkGrid({
   onPageChange,
   variant = 'artworks',
   selectedProfileId,
-  onProfileSelect,
+  //onProfileSelect,
   onProfileBack,
 }: ArtworkGridProps) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   if (isLoading) {
     return (
       <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
@@ -149,7 +150,7 @@ export default function ArtworkGrid({
             key={sellerId}
             sellerId={sellerId}
             artworks={profileArtworks}
-            onSelect={() => onProfileSelect?.(sellerId)}
+            onSelect={() => navigate(`/artists/${sellerId}`)}
           />
         ))}
       </div>

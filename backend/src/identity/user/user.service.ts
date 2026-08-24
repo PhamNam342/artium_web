@@ -75,6 +75,7 @@ export class UserService {
           ? {
               bio: user.sellerProfile.bio,
               website_url: user.sellerProfile.websiteUrl,
+              is_verified: user.sellerProfile.isVerified,
             }
           : null,
     };

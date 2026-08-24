@@ -10,6 +10,12 @@ export interface SellerProfile {
   is_verified: boolean;
 }
 
+export interface PublicSellerProfile {
+  bio: string | null;
+  website_url: string | null;
+  is_verified: boolean;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -19,6 +25,15 @@ export interface UserProfile {
   location: string | null;
   has_password: boolean;
   seller_profile: SellerProfile | null;
+}
+
+export interface PublicUserProfile {
+  id: string;
+  full_name: string | null;
+  role: 'ARTIST' | 'COLLECTOR' | 'ADMIN' | null;
+  avatar_url: string | null;
+  location: string | null;
+  seller_profile: PublicSellerProfile | null;
 }
 
 export interface UpdateProfilePayload {
@@ -33,6 +48,15 @@ export interface UpdateSellerProfilePayload {
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
+
+/**
+ * GET /identity/users/:userId
+ * Public artist/collector profile (no email)
+ */
+export async function getPublicUserProfile(userId: string): Promise<PublicUserProfile> {
+  const res = await api.get<PublicUserProfile>(`/identity/users/${userId}`);
+  return res.data;
+}
 
 /**
  * GET /identity/users/:userId
