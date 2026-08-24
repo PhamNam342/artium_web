@@ -1,10 +1,10 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Put,
   Body,
+  Controller,
+  Get,
   Param,
+  Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -25,6 +25,19 @@ export class OrdersController {
     @Body() createOrderDto: CreateOrderDto,
   ) {
     return this.ordersService.createOrder(req.user.id, createOrderDto);
+  }
+
+  @Post(':id/payment')
+  async createPaymentLink(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    return this.ordersService.createPaymentLink(id, req.user);
+  }
+
+  @Post(':id/payment/cancel')
+  async cancelPayment(@Req() req: RequestWithUser, @Param('id') id: string) {
+    return this.ordersService.cancelPayment(id, req.user);
   }
 
   @Get()

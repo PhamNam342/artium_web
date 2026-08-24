@@ -221,10 +221,21 @@
     "title": "Thanh toán",
     "shippingAddress": "Địa chỉ giao hàng",
     "addressPlaceholder": "Nhập địa chỉ giao hàng của bạn",
-    "confirm": "Xác nhận đặt hàng",
+    "confirm": "Tiếp tục thanh toán",
     "processing": "Đang xử lý...",
     "success": "Đặt hàng thành công!",
     "error": "Đặt hàng thất bại. Vui lòng thử lại.",
     "orderSummary": "Tóm tắt đơn hàng"
+  },
+  "payment": {
+    "checking": "Đang kiểm tra trạng thái thanh toán...",
+    "successTitle": "Thanh toán thành công",
+    "pendingTitle": "Thanh toán đang được xử lý",
+    "cancelledTitle": "Đã hủy thanh toán",
+    "payNow": "Thanh toán ngay",
+    "statusDescription": "Bạn có thể xem trạng thái mới nhất trong chi tiết đơn hàng.",
+    "viewOrder": "Xem đơn hàng",
+    "missingOrder": "Không tìm thấy đơn hàng thanh toán.",
+    "lookupError": "Không thể tải trạng thái thanh toán."
   }
 }

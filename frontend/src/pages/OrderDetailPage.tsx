@@ -13,6 +13,7 @@ export default function OrderDetailPage() {
   const { t, language } = useI18n();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,6 +71,19 @@ export default function OrderDetailPage() {
   };
 
   const artwork = order.artwork;
+
+  const handlePayment = async () => {
+    setPaymentLoading(true);
+    try {
+      const payment = await orderService.createPaymentLink(order.id);
+      if (!payment.checkoutUrl) throw new Error('Missing PayOS checkout URL');
+      window.location.assign(payment.checkoutUrl);
+    } catch (requestError) {
+      console.error(requestError);
+      setError(t('payment.lookupError'));
+      setPaymentLoading(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
@@ -166,6 +180,16 @@ export default function OrderDetailPage() {
             </h2>
             <div className="text-sm text-slate-600">
               <p>{order.paymentStatus || 'PENDING'}</p>
+              {order.paymentStatus === 'PENDING' && order.status === 'PENDING' && (
+                <button
+                  type="button"
+                  onClick={handlePayment}
+                  disabled={paymentLoading}
+                  className="mt-4 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {paymentLoading ? t('checkout.processing') : t('payment.payNow')}
+                </button>
+              )}
             </div>
           </div>
         </div>
