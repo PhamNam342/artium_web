@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { t } from '../../common/utils/i18n.util';
@@ -27,7 +32,10 @@ export class UploadService {
       throw new BadRequestException(t('artwork.files_required'));
     }
 
-    const sellerId = this.cleanRequiredString(authenticatedSellerId, 'sellerId');
+    const sellerId = this.cleanRequiredString(
+      authenticatedSellerId,
+      'sellerId',
+    );
     const artworkId = this.cleanRequiredString(dto.artworkId, 'artworkId');
     const altText = this.cleanOptionalString(dto.altText);
 

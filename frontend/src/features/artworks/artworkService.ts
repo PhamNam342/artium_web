@@ -71,6 +71,26 @@ export const artworkService = {
     const response = await api.get<Artwork>(`/artwork/${id}`);
     return response.data;
   },
+  async getArtistArtworks(
+  sellerId: string,
+  limit = 20,
+): Promise<ArtworkListResponse> {
+  const response = await api.get<ArtworkListResponse>('/artwork', {
+    params: {
+      sellerId,
+      page: 1,
+      limit,
+    },
+  });
+
+  console.log('response.data:', response.data);
+  console.log(
+    'response sellerIds:',
+    response.data.data.map((artwork) => artwork.sellerId),
+  );
+
+  return response.data;
+},
 
   async createArtwork(input: ArtworkUpsertInput): Promise<Artwork> {
     const response = await api.post<Artwork>('/artwork', input);

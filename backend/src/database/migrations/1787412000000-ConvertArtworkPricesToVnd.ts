@@ -20,7 +20,7 @@ export class ConvertArtworkPricesToVnd1787412000000 implements MigrationInterfac
       `UPDATE "orders" o SET "subtotal" = o."subtotal" * 26000, "shipping_cost" = o."shipping_cost" * 26000, "total_amount" = o."total_amount" * 26000 FROM "order_price_vnd_migration_backup" b WHERE o."id" = b."order_id"`,
     );
     await queryRunner.query(
-      `UPDATE "artworks" a SET "price" = "price" * 26000, "currency" = 'VND' FROM "artwork_price_vnd_migration_backup" b WHERE a."id" = b."artwork_id"`,
+      `UPDATE "artworks" a SET "price" = a."price" * 26000, "currency" = 'VND' FROM "artwork_price_vnd_migration_backup" b WHERE a."id" = b."artwork_id"`,
     );
   }
 
