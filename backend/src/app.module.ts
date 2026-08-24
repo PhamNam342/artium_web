@@ -19,6 +19,7 @@ import { AppService } from './app.service';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { UploadModule } from './modules/upload/upload.module';
     }),
     OrdersModule,
     ArtworksModule,
+    ArtworkFoldersModule,
     UploadModule,
     MailModule,
     AuthModule,

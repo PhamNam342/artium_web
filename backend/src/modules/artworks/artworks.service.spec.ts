@@ -9,6 +9,7 @@ import {
 } from './dto/artwork-response.dto';
 import { Tag } from './tag.entity';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
+import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
 
 describe('ArtworksService', () => {
   const sellerId = '123e4567-e89b-12d3-a456-426614174000';
@@ -26,6 +27,9 @@ describe('ArtworksService', () => {
     findOne: jest.Mock;
     findOneBy: jest.Mock;
     save: jest.Mock;
+  };
+  let folderRepository: {
+    findOne: jest.Mock;
   };
   let service: ArtworksService;
 
@@ -55,10 +59,14 @@ describe('ArtworksService', () => {
         }),
       ),
     };
+    folderRepository = {
+      findOne: jest.fn(),
+    };
 
     service = new ArtworksService(
       artworkRepository as unknown as Repository<Artwork>,
       tagRepository as unknown as Repository<Tag>,
+      folderRepository as unknown as Repository<ArtworkFolder>,
     );
   });
 
@@ -93,6 +101,22 @@ describe('ArtworksService', () => {
       }),
     );
     expect(created.id).toBe('123e4567-e89b-12d3-a456-426614174111');
+  });
+
+  it('rejects a folder that is not owned by the artwork seller', async () => {
+    folderRepository.findOne.mockResolvedValue(null);
+
+    await expect(
+      service.create(
+        {
+          title: 'New Piece',
+          folderId: '123e4567-e89b-12d3-a456-426614174333',
+        },
+        sellerId,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
   it('creates a reusable custom artwork tag', async () => {

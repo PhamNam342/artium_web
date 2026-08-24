@@ -33,7 +33,7 @@ import {
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
 
-@Controller('artwork')
+@Controller(['artwork', 'artworks'])
 export class ArtworksController {
   constructor(private readonly artworksService: ArtworksService) {}
 
@@ -62,9 +62,7 @@ export class ArtworksController {
   @Post('tags')
   @Roles(UserRole.ARTIST)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  createTag(
-    @Body() body: CreateArtworkTagDto,
-  ): Promise<ArtworkTagResponseDto> {
+  createTag(@Body() body: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
     return this.artworksService.createTag(body);
   }
 
@@ -91,6 +89,17 @@ export class ArtworksController {
   @Roles(UserRole.ARTIST)
   @UseGuards(JwtAuthGuard, RolesGuard)
   update(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: UpdateArtworkDto,
+  ): Promise<ArtworkResponseDto> {
+    return this.artworksService.update(id, body, req.user.id);
+  }
+
+  @Patch(':id')
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  patch(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() body: UpdateArtworkDto,
