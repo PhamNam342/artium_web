@@ -38,7 +38,7 @@ function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string })
   }
 
   if (user) {
-    if (user.role === 'ADMIN' && redirectPath === '/') {
+    if (user.role === 'ADMIN') {
       redirectPath = '/admin/dashboard';
     }
     return <Navigate to={redirectPath} replace />;

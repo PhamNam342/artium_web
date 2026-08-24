@@ -55,7 +55,7 @@ export default function LoginPage() {
       // App sẽ tự kiểm tra user.role để hiển thị
       // CompleteProfileModal nếu cần.
       if (user.role === 'ADMIN') {
-        navigate('/admin/users', { replace: true });
+        navigate('/admin/dashboard', { replace: true });
       } else {
         navigate(redirectPath, { replace: true });
       }
@@ -98,7 +98,7 @@ export default function LoginPage() {
       // Nếu user mới chưa có role,
       // CompleteProfileModal sẽ được App hiển thị.
       if (user.role === 'ADMIN') {
-        navigate('/admin/users', { replace: true });
+        navigate('/admin/dashboard', { replace: true });
       } else {
         navigate(redirectPath, { replace: true });
       }

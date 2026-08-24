@@ -56,17 +56,23 @@ export function ArtistForm({ profile }: ArtistFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!seller) return;
     setSaving(true);
     try {
       await updateProfile({
         full_name: fullName.trim() || undefined,
         location: showLocation ? location.trim() || undefined : undefined,
       });
-      await updateSellerProfile(seller.id, {
-        bio: showBio ? bio.trim() || undefined : undefined,
-        websiteUrl: showWebsite ? websiteUrl.trim() || undefined : undefined,
-      });
+      if (seller) {
+        await updateSellerProfile(seller.id, {
+          bio: showBio ? bio.trim() || undefined : undefined,
+          websiteUrl: showWebsite ? websiteUrl.trim() || undefined : undefined,
+        });
+      } else {
+        // If seller was null, it was just created by updateProfile in backend.
+        // Reload to get the new profile.
+        window.location.reload();
+        return;
+      }
       toast.success(t('profile.updateSuccess'));
     } catch {
       toast.error(t('profile.updateError'));
@@ -100,6 +106,17 @@ export function ArtistForm({ profile }: ArtistFormProps) {
       toast.error(t('profile.verifyRequestError') || 'Failed to request verification');
     } finally {
       setRequestingVerify(false);
+    }
+  };
+
+  const handleCreateProfile = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({});
+      window.location.reload();
+    } catch {
+      toast.error(t('profile.updateError'));
+      setSaving(false);
     }
   };
 
@@ -305,8 +322,17 @@ export function ArtistForm({ profile }: ArtistFormProps) {
           </div>
         </>
       ) : (
-        <div className="px-3 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-          {t('profile.profileNotCreated')}
+        <div className="flex flex-col gap-3 px-4 py-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+          <p>{t('profile.profileNotCreated') || 'Your artist profile is missing.'}</p>
+          <button 
+            type="button" 
+            onClick={handleCreateProfile} 
+            disabled={saving}
+            className="w-max px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin inline mr-1" /> : null}
+            {t('profile.createProfile') || 'Create Artist Profile'}
+          </button>
         </div>
       )}
 
