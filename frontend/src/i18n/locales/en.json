@@ -221,7 +221,7 @@
     "title": "Checkout",
     "shippingAddress": "Shipping Address",
     "addressPlaceholder": "Enter your shipping address",
-    "confirm": "Confirm Order",
+    "confirm": "Continue to payment",
     "processing": "Processing...",
     "success": "Order placed successfully!",
     "error": "Failed to place order. Please try again.",
@@ -266,5 +266,16 @@
         "updateSuccess": "Comment updated successfully"
       }
     }
+  },
+  "payment": {
+    "checking": "Checking payment status...",
+    "successTitle": "Payment successful",
+    "pendingTitle": "Payment is processing",
+    "cancelledTitle": "Payment cancelled",
+    "payNow": "Pay now",
+    "statusDescription": "You can review the latest payment status in your order.",
+    "viewOrder": "View order",
+    "missingOrder": "The payment order could not be found.",
+    "lookupError": "Unable to load the payment status."
   }
-}
+  }
