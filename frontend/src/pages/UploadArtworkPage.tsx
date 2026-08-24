@@ -120,10 +120,7 @@ export default function UploadArtworkPage() {
   }, []);
 
   useEffect(() => {
-    if (!artworkId) {
-      setIsLoadingArtwork(false);
-      return;
-    }
+    if (!artworkId) return;
 
     let isCurrent = true;
     const loadArtwork = async () => {

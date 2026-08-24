@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Mail, User, MapPin, Loader2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useI18n } from '../../../i18n/I18nContext';
@@ -14,12 +14,6 @@ export function CollectorForm({ profile }: CollectorFormProps) {
   const [showLocation, setShowLocation] = useState(!!profile.location);
   const [saving, setSaving] = useState(false);
   const { t } = useI18n();
-
-  useEffect(() => {
-    setFullName(profile.full_name ?? '');
-    setLocation(profile.location ?? '');
-    setShowLocation(!!profile.location);
-  }, [profile.full_name, profile.location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
