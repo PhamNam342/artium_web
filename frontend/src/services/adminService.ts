@@ -47,3 +47,15 @@ export async function updateUserStatus(userId: string, isActive: boolean): Promi
   const res = await api.patch(`/identity/users/admin/${userId}/status`, { is_active: isActive });
   return res.data;
 }
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  totalArtists: number;
+  totalCollectors: number;
+  totalPendingVerifications: number;
+}
+
+export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const res = await api.get<AdminDashboardStats>('/identity/users/admin/dashboard');
+  return res.data;
+}

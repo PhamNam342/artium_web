@@ -80,6 +80,14 @@
       "previous": "Previous",
       "next": "Next",
       "pageInfo": "Page {{page}} of {{totalPages}}"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of your platform metrics and activities.",
+      "totalUsers": "Total Users",
+      "totalArtists": "Total Artists",
+      "totalCollectors": "Total Collectors",
+      "pendingVerifications": "Pending Verifications"
     }
   },
   "auth": {

@@ -3,6 +3,7 @@ import { useAuth } from '../features/auth/AuthContext';
 
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
+import AdminLayout from '../layouts/AdminLayout';
 
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
@@ -21,6 +22,7 @@ import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
+import AdminDashboardPage from '../pages/AdminDashboardPage';
 
 function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
   const { user, isLoading } = useAuth();
@@ -37,7 +39,7 @@ function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string })
 
   if (user) {
     if (user.role === 'ADMIN' && redirectPath === '/') {
-      redirectPath = '/admin/users';
+      redirectPath = '/admin/dashboard';
     }
     return <Navigate to={redirectPath} replace />;
   }
@@ -122,8 +124,12 @@ export default function AppRoutes() {
           <Route element={<ArtistRoute />}>
             <Route path="/inventory" element={<InventoryPage />} />
           </Route>
-          
-          <Route element={<AdminRoute />}>
+        </Route>
+
+        {/* Admin Routes with AdminLayout */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/verify-requests" element={<AdminVerifyRequestsPage />} />
           </Route>

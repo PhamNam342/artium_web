@@ -41,6 +41,13 @@ export class UserController {
   // Admin Endpoints
   // =========================
 
+  @Get('admin/dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAdminDashboardStats() {
+    return this.userService.getAdminDashboardStats();
+  }
+
   @Get('admin/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

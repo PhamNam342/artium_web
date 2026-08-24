@@ -45,6 +45,7 @@ export class UserService {
             website_url: user.sellerProfile.websiteUrl,
             is_visible: user.sellerProfile.isVisible,
             is_verified: user.sellerProfile.isVerified,
+            verification_status: user.sellerProfile.verificationStatus,
           }
         : null,
     };
@@ -212,6 +213,25 @@ export class UserService {
             is_verified: user.sellerProfile.isVerified,
           }
         : null,
+    };
+  }
+
+  async getAdminDashboardStats() {
+    const [totalUsers, totalArtists, totalCollectors] = await Promise.all([
+      this.userRepository.count(),
+      this.userRepository.count({ where: { role: UserRole.ARTIST } }),
+      this.userRepository.count({ where: { role: UserRole.COLLECTOR } }),
+    ]);
+
+    const totalPendingVerifications = await this.sellerProfileRepository.count({
+      where: { verificationStatus: 'PENDING' } as any, // casting as any to bypass exact enum type check if it complains
+    });
+
+    return {
+      totalUsers,
+      totalArtists,
+      totalCollectors,
+      totalPendingVerifications,
     };
   }
 

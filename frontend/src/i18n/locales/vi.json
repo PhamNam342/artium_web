@@ -80,6 +80,14 @@
       "previous": "Trước",
       "next": "Tiếp",
       "pageInfo": "Trang {{page}} / {{totalPages}}"
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển",
+      "subtitle": "Tổng quan về các chỉ số và hoạt động của nền tảng.",
+      "totalUsers": "Tổng số người dùng",
+      "totalArtists": "Tổng số nghệ sĩ",
+      "totalCollectors": "Tổng số nhà sưu tập",
+      "pendingVerifications": "Yêu cầu chờ duyệt"
     }
   },
   "auth": {
