@@ -17,7 +17,8 @@
     "profile": "Hồ sơ cá nhân",
     "orders": "Đơn hàng",
     "logout": "Đăng xuất",
-    "userManagement": "Quản lý người dùng"
+    "userManagement": "Quản lý người dùng",
+    "verifyRequests": "Yêu cầu duyệt"
   },
   "admin": {
     "users": {
@@ -54,6 +55,31 @@
         "updateSuccess": "Cập nhật trạng thái thành công",
         "updateError": "Cập nhật trạng thái thất bại"
       }
+    },
+    "verifyRequests": {
+      "title": "Yêu cầu duyệt Artist",
+      "subtitle": "Quản lý các yêu cầu duyệt tài khoản từ nghệ sĩ.",
+      "table": {
+        "artist": "Nghệ sĩ",
+        "email": "Email",
+        "bioWebsite": "Tiểu sử / Website",
+        "empty": "Không có yêu cầu duyệt nào."
+      },
+      "actions": {
+        "approve": "Duyệt",
+        "reject": "Từ chối"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách yêu cầu",
+        "approveSuccess": "Đã duyệt nghệ sĩ thành công",
+        "approveError": "Duyệt nghệ sĩ thất bại",
+        "rejectSuccess": "Đã từ chối yêu cầu của nghệ sĩ",
+        "rejectError": "Từ chối nghệ sĩ thất bại"
+      },
+      "paginationLabel": "Hiển thị {{start}} đến {{end}} trong {{total}} kết quả",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "pageInfo": "Trang {{page}} / {{totalPages}}"
     }
   },
   "auth": {
@@ -239,7 +265,17 @@
       "fair": "Mật khẩu trung bình",
       "good": "Mật khẩu khá mạnh",
       "strong": "Mật khẩu mạnh"
-    }
+    },
+    "verificationStatus": "Trạng thái xác minh",
+    "verifiedDesc": "Tài khoản của bạn đã được xác minh.",
+    "pendingDesc": "Yêu cầu xác minh của bạn đang được xét duyệt.",
+    "rejectedDesc": "Yêu cầu xác minh trước đó đã bị từ chối.",
+    "unverifiedDesc": "Nhận huy hiệu xác minh để tạo niềm tin với nhà sưu tập.",
+    "verifiedStatus": "Đã xác minh",
+    "pendingStatus": "Chờ duyệt",
+    "requestVerification": "Yêu cầu xác minh",
+    "verifyRequestSuccess": "Đã gửi yêu cầu xác minh thành công",
+    "verifyRequestError": "Gửi yêu cầu xác minh thất bại"
   },
   "orders": {
     "title": "Đơn hàng của bạn",

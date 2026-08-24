@@ -20,6 +20,7 @@ import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
+import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
 
 function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
   const { user, isLoading } = useAuth();
@@ -124,6 +125,7 @@ export default function AppRoutes() {
           
           <Route element={<AdminRoute />}>
             <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/verify-requests" element={<AdminVerifyRequestsPage />} />
           </Route>
         </Route>
 

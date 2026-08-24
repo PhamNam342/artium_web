@@ -56,9 +56,14 @@ export default function Header() {
             )}
             
             {user?.role === 'ADMIN' && (
-              <Link to="/admin/users" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                {t('nav.userManagement')}
-              </Link>
+              <>
+                <Link to="/admin/users" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  {t('nav.userManagement')}
+                </Link>
+                <Link to="/admin/verify-requests" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  {t('nav.verifyRequests')}
+                </Link>
+              </>
             )}
           </nav>
 
@@ -99,13 +104,22 @@ export default function Header() {
                         </Link>
                       )}
                       {user?.role === 'ADMIN' && (
-                        <Link
-                          to="/admin/users"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          {t('nav.userManagement')}
-                        </Link>
+                        <>
+                          <Link
+                            to="/admin/users"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            {t('nav.userManagement')}
+                          </Link>
+                          <Link
+                            to="/admin/verify-requests"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            {t('nav.verifyRequests')}
+                          </Link>
+                        </>
                       )}
                       <button
                         type="button"

@@ -17,7 +17,8 @@
     "profile": "Profile",
     "orders": "Orders",
     "logout": "Sign Out",
-    "userManagement": "User Management"
+    "userManagement": "User Management",
+    "verifyRequests": "Verify Requests"
   },
   "admin": {
     "users": {
@@ -54,6 +55,31 @@
         "updateSuccess": "Status updated successfully",
         "updateError": "Failed to update user status"
       }
+    },
+    "verifyRequests": {
+      "title": "Artist Verify Requests",
+      "subtitle": "Manage pending verification requests from artists.",
+      "table": {
+        "artist": "Artist",
+        "email": "Email",
+        "bioWebsite": "Bio / Website",
+        "empty": "No pending requests found."
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "messages": {
+        "fetchError": "Failed to load verify requests",
+        "approveSuccess": "Artist approved successfully",
+        "approveError": "Failed to approve artist",
+        "rejectSuccess": "Artist verification rejected",
+        "rejectError": "Failed to reject artist"
+      },
+      "paginationLabel": "Showing {{start}} to {{end}} of {{total}} results",
+      "previous": "Previous",
+      "next": "Next",
+      "pageInfo": "Page {{page}} of {{totalPages}}"
     }
   },
   "auth": {
@@ -239,7 +265,17 @@
       "fair": "Fair password",
       "good": "Good password",
       "strong": "Strong password"
-    }
+    },
+    "verificationStatus": "Verification Status",
+    "verifiedDesc": "Your account is verified.",
+    "pendingDesc": "Your verification request is under review.",
+    "rejectedDesc": "Your previous verification request was rejected.",
+    "unverifiedDesc": "Get a verified badge to build trust with collectors.",
+    "verifiedStatus": "Verified",
+    "pendingStatus": "Pending",
+    "requestVerification": "Request Verification",
+    "verifyRequestSuccess": "Verification requested successfully",
+    "verifyRequestError": "Failed to request verification"
   },
   "orders": {
     "title": "Your Orders",

@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { SellerProfile } from './entities/seller_profile.entity';
+import { SellerProfile, VerificationStatus } from './entities/seller_profile.entity';
 import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 import { t } from '../../common/utils/i18n.util';
 @Injectable()
@@ -65,6 +65,59 @@ export class SellerProfilesService {
 
     profile.isVisible = isVisible;
 
+    return this.sellerProfileRepository.save(profile);
+  }
+
+  async requestVerification(
+    profileId: string,
+    userId: string,
+  ): Promise<SellerProfile> {
+    const profile = await this.findById(profileId);
+
+    if (profile.userId !== userId) {
+      throw new ForbiddenException(t('seller_profile.cannot_update'));
+    }
+
+    profile.verificationStatus = VerificationStatus.PENDING;
+
+    return this.sellerProfileRepository.save(profile);
+  }
+
+  async getPendingRequests(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [data, total] = await this.sellerProfileRepository.findAndCount({
+      where: {
+        verificationStatus: VerificationStatus.PENDING,
+      },
+      relations: ['user'],
+      skip,
+      take: limit,
+      order: {
+        id: 'ASC', // you can order by created_at if added
+      },
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async approveVerification(profileId: string): Promise<SellerProfile> {
+    const profile = await this.findById(profileId);
+    profile.verificationStatus = VerificationStatus.APPROVED;
+    profile.isVerified = true;
+    return this.sellerProfileRepository.save(profile);
+  }
+
+  async rejectVerification(profileId: string): Promise<SellerProfile> {
+    const profile = await this.findById(profileId);
+    profile.verificationStatus = VerificationStatus.REJECTED;
     return this.sellerProfileRepository.save(profile);
   }
 }
