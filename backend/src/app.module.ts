@@ -20,7 +20,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.module';
-
+import { CommunityModule } from './modules/community/community.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
@@ -71,6 +71,7 @@ import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.
     AuthModule,
     UserModule,
     SellerProfilesModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

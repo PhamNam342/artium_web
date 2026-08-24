@@ -156,7 +156,10 @@ export class CreateArtworkDto {
   @IsArray({ message: artworkValidationMessage('array') })
   @ArrayMaxSize(10, { message: artworkValidationMessage('max_length') })
   @IsString({ each: true, message: artworkValidationMessage('string') })
-  @MaxLength(40, { each: true, message: artworkValidationMessage('max_length') })
+  @MaxLength(40, {
+    each: true,
+    message: artworkValidationMessage('max_length'),
+  })
   customTags?: string[];
 
   @IsOptional()

@@ -36,6 +36,7 @@ type NormalizedListArtworksQuery = {
   maxPrice?: number;
   category?: string;
   material?: string;
+  sellerId?: string;
 };
 
 type NormalizedCreateArtworkInput = {
@@ -130,6 +131,8 @@ export class ArtworksService {
   }
 
   async findAll(query: ListArtworksQueryDto): Promise<ListArtworksResponseDto> {
+    console.log('========== FIND ALL ARTWORKS ==========');
+    console.log('RAW QUERY:', query);
     const filters = this.normalizeQuery(query);
 
     const queryBuilder = this.artworkRepository
@@ -168,6 +171,12 @@ export class ArtworksService {
     if (filters.material) {
       queryBuilder.andWhere('artwork.materials ILIKE :material', {
         material: `%${filters.material}%`,
+      });
+    }
+
+    if (filters.sellerId) {
+      queryBuilder.andWhere('artwork.seller_id = :sellerId', {
+        sellerId: filters.sellerId,
       });
     }
 
@@ -409,6 +418,9 @@ export class ArtworksService {
       maxPrice,
       category: this.cleanString(query.category),
       material: this.cleanString(query.material),
+      sellerId: query.sellerId
+        ? this.cleanRequiredUuid(query.sellerId, 'sellerId')
+        : undefined,
     };
   }
 

@@ -112,7 +112,6 @@ export default function LoginPage() {
       t('apiErrors.invalidGoogleToken'),
     );
   };
-
   const handleGoogleMissingClientId = () => {
     toast.error(
       'Chưa cấu hình VITE_GOOGLE_CLIENT_ID trong file .env của frontend',
