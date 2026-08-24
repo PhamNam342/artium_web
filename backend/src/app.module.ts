@@ -21,7 +21,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-
+import { CommunityModule } from './modules/community/community.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -73,6 +73,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     AuthModule,
     UserModule,
     SellerProfilesModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

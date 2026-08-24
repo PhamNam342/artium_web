@@ -10,19 +10,21 @@ import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
 import ArtworksPage from '../pages/ArtworksPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
+import ArtistProfilePage from '../pages/ArtistProfilePage';
+import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
+import HomePage from '../pages/HomePage';
 import InventoryPage from '../pages/InventoryPage';
 import UploadArtworkPage from '../pages/UploadArtworkPage';
-import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
 
 import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
 
-function GuestRoute() {
+function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
+  const redirectPath = (location.state as { from?: string } | null)?.from || defaultRedirect;
 
   if (isLoading) {
     return (
@@ -95,6 +97,7 @@ export default function AppRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
+          <Route path="/artists/:userId" element={<ArtistProfilePage />} />
           <Route element={<ArtistRoute />}>
             <Route path="/inventory" element={<InventoryPage />} />
           </Route>
@@ -123,6 +126,7 @@ export default function AppRoutes() {
               element={<PaymentResultPage cancelled />}
             />
             {/* Protected routes go here */}
+            <Route path="/home" element={<HomePage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>

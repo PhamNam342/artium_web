@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddCustomTagsToArtworks1787136000000
-  implements MigrationInterface
-{
+export class AddCustomTagsToArtworks1787136000000 implements MigrationInterface {
   name = 'AddCustomTagsToArtworks1787136000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

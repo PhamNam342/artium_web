@@ -30,9 +30,9 @@ describe('RolesGuard', () => {
   it('rejects a collector when the route requires the artist role', () => {
     reflector.getAllAndOverride.mockReturnValue([UserRole.ARTIST]);
 
-    expect(() => guard.canActivate(contextFor(UserRole.COLLECTOR) as never)).toThrow(
-      ForbiddenException,
-    );
+    expect(() =>
+      guard.canActivate(contextFor(UserRole.COLLECTOR) as never),
+    ).toThrow(ForbiddenException);
   });
 
   it('allows routes without a role requirement', () => {
