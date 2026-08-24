@@ -10,8 +10,10 @@ export class CreateArtworkLikes1787545593190 implements MigrationInterface {
         "userId" uuid NOT NULL,
         "artworkId" uuid NOT NULL,
         "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+
         CONSTRAINT "UQ_artwork_likes_user_artwork"
           UNIQUE ("userId", "artworkId"),
+
         CONSTRAINT "PK_artwork_likes"
           PRIMARY KEY ("id")
       )
@@ -26,9 +28,35 @@ export class CreateArtworkLikes1787545593190 implements MigrationInterface {
       CREATE INDEX "IDX_artwork_likes_artworkId"
       ON "artwork_likes" ("artworkId")
     `);
+
+    await queryRunner.query(`
+      ALTER TABLE "artwork_likes"
+      ADD CONSTRAINT "FK_artwork_likes_user"
+      FOREIGN KEY ("userId")
+      REFERENCES "users"("id")
+      ON DELETE CASCADE
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "artwork_likes"
+      ADD CONSTRAINT "FK_artwork_likes_artwork"
+      FOREIGN KEY ("artworkId")
+      REFERENCES "artworks"("id")
+      ON DELETE CASCADE
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      ALTER TABLE "artwork_likes"
+      DROP CONSTRAINT "FK_artwork_likes_artwork"
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "artwork_likes"
+      DROP CONSTRAINT "FK_artwork_likes_user"
+    `);
+
     await queryRunner.query(`
       DROP INDEX "public"."IDX_artwork_likes_artworkId"
     `);
