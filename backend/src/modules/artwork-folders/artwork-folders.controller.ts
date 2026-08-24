@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { t } from '../../common/utils/i18n.util';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
@@ -83,7 +84,7 @@ export class ArtworkFoldersController {
 
   private assertOwnSeller(sellerId: string, userId: string) {
     if (sellerId !== userId) {
-      throw new ForbiddenException('You can only manage your own folders');
+      throw new ForbiddenException(t('artwork_folder.access_denied'));
     }
   }
 }

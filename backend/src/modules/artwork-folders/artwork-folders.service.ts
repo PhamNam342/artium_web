@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
+import { t } from '../../common/utils/i18n.util';
 import { Artwork } from '../artworks/artwork.entity';
 import { ArtworkResponseDto } from '../artworks/dto/artwork-response.dto';
 import { ArtworkFolder } from './artwork-folder.entity';
@@ -95,7 +96,7 @@ export class ArtworkFoldersService {
     input: UpdateArtworkFolderDto,
   ): Promise<ArtworkFolderResponseDto> {
     if (input.name === undefined && input.isVisible === undefined) {
-      throw new BadRequestException('At least one update field is required');
+      throw new BadRequestException(t('artwork_folder.update_fields_required'));
     }
     const folder = await this.getOwnedFolder(folderId, ownerId);
     if (input.name !== undefined) folder.name = this.requireName(input.name);
@@ -148,12 +149,12 @@ export class ArtworkFoldersService {
     input: MoveArtworkFolderDto,
   ): Promise<ArtworkFolderResponseDto> {
     if (!Object.prototype.hasOwnProperty.call(input, 'parentId')) {
-      throw new BadRequestException('parentId is required');
+      throw new BadRequestException(t('artwork_folder.parent_id_required'));
     }
     const folder = await this.getOwnedFolder(folderId, ownerId);
     const parentId = this.optionalUuid(input.parentId, 'parentId');
     if (parentId === folder.id) {
-      throw new BadRequestException('A folder cannot be its own parent');
+      throw new BadRequestException(t('artwork_folder.cannot_be_own_parent'));
     }
     if (parentId) {
       await this.getOwnedFolder(parentId, folder.sellerId);
@@ -173,9 +174,7 @@ export class ArtworkFoldersService {
       where: { parentId: folder.id, sellerId: folder.sellerId },
     });
     if (childCount > 0) {
-      throw new BadRequestException(
-        'Move or delete child folders before deleting this folder',
-      );
+      throw new BadRequestException(t('artwork_folder.children_must_be_moved'));
     }
 
     await this.artworkRepository.manager.transaction(async (manager) => {
@@ -198,7 +197,7 @@ export class ArtworkFoldersService {
     const folder = await this.folderRepository.findOne({
       where: { id, sellerId },
     });
-    if (!folder) throw new NotFoundException('Artwork folder not found');
+    if (!folder) throw new NotFoundException(t('artwork_folder.not_found'));
     return folder;
   }
 
@@ -211,7 +210,7 @@ export class ArtworkFoldersService {
     while (currentId) {
       if (currentId === folderId) {
         throw new BadRequestException(
-          'A folder cannot be moved into a descendant',
+          t('artwork_folder.cannot_move_to_descendant'),
         );
       }
       const current = await this.folderRepository.findOne({
@@ -255,10 +254,18 @@ export class ArtworkFoldersService {
 
   private requireName(value: unknown) {
     if (typeof value !== 'string' || !value.trim()) {
-      throw new BadRequestException('name is required');
+      throw new BadRequestException(
+        t('artwork_folder.validation.required', { args: { field: 'name' } }),
+      );
     }
     const name = value.trim();
-    if (name.length > 100) throw new BadRequestException('name is too long');
+    if (name.length > 100) {
+      throw new BadRequestException(
+        t('artwork_folder.validation.max_length', {
+          args: { field: 'name', maxLength: 100 },
+        }),
+      );
+    }
     return name;
   }
 
@@ -269,7 +276,9 @@ export class ArtworkFoldersService {
 
   private requireUuid(value: unknown, field: string) {
     if (typeof value !== 'string' || !this.isUuid(value)) {
-      throw new BadRequestException(`${field} must be a UUID`);
+      throw new BadRequestException(
+        t('artwork_folder.validation.uuid', { args: { field } }),
+      );
     }
     return value;
   }
@@ -282,7 +291,9 @@ export class ArtworkFoldersService {
     if (value === undefined || value.trim() === '') return fallback;
     const parsed = Number(value);
     if (!Number.isInteger(parsed) || parsed < 1) {
-      throw new BadRequestException(`${field} must be a positive integer`);
+      throw new BadRequestException(
+        t('artwork_folder.validation.positive_integer', { args: { field } }),
+      );
     }
     return parsed;
   }
