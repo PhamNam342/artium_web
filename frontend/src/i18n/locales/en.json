@@ -9,7 +9,7 @@
   },
   "nav": {
     "home": "Home",
-    "artworks": "Artworks",
+    "artworks": "Discover",
     "inventory": "Inventory",
     "pricing": "Pricing",
     "login": "Sign In",
@@ -55,7 +55,7 @@
   },
   "artworks": {
     "eyebrow": "Discover",
-    "title": "Artworks",
+    "title": "Discover",
     "subtitle": "Discover original works shared by artists on Artium.",
     "searchLabel": "Search artworks",
     "searchPlaceholder": "Artwork title or description",
