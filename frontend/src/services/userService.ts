@@ -68,15 +68,6 @@ export async function getUserProfile(): Promise<UserProfile> {
 }
 
 /**
- * GET /identity/users/:userId
- * Lấy thông tin public profile của 1 user
- */
-export async function getPublicUserProfile(userId: string): Promise<UserProfile> {
-  const res = await api.get<UserProfile>(`/identity/users/${userId}`);
-  return res.data;
-}
-
-/**
  * PATCH /identity/users/profile
  * Update full_name, bio, location (dùng chung cho cả Collector và Artist)
  */
