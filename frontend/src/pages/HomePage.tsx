@@ -4,7 +4,6 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
-
 // ---------------------------------------------------------------------------
 // Data
 // ---------------------------------------------------------------------------
@@ -40,13 +39,6 @@ function Hero() {
   return (
     <section className="relative overflow-hidden bg-neutral-900">
       {/* Background image */}
-      <div className="absolute inset-0">
-        <img
-          src="/hero-art.jpg"
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      </div>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/50" />

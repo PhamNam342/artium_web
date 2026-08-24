@@ -23,8 +23,9 @@ import CheckoutPage from '../pages/CheckoutPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import PaymentResultPage from '../pages/PaymentResultPage';
 
-function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
+function GuestRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   let redirectPath = (location.state as { from?: string } | null)?.from || '/';
@@ -60,7 +61,13 @@ function ArtistRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: `${location.pathname}${location.search}${location.hash}` }}
+        replace
+      />
+    );
   }
 
   if (user.role !== 'ARTIST') {
@@ -152,6 +159,11 @@ export default function AppRoutes() {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/checkout/:artworkId" element={<CheckoutPage />} />
+            <Route path="/payment/success" element={<PaymentResultPage />} />
+            <Route
+              path="/payment/cancel"
+              element={<PaymentResultPage cancelled />}
+            />
             {/* Protected routes go here */}
             <Route path="/home" element={<HomePage />} />
             <Route path="/profile" element={<ProfilePage />} />
