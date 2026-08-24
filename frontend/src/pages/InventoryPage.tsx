@@ -782,7 +782,7 @@ function FolderPanel({ folders, activeFolderId, isLoading, onSelect, onCreate, o
 }) {
   return (
     <section aria-label="Artwork folders" className="mb-5 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-start gap-2">
         <button
           type="button"
           onClick={() => onSelect(null)}
@@ -792,9 +792,9 @@ function FolderPanel({ folders, activeFolderId, isLoading, onSelect, onCreate, o
           All artworks
         </button>
         {isLoading ? (
-          <span className="px-2 text-sm text-slate-500">Loading folders…</span>
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">Loading folders…</span>
         ) : folders.length === 0 ? (
-          <span className="px-2 text-sm text-slate-500">No folders yet</span>
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">No folders yet</span>
         ) : (
           folders.map((folder) => (
             <FolderTreeNode
@@ -824,41 +824,76 @@ function FolderTreeNode({ folder, activeFolderId, onSelect, onCreate, onRename, 
   onDelete: (folder: ArtworkFolderTree) => void;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const hasChildren = folder.children.length > 0;
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setIsMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMenuOpen]);
 
   return (
-    <div className="flex items-center gap-1">
-      <div className={`inline-flex h-9 items-center rounded-full pr-1 transition-colors ${activeFolderId === folder.id ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'}`}>
-        <button type="button" onClick={() => onSelect(folder.id)} className="inline-flex h-full items-center gap-2 rounded-l-full px-3 text-sm font-semibold">
-          <Folder size={16} />
-          <span className="max-w-36 truncate">{folder.name}</span>
-          <span className="text-xs opacity-70">{folder.artworkCount}</span>
-        </button>
-        <div className="relative">
-          <button type="button" aria-label={`Actions for ${folder.name}`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
-            <MoreHorizontal size={17} />
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1">
+        {hasChildren && (
+          <button type="button" aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${folder.name}`} aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="flex h-8 w-5 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-slate-200">
+            <ChevronRight size={17} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
           </button>
-          {isMenuOpen && (
-            <div role="menu" className="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl">
-              <FolderMenuButton label="New subfolder" onClick={() => { onCreate(folder); setIsMenuOpen(false); }} />
-              <FolderMenuButton label="Rename" onClick={() => { onRename(folder); setIsMenuOpen(false); }} />
-              <FolderMenuButton label="Move folder" onClick={() => { onMove(folder); setIsMenuOpen(false); }} />
-              <FolderMenuButton label="Delete" destructive onClick={() => { onDelete(folder); setIsMenuOpen(false); }} />
-            </div>
-          )}
+        )}
+        {!hasChildren && <span className="w-5 shrink-0" />}
+        <div className={`inline-flex h-9 items-center rounded-full pr-1 transition-colors ${activeFolderId === folder.id ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'}`}>
+          <button type="button" onClick={() => onSelect(folder.id)} className="inline-flex h-full items-center gap-2 rounded-l-full px-3 text-sm font-semibold">
+            <Folder size={16} />
+            <span className="max-w-52 truncate">{folder.name}</span>
+            <span className="text-xs opacity-70">{folder.artworkCount}</span>
+          </button>
+          <div ref={menuRef} className="relative">
+            <button type="button" aria-label={`Actions for ${folder.name}`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
+              <MoreHorizontal size={17} />
+            </button>
+            {isMenuOpen && (
+              <div role="menu" className="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl">
+                <FolderMenuButton label="New subfolder" onClick={() => { onCreate(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Rename" onClick={() => { onRename(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Move folder" onClick={() => { onMove(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Delete" destructive onClick={() => { onDelete(folder); setIsMenuOpen(false); }} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      {folder.children.map((child) => (
-        <FolderTreeNode
-          key={child.id}
-          folder={child}
-          activeFolderId={activeFolderId}
-          onSelect={onSelect}
-          onCreate={onCreate}
-          onRename={onRename}
-          onMove={onMove}
-          onDelete={onDelete}
-        />
-      ))}
+      {hasChildren && isExpanded && (
+        <div className="ml-2 border-l-2 border-slate-200 pl-3">
+          <div className="space-y-2">
+            {folder.children.map((child) => (
+              <FolderTreeNode
+                key={child.id}
+                folder={child}
+                activeFolderId={activeFolderId}
+                onSelect={onSelect}
+                onCreate={onCreate}
+                onRename={onRename}
+                onMove={onMove}
+                onDelete={onDelete}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
