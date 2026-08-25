@@ -321,184 +321,191 @@ async function bootstrap() {
   console.log('🌱 Bắt đầu chạy Seeder...');
 
   const dataSource = app.get(DataSource);
-  const userRepository = dataSource.getRepository(User);
-  const sellerProfileRepository = dataSource.getRepository(SellerProfile);
-  const artworkRepository = dataSource.getRepository(Artwork);
-  const tagRepository = dataSource.getRepository(Tag);
 
   try {
-    const adminEmail = 'admin@artium.com';
-    let admin = await userRepository.findOneBy({ email: adminEmail });
+    await dataSource.transaction(async (manager) => {
+      const userRepository = manager.getRepository(User);
+      const sellerProfileRepository = manager.getRepository(SellerProfile);
+      const artworkRepository = manager.getRepository(Artwork);
+      const tagRepository = manager.getRepository(Tag);
 
-    if (!admin) {
-      const salt = await bcrypt.genSalt();
-      const hashedPassword = await bcrypt.hash('Admin@123', salt);
+      const adminEmail = 'admin@artium.com';
+      let admin = await userRepository.findOneBy({ email: adminEmail });
 
-      admin = userRepository.create({
-        email: adminEmail,
-        password: hashedPassword,
-        full_name: 'Super Admin',
-        role: UserRole.ADMIN,
-      });
-      admin = await userRepository.save(admin);
-      console.log(`Đã tạo tài khoản Admin: ${adminEmail}`);
-    } else if (admin.role !== UserRole.ADMIN) {
-      admin.role = UserRole.ADMIN;
-      admin = await userRepository.save(admin);
-      console.log(`Đã cập nhật role ADMIN cho: ${adminEmail}`);
-    } else {
-      console.log('Tài khoản Admin đã tồn tại. Bỏ qua.');
-    }
-
-    const artistsByEmail = new Map<string, User>();
-    for (const artistSeed of artistSeeds) {
-      let artist = await userRepository.findOneBy({ email: artistSeed.email });
-
-      if (!artist) {
+      if (!admin) {
         const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash('Artist@123', salt);
-        artist = userRepository.create({
-          email: artistSeed.email,
+        const hashedPassword = await bcrypt.hash('Admin@123', salt);
+
+        admin = userRepository.create({
+          email: adminEmail,
           password: hashedPassword,
-          full_name: artistSeed.fullName,
-          avatar_url: artistSeed.avatarUrl,
-          role: UserRole.ARTIST,
+          full_name: 'Super Admin',
+          role: UserRole.ADMIN,
         });
-        artist = await userRepository.save(artist);
-        console.log(`Đã tạo artist: ${artistSeed.email}`);
-      } else if (artist.role !== UserRole.ARTIST) {
-        artist.role = UserRole.ARTIST;
-        artist.full_name = artist.full_name || artistSeed.fullName;
-        artist = await userRepository.save(artist);
-      }
-
-      if (!artist.avatar_url) {
-        artist.avatar_url = artistSeed.avatarUrl;
-        artist = await userRepository.save(artist);
-      }
-
-      artistsByEmail.set(artistSeed.email, artist);
-    }
-
-    let updatedProfileCount = 0;
-    for (const artistSeed of artistSeeds) {
-      const artist = artistsByEmail.get(artistSeed.email)!;
-      let profile = await sellerProfileRepository.findOneBy({
-        userId: artist.id,
-      });
-      let shouldSave = false;
-
-      if (!profile) {
-        profile = sellerProfileRepository.create({
-          userId: artist.id,
-          bio: artistSeed.bio,
-          websiteUrl: artistSeed.websiteUrl,
-          isVisible: true,
-          isVerified: artistSeed.isVerified,
-          verificationStatus: artistSeed.isVerified
-            ? VerificationStatus.APPROVED
-            : VerificationStatus.NONE,
-        });
-        shouldSave = true;
+        admin = await userRepository.save(admin);
+        console.log(`Đã tạo tài khoản Admin: ${adminEmail}`);
+      } else if (admin.role !== UserRole.ADMIN) {
+        admin.role = UserRole.ADMIN;
+        admin = await userRepository.save(admin);
+        console.log(`Đã cập nhật role ADMIN cho: ${adminEmail}`);
       } else {
-        if (!profile.bio) {
-          profile.bio = artistSeed.bio;
-          shouldSave = true;
-        }
-        if (!profile.websiteUrl) {
-          profile.websiteUrl = artistSeed.websiteUrl;
-          shouldSave = true;
-        }
-        if (!profile.isVisible) {
-          profile.isVisible = true;
-          shouldSave = true;
-        }
-        const verificationStatus = artistSeed.isVerified
-          ? VerificationStatus.APPROVED
-          : VerificationStatus.NONE;
-        if (
-          profile.isVerified !== artistSeed.isVerified ||
-          profile.verificationStatus !== verificationStatus
-        ) {
-          profile.isVerified = artistSeed.isVerified;
-          profile.verificationStatus = verificationStatus;
-          shouldSave = true;
-        }
+        console.log('Tài khoản Admin đã tồn tại. Bỏ qua.');
       }
 
-      if (shouldSave) {
-        await sellerProfileRepository.save(profile);
-        updatedProfileCount += 1;
+      const artistsByEmail = new Map<string, User>();
+      for (const artistSeed of artistSeeds) {
+        let artist = await userRepository.findOneBy({
+          email: artistSeed.email,
+        });
+
+        if (!artist) {
+          const salt = await bcrypt.genSalt();
+          const hashedPassword = await bcrypt.hash('Artist@123', salt);
+          artist = userRepository.create({
+            email: artistSeed.email,
+            password: hashedPassword,
+            full_name: artistSeed.fullName,
+            avatar_url: artistSeed.avatarUrl,
+            role: UserRole.ARTIST,
+          });
+          artist = await userRepository.save(artist);
+          console.log(`Đã tạo artist: ${artistSeed.email}`);
+        } else if (artist.role !== UserRole.ARTIST) {
+          artist.role = UserRole.ARTIST;
+          artist.full_name = artist.full_name || artistSeed.fullName;
+          artist = await userRepository.save(artist);
+        }
+
+        if (!artist.avatar_url) {
+          artist.avatar_url = artistSeed.avatarUrl;
+          artist = await userRepository.save(artist);
+        }
+
+        artistsByEmail.set(artistSeed.email, artist);
       }
-    }
-    console.log(`Đã tạo hoặc cập nhật ${updatedProfileCount} hồ sơ artist.`);
 
-    const tagNames = [
-      ...new Set(artworkSeeds.flatMap((artwork) => artwork.tags)),
-    ];
-    const tagsByName = new Map<string, Tag>();
+      let updatedProfileCount = 0;
+      for (const artistSeed of artistSeeds) {
+        const artist = artistsByEmail.get(artistSeed.email)!;
+        let profile = await sellerProfileRepository.findOneBy({
+          userId: artist.id,
+        });
+        let shouldSave = false;
 
-    for (const name of tagNames) {
-      const existingTag = await tagRepository.findOneBy({ name });
-      const tag =
-        existingTag ??
-        (await tagRepository.save(tagRepository.create({ name })));
-      tagsByName.set(name, tag);
-    }
+        if (!profile) {
+          profile = sellerProfileRepository.create({
+            userId: artist.id,
+            bio: artistSeed.bio,
+            websiteUrl: artistSeed.websiteUrl,
+            isVisible: true,
+            isVerified: artistSeed.isVerified,
+            verificationStatus: artistSeed.isVerified
+              ? VerificationStatus.APPROVED
+              : VerificationStatus.NONE,
+          });
+          shouldSave = true;
+        } else {
+          if (!profile.bio) {
+            profile.bio = artistSeed.bio;
+            shouldSave = true;
+          }
+          if (!profile.websiteUrl) {
+            profile.websiteUrl = artistSeed.websiteUrl;
+            shouldSave = true;
+          }
+          if (!profile.isVisible) {
+            profile.isVisible = true;
+            shouldSave = true;
+          }
+          const verificationStatus = artistSeed.isVerified
+            ? VerificationStatus.APPROVED
+            : VerificationStatus.NONE;
+          if (
+            profile.isVerified !== artistSeed.isVerified ||
+            profile.verificationStatus !== verificationStatus
+          ) {
+            profile.isVerified = artistSeed.isVerified;
+            profile.verificationStatus = verificationStatus;
+            shouldSave = true;
+          }
+        }
 
-    const existingArtworks = await artworkRepository.find();
-    const existingTitles = new Set(
-      existingArtworks.map((artwork) => artwork.title),
-    );
-    const newArtworks = artworkSeeds
-      .filter((artwork) => !existingTitles.has(artwork.title))
-      .map((artwork) =>
-        artworkRepository.create({
-          sellerId: artistsByEmail.get(artwork.artistEmail)!.id,
-          title: artwork.title,
-          description: artwork.description,
-          price: artwork.price,
-          currency: 'VND',
-          status: ArtworkStatus.ACTIVE,
-          isPublished: true,
-          images: [{ url: artwork.image, alt: artwork.title, isPrimary: true }],
-          viewCount: 0,
-          materials: artwork.materials,
-          dimensions: artwork.dimensions,
-          tags: artwork.tags
-            .map((name) => tagsByName.get(name)!)
-            .filter(Boolean),
-        }),
+        if (shouldSave) {
+          await sellerProfileRepository.save(profile);
+          updatedProfileCount += 1;
+        }
+      }
+      console.log(`Đã tạo hoặc cập nhật ${updatedProfileCount} hồ sơ artist.`);
+
+      const tagNames = [
+        ...new Set(artworkSeeds.flatMap((artwork) => artwork.tags)),
+      ];
+      const tagsByName = new Map<string, Tag>();
+
+      for (const name of tagNames) {
+        const existingTag = await tagRepository.findOneBy({ name });
+        const tag =
+          existingTag ??
+          (await tagRepository.save(tagRepository.create({ name })));
+        tagsByName.set(name, tag);
+      }
+
+      const existingArtworks = await artworkRepository.find();
+      const existingTitles = new Set(
+        existingArtworks.map((artwork) => artwork.title),
       );
+      const newArtworks = artworkSeeds
+        .filter((artwork) => !existingTitles.has(artwork.title))
+        .map((artwork) =>
+          artworkRepository.create({
+            sellerId: artistsByEmail.get(artwork.artistEmail)!.id,
+            title: artwork.title,
+            description: artwork.description,
+            price: artwork.price,
+            currency: 'VND',
+            status: ArtworkStatus.ACTIVE,
+            isPublished: true,
+            images: [
+              { url: artwork.image, alt: artwork.title, isPrimary: true },
+            ],
+            viewCount: 0,
+            materials: artwork.materials,
+            dimensions: artwork.dimensions,
+            tags: artwork.tags
+              .map((name) => tagsByName.get(name)!)
+              .filter(Boolean),
+          }),
+        );
 
-    const seededArtworkTitles = new Set(
-      artworkSeeds.map((artwork) => artwork.title),
-    );
-    const artworkSeedsByTitle = new Map(
-      artworkSeeds.map((artwork) => [artwork.title, artwork]),
-    );
-    const reassignedArtworks = existingArtworks.filter((artwork) => {
-      if (!seededArtworkTitles.has(artwork.title)) return false;
+      const seededArtworkTitles = new Set(
+        artworkSeeds.map((artwork) => artwork.title),
+      );
+      const artworkSeedsByTitle = new Map(
+        artworkSeeds.map((artwork) => [artwork.title, artwork]),
+      );
+      const reassignedArtworks = existingArtworks.filter((artwork) => {
+        if (!seededArtworkTitles.has(artwork.title)) return false;
 
-      const seed = artworkSeedsByTitle.get(artwork.title)!;
-      const artistId = artistsByEmail.get(seed.artistEmail)!.id;
-      if (artwork.sellerId === artistId) return false;
+        const seed = artworkSeedsByTitle.get(artwork.title)!;
+        const artistId = artistsByEmail.get(seed.artistEmail)!.id;
+        if (artwork.sellerId === artistId) return false;
 
-      artwork.sellerId = artistId;
-      return true;
+        artwork.sellerId = artistId;
+        return true;
+      });
+
+      if (newArtworks.length > 0 || reassignedArtworks.length > 0) {
+        if (newArtworks.length > 0) await artworkRepository.save(newArtworks);
+        if (reassignedArtworks.length > 0) {
+          await artworkRepository.save(reassignedArtworks);
+        }
+        console.log(
+          `Đã thêm ${newArtworks.length} tác phẩm mẫu và phân bổ ${reassignedArtworks.length} tác phẩm cho artist.`,
+        );
+      } else {
+        console.log(' Dữ liệu tác phẩm mẫu đã tồn tại. Bỏ qua.');
+      }
     });
-
-    if (newArtworks.length > 0 || reassignedArtworks.length > 0) {
-      if (newArtworks.length > 0) await artworkRepository.save(newArtworks);
-      if (reassignedArtworks.length > 0) {
-        await artworkRepository.save(reassignedArtworks);
-      }
-      console.log(
-        `Đã thêm ${newArtworks.length} tác phẩm mẫu và phân bổ ${reassignedArtworks.length} tác phẩm cho artist.`,
-      );
-    } else {
-      console.log(' Dữ liệu tác phẩm mẫu đã tồn tại. Bỏ qua.');
-    }
   } catch (error) {
     console.error('Lỗi khi chạy Seeder:', error);
     process.exitCode = 1;
