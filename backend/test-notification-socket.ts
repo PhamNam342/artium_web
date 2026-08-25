@@ -1,11 +1,18 @@
 import { io } from 'socket.io-client';
 
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNWM3NmZjNy1iOWJkLTQxNjItOGJhYi0yODJlOGNlNGU0NWUiLCJlbWFpbCI6Im5hbTEyMzRrYW5AZ21haWwuY29tIiwicm9sZSI6IkFSVElTVCIsImp0aSI6ImNmNjgyYzYyLTZiYTAtNDc0Ni1hNGVkLTNhMTg4YTQ2YmVjZSIsImlhdCI6MTc4NzU4MTA1OCwiZXhwIjoxNzg4MTg1ODU4fQ.BZVwAWCVJB16Jb-sGmnZRoJuHXfgpELRI0Hm3yGZyr4';
+const token = process.env.TEST_NOTIFICATION_TOKEN;
+const socketUrl =
+  process.env.NOTIFICATION_SOCKET_URL ??
+  'http://localhost:3000/notifications';
 
-const socket = io('http://localhost:3000/notifications', {
-  auth: {
-    token,
-  },
+if (!token) {
+  throw new Error(
+    'TEST_NOTIFICATION_TOKEN is required. Do not commit a real token to this file.',
+  );
+}
+
+const socket = io(socketUrl, {
+  auth: { token },
 });
 
 socket.on('connect', () => {
