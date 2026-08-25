@@ -26,8 +26,9 @@ import { useAuth } from '../features/auth/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 
 import { artworkService } from '../features/artworks/artworkService';
-
 import type { Artwork } from '../features/artworks/types';
+
+import FollowListPopup from '../features/followers/components/FollowListPopup';
 
 export default function ArtistProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -35,6 +36,14 @@ export default function ArtistProfilePage() {
 
   const { user } = useAuth();
   const { language, t } = useI18n();
+
+  // ============================================================
+  // Follow popup
+  // ============================================================
+
+  const [followPopup, setFollowPopup] = useState<
+    'followers' | 'following' | null
+  >(null);
 
   // ============================================================
   // Profile
@@ -47,40 +56,29 @@ export default function ArtistProfilePage() {
   // Artworks
   // ============================================================
 
-  const [artworks, setArtworks] =
-    useState<Artwork[]>([]);
-
-  const [artworkTotal, setArtworkTotal] =
-    useState(0);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [artworkTotal, setArtworkTotal] = useState(0);
 
   // ============================================================
   // Follow
   // ============================================================
 
-  const [counts, setCounts] =
-    useState<FollowCounts>({
-      followers: 0,
-      following: 0,
-    });
+  const [counts, setCounts] = useState<FollowCounts>({
+    followers: 0,
+    following: 0,
+  });
 
-  const [isFollowing, setIsFollowing] =
-    useState(false);
-
-  const [followLoading, setFollowLoading] =
-    useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // ============================================================
   // Loading / Error
   // ============================================================
 
-  const [profileLoading, setProfileLoading] =
-    useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [artworksLoading, setArtworksLoading] = useState(true);
 
-  const [artworksLoading, setArtworksLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // ============================================================
   // Tabs
@@ -90,7 +88,19 @@ export default function ArtistProfilePage() {
     useState<ProfileTab>('overview');
 
   // ============================================================
-  // Initial load
+  // Derived values
+  // ============================================================
+
+  const isOwnProfile =
+    Boolean(user?.id && user.id === userId);
+
+  const locale =
+    language === 'en'
+      ? 'en-US'
+      : 'vi-VN';
+
+  // ============================================================
+  // Load profile
   // ============================================================
 
   useEffect(() => {
@@ -99,6 +109,19 @@ export default function ArtistProfilePage() {
     }
 
     let cancelled = false;
+
+    // Reset state when changing artist
+    setProfile(null);
+    setError(null);
+    setProfileLoading(true);
+
+    setCounts({
+      followers: 0,
+      following: 0,
+    });
+
+    setActiveTab('overview');
+    setFollowPopup(null);
 
     void Promise.all([
       getPublicUserProfile(userId),
@@ -109,6 +132,7 @@ export default function ArtistProfilePage() {
           return;
         }
 
+        // Only Artist profile can be displayed here
         if (profileData.role !== 'ARTIST') {
           setProfile(null);
           setError('Artist not found');
@@ -120,10 +144,12 @@ export default function ArtistProfilePage() {
         setError(null);
       })
       .catch(() => {
-        if (!cancelled) {
-          setProfile(null);
-          setError('Artist not found');
+        if (cancelled) {
+          return;
         }
+
+        setProfile(null);
+        setError('Artist not found');
       })
       .finally(() => {
         if (!cancelled) {
@@ -131,19 +157,43 @@ export default function ArtistProfilePage() {
         }
       });
 
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // ============================================================
+  // Load artworks
+  // ============================================================
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    setArtworks([]);
+    setArtworkTotal(0);
+    setArtworksLoading(true);
+
     void artworkService
       .getArtistArtworks(userId, 20)
       .then((response) => {
-        if (!cancelled) {
-          setArtworks(response.data ?? []);
-          setArtworkTotal(response.meta?.total ?? 0);
+        if (cancelled) {
+          return;
         }
+
+        setArtworks(response.data ?? []);
+        setArtworkTotal(response.meta?.total ?? 0);
       })
       .catch(() => {
-        if (!cancelled) {
-          setArtworks([]);
-          setArtworkTotal(0);
+        if (cancelled) {
+          return;
         }
+
+        setArtworks([]);
+        setArtworkTotal(0);
       })
       .finally(() => {
         if (!cancelled) {
@@ -151,19 +201,41 @@ export default function ArtistProfilePage() {
         }
       });
 
-    if (user && user.id !== userId) {
-      void getFollowStatus(userId)
-        .then((status) => {
-          if (!cancelled) {
-            setIsFollowing(status);
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setIsFollowing(false);
-          }
-        });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // ============================================================
+  // Load follow status
+  // ============================================================
+
+  useEffect(() => {
+    if (!userId) {
+      return;
     }
+
+    // Own profile cannot follow itself
+    if (!user || user.id === userId) {
+      setIsFollowing(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    setIsFollowing(false);
+
+    void getFollowStatus(userId)
+      .then((status) => {
+        if (!cancelled) {
+          setIsFollowing(status);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsFollowing(false);
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -175,7 +247,12 @@ export default function ArtistProfilePage() {
   // ============================================================
 
   const handleFollowToggle = async () => {
-    if (!userId || !user) {
+    if (!userId) {
+      return;
+    }
+
+    // User is not authenticated
+    if (!user) {
       navigate('/login', {
         state: {
           from: `/artists/${userId}`,
@@ -185,8 +262,12 @@ export default function ArtistProfilePage() {
       return;
     }
 
-    // Không cho tự follow
+    // Cannot follow yourself
     if (user.id === userId) {
+      return;
+    }
+
+    if (followLoading) {
       return;
     }
 
@@ -216,7 +297,8 @@ export default function ArtistProfilePage() {
         }));
       }
     } catch {
-      // Giữ nguyên state nếu API thất bại
+      // Keep current state if API fails.
+      // Could add toast notification here later.
     } finally {
       setFollowLoading(false);
     }
@@ -233,6 +315,7 @@ export default function ArtistProfilePage() {
       profile?.full_name ||
       `@${userId?.slice(0, 8) ?? ''}`;
 
+    // Native share
     if (navigator.share) {
       try {
         await navigator.share({
@@ -240,16 +323,17 @@ export default function ArtistProfilePage() {
           url,
         });
       } catch {
-        // User cancelled
+        // User cancelled share.
       }
 
       return;
     }
 
+    // Fallback: clipboard
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // Clipboard unavailable
+      // Clipboard unavailable.
     }
   };
 
@@ -288,24 +372,11 @@ export default function ArtistProfilePage() {
   }
 
   // ============================================================
-  // Derived data
-  // ============================================================
-
-  const locale =
-    language === 'en'
-      ? 'en-US'
-      : 'vi-VN';
-
-  const isOwnProfile =
-    user?.id === userId;
-
-  // ============================================================
   // Render
   // ============================================================
 
   return (
     <div className="min-h-screen bg-white">
-
       {/* ======================================================
           Profile Header
           ====================================================== */}
@@ -320,6 +391,12 @@ export default function ArtistProfilePage() {
         onFollowToggle={handleFollowToggle}
         onShare={handleShare}
         onBack={() => navigate(-1)}
+        onFollowersClick={() =>
+          setFollowPopup('followers')
+        }
+        onFollowingClick={() =>
+          setFollowPopup('following')
+        }
       />
 
       {/* ======================================================
@@ -336,14 +413,12 @@ export default function ArtistProfilePage() {
           ====================================================== */}
 
       <main className="mx-auto max-w-[1200px] px-6 py-10">
-
         {/* ==================================================
             Overview
             ================================================== */}
 
         {activeTab === 'overview' && (
           <section>
-
             {/* Artwork heading */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-950">
@@ -361,7 +436,8 @@ export default function ArtistProfilePage() {
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
                   {t('artistProfile.seeAll') ||
-                    'SEE ALL'} →
+                    'SEE ALL'}{' '}
+                  →
                 </button>
               )}
             </div>
@@ -377,7 +453,6 @@ export default function ArtistProfilePage() {
               }
               limit={10}
             />
-
           </section>
         )}
 
@@ -387,7 +462,6 @@ export default function ArtistProfilePage() {
 
         {activeTab === 'artworks' && (
           <section>
-
             <h2 className="mb-6 text-xl font-bold text-slate-950">
               {t('artistProfile.allArtworks') ||
                 'All Artworks'}
@@ -409,21 +483,18 @@ export default function ArtistProfilePage() {
               }
               masonry
             />
-
           </section>
         )}
-
       </main>
 
       {/* ======================================================
           Artist Bio
-          Nằm NGOÀI tabs
+          Outside tabs
           ====================================================== */}
 
       {profile.seller_profile?.bio && (
         <section className="border-t border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-[1200px] px-6 py-10">
-
             <h2 className="mb-4 text-xl font-bold text-slate-950">
               {t('artistProfile.about') ||
                 'About the artist'}
@@ -432,11 +503,21 @@ export default function ArtistProfilePage() {
             <p className="max-w-3xl text-sm leading-7 text-slate-600">
               {profile.seller_profile.bio}
             </p>
-
           </div>
         </section>
       )}
 
+      {/* ======================================================
+          Followers / Following Popup
+          ====================================================== */}
+
+      {followPopup && (
+        <FollowListPopup
+          userId={userId}
+          type={followPopup}
+          onClose={() => setFollowPopup(null)}
+        />
+      )}
     </div>
   );
 }

@@ -37,3 +37,21 @@ export async function followUser(userId: string): Promise<void> {
 export async function unfollowUser(userId: string): Promise<void> {
   await api.delete(`/community/followers/${userId}`);
 }
+  
+export async function getFollowing(
+  userId: string,
+  take = 6,
+): Promise<FollowUser[]> {
+  const res = await api.get<FollowUser[]>(
+    `/community/followers/following/${userId}`,
+    {
+      params: {
+        skip: 0,
+        take,
+      },
+    },
+  );
+
+  return res.data;
+}
+
