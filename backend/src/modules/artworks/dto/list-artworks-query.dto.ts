@@ -31,6 +31,10 @@ export class ListArtworksQueryDto {
   material?: string;
 
   @IsOptional()
+  @IsString({ message: artworkValidationMessage('string') })
+  sort?: string;
+
+  @IsOptional()
   @IsUUID(undefined, { message: artworkValidationMessage('uuid') })
   sellerId?: string;
 }

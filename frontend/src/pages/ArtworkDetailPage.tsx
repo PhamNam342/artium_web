@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, Tag, UserRound, X } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import { useAuth } from '../features/auth/AuthContext';
 import type { Artwork } from '../features/artworks/types';
@@ -10,6 +9,10 @@ import ArtworkLikeButton from '../features/Likes/components/ArtworkLikeButton';
 import ArtworkCommentPopup from '../features/comments/components/ArtworkCommentPopup';
 import ArtworkCommentButton from '../features/comments/components/ArtworkCommentButton';
 import { artworkCommentService } from '../services/commentService';
+import {
+  getPublicUserProfile,
+  type PublicUserProfile,
+} from '../services/userService';
 function formatDimensions(artwork: Artwork) {
   const dimensions = artwork.dimensions;
   if (!dimensions) return null;
@@ -28,15 +31,14 @@ function formatWeight(artwork: Artwork) {
 export default function ArtworkDetailPage() {
   const { language, t } = useI18n();
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
+  const [artist, setArtist] = useState<PublicUserProfile | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInCart, setIsInCart] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   useEffect(() => {
@@ -50,6 +52,18 @@ export default function ArtworkDetailPage() {
           setError(null);
           setSelectedIndex(0);
         }
+
+        void getPublicUserProfile(response.sellerId)
+          .then((profile) => {
+            if (active) {
+              setArtist(profile);
+            }
+          })
+          .catch(() => {
+            if (active) {
+              setArtist(null);
+            }
+          });
       })
       .catch(() => {
         if (active) setError(t('artworks.detailError'));
@@ -93,20 +107,11 @@ export default function ArtworkDetailPage() {
   const currentImage = images[selectedIndex] || getArtworkImage(artwork?.images);
   const dimensions = artwork ? formatDimensions(artwork) : null;
   const weight = artwork ? formatWeight(artwork) : null;
+  const artistName = artist?.full_name || t('artworks.artist');
 
   const selectRelativeImage = (offset: number) => {
     if (images.length < 2) return;
     setSelectedIndex((current) => (current + offset + images.length) % images.length);
-  };
-
-  const handleAddToCart = () => {
-    if (!user) {
-      navigate('/login', { state: { from: `${location.pathname}${location.search}${location.hash}` } });
-      return;
-    }
-
-    setIsInCart(true);
-    toast.success(t('artworks.cartAdded'));
   };
 
   const handleBuyNow = () => {
@@ -155,27 +160,50 @@ export default function ArtworkDetailPage() {
           <article className="lg:sticky lg:top-24">
             <div className="flex flex-wrap gap-2">{artwork.tags.map((tag) => <span key={tag.id} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"><Tag className="h-3 w-3" />{tag.name}</span>)}</div>
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{artwork.title}</h1>
+            <Link
+              to={`/artists/${artwork.sellerId}`}
+              aria-label={t('artworks.viewArtistProfile', { name: artistName })}
+              className="mt-4 inline-flex items-center gap-3 rounded-xl text-left transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            >
+              {artist?.avatar_url ? (
+                <img
+                  src={artist.avatar_url}
+                  alt=""
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                  <UserRound className="h-5 w-5" aria-hidden="true" />
+                </span>
+              )}
+              <span>
+                <span className="block text-xs text-slate-500">
+                  {t('artworks.artist')}
+                </span>
+                <span className="block text-sm font-semibold text-slate-900">
+                  {artistName}
+                </span>
+              </span>
+            </Link>
             {artwork.materials && <p className="mt-3 text-base text-slate-600">{artwork.materials}</p>}
             {dimensions && <p className="mt-2 flex items-center gap-2 text-sm text-slate-600"><Ruler className="h-4 w-4" aria-hidden="true" />{dimensions}</p>}
             {weight && <p className="mt-1 text-sm text-slate-600">{t('artworks.weight', { weight })}</p>}
             <div className="mt-7 border-y border-slate-200 py-5">
-              <p className="text-2xl font-bold text-slate-950">
-                {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2" aria-label={t('artworks.actionsLabel')}>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-2xl font-bold text-slate-950">
+                  {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
+                </p>
+                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
+                  {t('artworks.purchase')}
+                </button>
+              </div>
+              <div className="mt-2 flex items-center gap-3" aria-label={t('artworks.actionsLabel')}>
                 <ArtworkLikeButton artworkId={artwork.id} />
                 <ArtworkCommentButton
                   artwork={artwork}
                   commentCount={commentCount}
                   onCommentCountChange={setCommentCount}
                 />
-                <button type="button" onClick={handleAddToCart} disabled={isInCart} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-blue-600 px-4 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:cursor-default disabled:border-emerald-600 disabled:text-emerald-700">
-                  <ShoppingCart className="h-4 w-4" />
-                  {t(isInCart ? 'artworks.addedToCart' : 'artworks.addToCart')}
-                </button>
-                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
-                  {t('artworks.buyNow')}
-                </button>
               </div>
               <p className="mt-3 text-sm text-slate-500">{t('artworks.contactArtist')}</p>
             </div>

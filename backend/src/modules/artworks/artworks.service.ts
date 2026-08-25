@@ -46,6 +46,7 @@ type NormalizedListArtworksQuery = {
   maxPrice?: number;
   category?: string;
   material?: string;
+  sort?: 'top-picks';
   sellerId?: string;
 };
 
@@ -206,8 +207,19 @@ export class ArtworksService {
       });
     }
 
+    if (filters.sort === 'top-picks') {
+      queryBuilder
+        .addSelect(
+          '(SELECT COUNT(*) FROM artwork_likes artwork_like WHERE artwork_like."artworkId" = artwork.id)',
+          'like_count',
+        )
+        .orderBy('like_count', 'DESC')
+        .addOrderBy('artwork.createdAt', 'DESC');
+    } else {
+      queryBuilder.orderBy('artwork.createdAt', 'DESC');
+    }
+
     const [data, total] = await queryBuilder
-      .orderBy('artwork.createdAt', 'DESC')
       .skip((filters.page - 1) * filters.limit)
       .take(filters.limit)
       .getManyAndCount();
@@ -614,6 +626,9 @@ export class ArtworksService {
       maxPrice,
       category: this.cleanString(query.category),
       material: this.cleanString(query.material),
+      sort: this.cleanString(query.sort) === 'top-picks'
+        ? 'top-picks'
+        : undefined,
       sellerId: query.sellerId
         ? this.cleanRequiredUuid(query.sellerId, 'sellerId')
         : undefined,

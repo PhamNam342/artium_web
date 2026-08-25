@@ -4,6 +4,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useI18n, LanguageSwitcher } from '../../i18n/I18nContext';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../../features/notifications/components/NotificationDropdown';
+import BrandLogo from './BrandLogo';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -30,17 +31,17 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <Link to="/home" className="text-xl font-bold tracking-tight text-black">
-            ARTIUM
+          <Link to="/home" className="text-black transition-opacity hover:opacity-75" aria-label="Artium home">
+            <BrandLogo />
           </Link>
 
           <nav className="hidden items-center gap-6 md:flex">
             {user?.role !== 'ADMIN' && (
               <>
-                <NavLink to="/" end className={navLinkClass}>
+                <NavLink to="/home" end className={navLinkClass}>
                   {t('nav.home')}
                 </NavLink>
                 <NavLink to="/artworks" className={navLinkClass}>
@@ -84,11 +85,19 @@ export default function Header() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-white">
-                      {user.email[0].toUpperCase()}
-                    </span>
-                  </div>
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.full_name || user.email}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white">
+                        {user.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </button>
 
                 {userMenuOpen && (

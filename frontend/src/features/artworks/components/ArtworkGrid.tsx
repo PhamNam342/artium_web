@@ -1,9 +1,14 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, SearchX, UserRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useI18n } from '../../../i18n/I18nContext';
 import ArtworkCard from './ArtworkCard';
 import { getArtworkImage } from '../artworkService';
 import type { Artwork, ArtworkListMeta } from '../types';
 import { useNavigate } from 'react-router-dom';
+import {
+  getPublicArtists,
+  type PublicUserProfile,
+} from '../../../services/userService';
 interface ArtworkGridProps {
   artworks: Artwork[];
   meta: ArtworkListMeta | null;
@@ -17,12 +22,12 @@ interface ArtworkGridProps {
 }
 
 function ProfileCard({
-  sellerId,
   artworks,
+  artist,
   onSelect,
 }: {
-  sellerId: string;
   artworks: Artwork[];
+  artist?: PublicUserProfile;
   onSelect: () => void;
 }) {
   const { t } = useI18n();
@@ -39,7 +44,9 @@ function ProfileCard({
         {image ? (
           <img
             src={image.secureUrl || image.url}
-            alt={t('artworks.artistArtworkAlt', { artist: sellerId.slice(0, 8) })}
+            alt={t('artworks.artistArtworkAlt', {
+              artist: artist?.full_name || t('artworks.artist'),
+            })}
             className="h-full w-full object-cover"
             loading="lazy"
           />
@@ -50,10 +57,18 @@ function ProfileCard({
         )}
       </div>
       <div className="p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-          <UserRound className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <h2 className="mt-2 truncate text-base font-semibold text-slate-950">@{sellerId.slice(0, 8)}</h2>
+        {artist?.avatar_url ? (
+          <img
+            src={artist.avatar_url}
+            alt=""
+            className="h-9 w-9 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+            <UserRound className="h-4 w-4" aria-hidden="true" />
+          </div>
+        )}
+        <h2 className="mt-2 truncate text-base font-semibold text-slate-950">{artist?.full_name || t('artworks.artist')}</h2>
         <p className="mt-1 text-sm text-slate-500">{t('artworks.artistWorks', { count: artworks.length })}</p>
       </div>
     </button>
@@ -73,6 +88,31 @@ export default function ArtworkGrid({
 }: ArtworkGridProps) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [artistsById, setArtistsById] = useState<
+    Record<string, PublicUserProfile>
+  >({});
+
+  useEffect(() => {
+    let active = true;
+
+    void getPublicArtists()
+      .then((artists) => {
+        if (active) {
+          setArtistsById(
+            Object.fromEntries(artists.map((artist) => [artist.id, artist])),
+          );
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setArtistsById({});
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
   if (isLoading) {
     return (
       <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
@@ -137,7 +177,7 @@ export default function ArtworkGrid({
             </div>
           </div>
           <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
-            {profileArtworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} />)}
+            {profileArtworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artistsById[artwork.sellerId]} />)}
           </div>
         </div>
       );
@@ -148,8 +188,8 @@ export default function ArtworkGrid({
         {profiles.map(([sellerId, profileArtworks]) => (
           <ProfileCard
             key={sellerId}
-            sellerId={sellerId}
             artworks={profileArtworks}
+            artist={artistsById[sellerId]}
             onSelect={() => navigate(`/artists/${sellerId}`)}
           />
         ))}
@@ -160,7 +200,7 @@ export default function ArtworkGrid({
   return (
     <>
       <div className="columns-1 gap-4 min-[480px]:columns-2 md:columns-3 lg:columns-4 xl:columns-5">
-        {artworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} />)}
+        {artworks.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artistsById[artwork.sellerId]} />)}
       </div>
 
       {meta && meta.totalPages > 1 && (

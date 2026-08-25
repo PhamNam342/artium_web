@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
-import { LayoutDashboard, Users, UserCheck, LogOut, Paintbrush, Image } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, LogOut, Image } from 'lucide-react';
 import { LanguageSwitcher, useI18n } from '../i18n/I18nContext';
+import BrandLogo from '../shared/components/BrandLogo';
 
 export default function AdminLayout() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -23,9 +24,8 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex h-screen sticky top-0">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link to="/" className="text-xl font-bold flex items-center gap-2 text-gray-900">
-            <Paintbrush className="w-6 h-6" />
-            Artium
+          <Link to="/" className="text-gray-900 transition-opacity hover:opacity-75" aria-label="Artium home">
+            <BrandLogo markClassName="h-7 w-7" textClassName="text-xl font-bold tracking-[-0.06em]" />
           </Link>
         </div>
         <nav className="flex-1 px-4 py-4 space-y-1">
@@ -100,8 +100,8 @@ export default function AdminLayout() {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10">
           <div className="flex md:hidden">
             {/* Mobile menu button could go here */}
-            <Link to="/" className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Paintbrush className="w-5 h-5" /> Artium
+            <Link to="/" className="text-gray-900" aria-label="Artium home">
+              <BrandLogo markClassName="h-6 w-6" textClassName="text-xl font-bold tracking-[-0.06em]" />
             </Link>
           </div>
           <div className="hidden md:block" /> {/* Spacer */}

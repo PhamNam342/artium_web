@@ -70,6 +70,7 @@ export interface ArtworkListQuery extends Partial<ArtworkFiltersValue> {
   page?: number;
   limit?: number;
   sellerId?: string;
+  sort?: 'top-picks';
 }
 
 export interface ArtworkListMeta {

@@ -126,19 +126,20 @@ export default function ArtworkLikeButton({
       type="button"
       onClick={handleLike}
       disabled={isLoading || isSubmitting}
-      className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border px-4 transition ${
+      className={`inline-flex h-11 items-center gap-1.5 rounded-full px-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
         isLiked
-          ? 'border-rose-200 bg-rose-50 text-rose-600'
-          : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+          ? 'text-rose-500 hover:bg-rose-50'
+          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
       } disabled:cursor-not-allowed disabled:opacity-60`}
       aria-label={isLiked ? 'Unlike artwork' : 'Like artwork'}
+      aria-pressed={isLiked}
     >
       <Heart
-        className="h-5 w-5"
+        className="h-6 w-6"
         fill={isLiked ? 'currentColor' : 'none'}
       />
 
-      <span className="min-w-[1.5rem] text-sm font-medium">
+      <span className="min-w-[1.25rem] text-center">
         {isLoading ? '...' : likeCount}
       </span>
     </button>

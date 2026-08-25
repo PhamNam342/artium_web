@@ -8,7 +8,7 @@ import {
 } from '../../../services/userService';
 
 export function useProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { t } = useI18n();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +37,10 @@ export function useProfile() {
     };
   }, [user, t]);
 
-  const updateAvatarUrl = (avatarUrl: string | null) =>
+  const updateAvatarUrl = (avatarUrl: string | null) => {
     setProfile((prev) => (prev ? { ...prev, avatar_url: avatarUrl } : prev));
+    updateUser({ avatar_url: avatarUrl });
+  };
 
   return { profile, loading, updateAvatarUrl };
 }

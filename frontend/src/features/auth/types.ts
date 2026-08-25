@@ -32,7 +32,7 @@ export interface User {
   id: string;
   email: string;
   role: UserRole;
-  ull_name?: string | null;
+  full_name?: string | null;
   avatar_url?: string | null;
 }
 
