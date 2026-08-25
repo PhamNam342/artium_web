@@ -94,7 +94,7 @@ export class NotificationGateway
   }
 
   private extractToken(client: NotificationSocket): string | null {
-    const authToken = client.handshake.auth?.token;
+    const authToken: unknown = client.handshake.auth?.token;
 
     if (typeof authToken === 'string') {
       return authToken.startsWith('Bearer ')
