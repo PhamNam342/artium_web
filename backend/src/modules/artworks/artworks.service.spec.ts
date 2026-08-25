@@ -119,6 +119,33 @@ describe('ArtworksService', () => {
     expect(created.id).toBe('123e4567-e89b-12d3-a456-426614174111');
   });
 
+  it('sorts top picks by like count before creation date', async () => {
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+    };
+    artworkRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+
+    await service.findAll({ sort: 'top-picks' });
+
+    expect(queryBuilder.addSelect).toHaveBeenCalledWith(
+      '(SELECT COUNT(*) FROM artwork_likes artwork_like WHERE artwork_like."artworkId" = artwork.id)',
+      'like_count',
+    );
+    expect(queryBuilder.orderBy).toHaveBeenCalledWith('like_count', 'DESC');
+    expect(queryBuilder.addOrderBy).toHaveBeenCalledWith(
+      'artwork.createdAt',
+      'DESC',
+    );
+  });
+
   it('rejects a folder that is not owned by the artwork seller', async () => {
     folderRepository.findOne.mockResolvedValue(null);
 

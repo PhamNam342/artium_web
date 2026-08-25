@@ -52,6 +52,7 @@ export default function ArtworksPage() {
           ...filters,
           page,
           limit: PAGE_SIZE,
+          sort: activeCategory === 'top-picks' ? 'top-picks' : undefined,
         });
         setArtworks(response.data);
         setMeta(response.meta);

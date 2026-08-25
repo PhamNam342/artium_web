@@ -6,6 +6,7 @@ import { User, UserRole } from './identity/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Artwork, ArtworkStatus } from './modules/artworks/artwork.entity';
 import { Tag } from './modules/artworks/tag.entity';
+import { ArtworkLike } from './modules/community/artwork/likes/entities/artwork-like.entity';
 import {
   SellerProfile,
   VerificationStatus,
@@ -316,6 +317,28 @@ const artistSeeds = [
   },
 ];
 
+const artworkLikeCountsByTitle: Record<string, number> = {
+  'Amber Horizon': 10,
+  'Tidal Memory': 9,
+  'Garden After Rain': 8,
+  'Stone Vessel No. 3': 7,
+  'Red Thread': 7,
+  'Fields of Blue': 6,
+  'Quiet Form': 6,
+  'Violet Noon': 5,
+  'Mangrove Study': 5,
+  'Earth Bowl': 4,
+  'Night Bloom': 4,
+  'Limestone Figure': 3,
+  'Golden Monsoon': 3,
+  'Lotus at First Light': 2,
+  'Saigon Windows': 2,
+  'Woven Silence': 2,
+  'Indigo Current': 1,
+  'Concrete Poetry': 1,
+  'Orbit Study': 1,
+};
+
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   console.log('🌱 Bắt đầu chạy Seeder...');
@@ -328,6 +351,7 @@ async function bootstrap() {
       const sellerProfileRepository = manager.getRepository(SellerProfile);
       const artworkRepository = manager.getRepository(Artwork);
       const tagRepository = manager.getRepository(Tag);
+      const artworkLikeRepository = manager.getRepository(ArtworkLike);
 
       const adminEmail = 'admin@artium.com';
       let admin = await userRepository.findOneBy({ email: adminEmail });
@@ -505,6 +529,56 @@ async function bootstrap() {
       } else {
         console.log(' Dữ liệu tác phẩm mẫu đã tồn tại. Bỏ qua.');
       }
+
+      const seededArtworks = await artworkRepository.find();
+      const seededArtworksByTitle = new Map(
+        seededArtworks
+          .filter((artwork) => seededArtworkTitles.has(artwork.title))
+          .map((artwork) => [artwork.title, artwork]),
+      );
+      const likeUserIds = [admin, ...artistsByEmail.values()].map(
+        (user) => user.id,
+      );
+      const existingLikes = await artworkLikeRepository.find();
+      const existingLikeKeys = new Set(
+        existingLikes.map((like) => `${like.artworkId}:${like.userId}`),
+      );
+      const likesToCreate: ArtworkLike[] = [];
+
+      for (const [title, desiredLikeCount] of Object.entries(
+        artworkLikeCountsByTitle,
+      )) {
+        const artwork = seededArtworksByTitle.get(title);
+        if (!artwork) continue;
+
+        const eligibleUserIds = likeUserIds.filter(
+          (userId) => userId !== artwork.sellerId,
+        );
+        const startIndex =
+          [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) %
+          eligibleUserIds.length;
+
+        for (let index = 0; index < desiredLikeCount; index += 1) {
+          const userId =
+            eligibleUserIds[(startIndex + index) % eligibleUserIds.length];
+          const likeKey = `${artwork.id}:${userId}`;
+
+          if (existingLikeKeys.has(likeKey)) continue;
+
+          likesToCreate.push(
+            artworkLikeRepository.create({
+              artworkId: artwork.id,
+              userId,
+            }),
+          );
+          existingLikeKeys.add(likeKey);
+        }
+      }
+
+      if (likesToCreate.length > 0) {
+        await artworkLikeRepository.save(likesToCreate);
+      }
+      console.log(`Đã thêm ${likesToCreate.length} lượt thích mẫu cho tác phẩm.`);
     });
   } catch (error) {
     console.error('Lỗi khi chạy Seeder:', error);
