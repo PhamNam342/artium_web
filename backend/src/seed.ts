@@ -431,9 +431,7 @@ async function bootstrap() {
         updatedProfileCount += 1;
       }
     }
-    console.log(
-      `Đã tạo hoặc cập nhật ${updatedProfileCount} hồ sơ artist.`,
-    );
+    console.log(`Đã tạo hoặc cập nhật ${updatedProfileCount} hồ sơ artist.`);
 
     const tagNames = [
       ...new Set(artworkSeeds.flatMap((artwork) => artwork.tags)),
@@ -503,6 +501,7 @@ async function bootstrap() {
     }
   } catch (error) {
     console.error('Lỗi khi chạy Seeder:', error);
+    process.exitCode = 1;
   } finally {
     await app.close();
     console.log('🏁 Seeder hoàn tất.');
