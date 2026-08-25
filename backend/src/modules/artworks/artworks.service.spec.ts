@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Artwork, ArtworkStatus } from './artwork.entity';
 import { ArtworksService } from './artworks.service';
 import {
+  AdminArtworkResponseDto,
+  AdminListArtworksResponseDto,
   ArtworkImageResponseDto,
   ArtworkResponseDto,
 } from './dto/artwork-response.dto';
@@ -325,6 +327,74 @@ describe('ArtworksService', () => {
       'artwork.is_published = :isPublished',
       expect.anything(),
     );
+  });
+
+  it('maps admin artwork rows to a safe response DTO', async () => {
+    const countQuery = {
+      select: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue({ cnt: '1' }),
+    };
+    const queryBuilder = {
+      leftJoin: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      clone: jest.fn().mockReturnValue(countQuery),
+      orderBy: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174222',
+          sellerId,
+          sellerName: 'Artist Name',
+          sellerEmail: 'artist@example.com',
+          sellerAvatarUrl: 'https://example.com/avatar.jpg',
+          title: 'Sunset Study',
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+          price: '1500.00',
+          currency: 'VND',
+          images: [
+            {
+              url: 'https://example.com/artwork.jpg',
+              isPrimary: true,
+              internalToken: 'do-not-expose',
+            },
+          ],
+          createdAt: new Date('2026-08-18T10:37:05.141Z'),
+        },
+      ]),
+    };
+    artworkRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+
+    const response = await service.adminFindAll({});
+
+    expect(response).toBeInstanceOf(AdminListArtworksResponseDto);
+    expect(response.data[0]).toBeInstanceOf(AdminArtworkResponseDto);
+    expect(response).toEqual({
+      data: [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174222',
+          sellerId,
+          sellerName: 'Artist Name',
+          sellerEmail: 'artist@example.com',
+          sellerAvatarUrl: 'https://example.com/avatar.jpg',
+          title: 'Sunset Study',
+          status: ArtworkStatus.ACTIVE,
+          isPublished: true,
+          price: '1500.00',
+          currency: 'VND',
+          images: [
+            {
+              url: 'https://example.com/artwork.jpg',
+              isPrimary: true,
+            },
+          ],
+          createdAt: '2026-08-18T10:37:05.141Z',
+        },
+      ],
+      meta: { page: 1, limit: 12, total: 1, totalPages: 1 },
+    });
   });
 
   it('rejects an invalid artwork detail id', async () => {

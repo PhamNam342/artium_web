@@ -19,6 +19,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../identity/user/entities/user.entity';
 import { ArtworksService } from './artworks.service';
 import {
+  AdminListArtworksResponseDto,
   ArtworkResponseDto,
   ArtworkTagResponseDto,
   DeleteArtworkResponseDto,
@@ -48,7 +49,9 @@ export class ArtworksController {
   @Get('admin/list')
   @Roles(UserRole.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  adminFindAll(@Query() query: ListArtworksQueryDto) {
+  adminFindAll(
+    @Query() query: ListArtworksQueryDto,
+  ): Promise<AdminListArtworksResponseDto> {
     return this.artworksService.adminFindAll(query);
   }
 

@@ -15,6 +15,9 @@ import {
 } from './artwork.entity';
 import { ArtworkWeightInput, CreateArtworkDto } from './dto/create-artwork.dto';
 import {
+  AdminArtworkImageResponseDto,
+  AdminArtworkResponseDto,
+  AdminListArtworksResponseDto,
   ArtworkDimensionsResponseDto,
   ArtworkImageResponseDto,
   ArtworkResponseDto,
@@ -30,7 +33,6 @@ import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/enums/notification-type.enum';
 import { NotificationEntityType } from '../notification/enums/notification-entity-type.enum';
-
 
 type NormalizedListArtworksQuery = {
   page: number;
@@ -62,6 +64,21 @@ type NormalizedCreateArtworkInput = {
 };
 
 type NormalizedUpdateArtworkInput = Partial<NormalizedCreateArtworkInput>;
+
+type AdminArtworkRow = {
+  id: string;
+  sellerId: string;
+  sellerName: string | null;
+  sellerEmail: string | null;
+  sellerAvatarUrl: string | null;
+  title: string;
+  status: ArtworkStatus;
+  isPublished: boolean;
+  price: string | null;
+  currency: string | null;
+  images: unknown;
+  createdAt: Date | string;
+};
 
 @Injectable()
 export class ArtworksService {
@@ -204,23 +221,9 @@ export class ArtworksService {
     });
   }
 
-  async adminFindAll(query: ListArtworksQueryDto): Promise<{
-    data: Array<{
-      id: string;
-      sellerId: string;
-      sellerName: string | null;
-      sellerEmail: string | null;
-      sellerAvatarUrl: string | null;
-      title: string;
-      status: string;
-      isPublished: boolean;
-      price: string | null;
-      currency: string | null;
-      images: ArtworkImage[];
-      createdAt: Date;
-    }>;
-    meta: { page: number; limit: number; total: number; totalPages: number };
-  }> {
+  async adminFindAll(
+    query: ListArtworksQueryDto,
+  ): Promise<AdminListArtworksResponseDto> {
     const filters = this.normalizeQuery(query);
     const offset = (filters.page - 1) * filters.limit;
 
@@ -250,7 +253,9 @@ export class ArtworksService {
     }
 
     if (filters.sellerId) {
-      qb.andWhere('artwork.seller_id = :sellerId', { sellerId: filters.sellerId });
+      qb.andWhere('artwork.seller_id = :sellerId', {
+        sellerId: filters.sellerId,
+      });
     }
 
     const totalRow = await qb
@@ -263,17 +268,17 @@ export class ArtworksService {
       .orderBy('artwork.created_at', 'DESC')
       .offset(offset)
       .limit(filters.limit)
-      .getRawMany();
+      .getRawMany<AdminArtworkRow>();
 
-    return {
-      data: rows,
+    return this.toResponseDto(AdminListArtworksResponseDto, {
+      data: rows.map((row) => this.toAdminArtworkResponse(row)),
       meta: {
         page: filters.page,
         limit: filters.limit,
         total,
         totalPages: Math.ceil(total / filters.limit) || 1,
       },
-    };
+    });
   }
 
   async findMine(
@@ -1060,6 +1065,57 @@ export class ArtworksService {
       location: artwork.location ?? null,
       dimensions: this.toDimensionsResponse(artwork.dimensions),
       weight: artwork.weight ?? null,
+    });
+  }
+
+  private toAdminArtworkResponse(
+    artwork: AdminArtworkRow,
+  ): AdminArtworkResponseDto {
+    return this.toResponseDto(AdminArtworkResponseDto, {
+      id: artwork.id,
+      sellerId: artwork.sellerId,
+      sellerName: artwork.sellerName,
+      sellerEmail: artwork.sellerEmail,
+      sellerAvatarUrl: artwork.sellerAvatarUrl,
+      title: artwork.title,
+      status: artwork.status,
+      isPublished: artwork.isPublished,
+      price: artwork.price,
+      currency: artwork.currency,
+      images: this.toAdminArtworkImageResponses(artwork.images),
+      createdAt:
+        artwork.createdAt instanceof Date
+          ? artwork.createdAt.toISOString()
+          : artwork.createdAt,
+    });
+  }
+
+  private toAdminArtworkImageResponses(
+    images: unknown,
+  ): AdminArtworkImageResponseDto[] {
+    if (!Array.isArray(images)) {
+      return [];
+    }
+
+    return images.flatMap((image) => {
+      if (typeof image !== 'object' || image === null || Array.isArray(image)) {
+        return [];
+      }
+
+      const imageRecord = image as Record<string, unknown>;
+      if (typeof imageRecord.url !== 'string') {
+        return [];
+      }
+
+      return [
+        this.toResponseDto(AdminArtworkImageResponseDto, {
+          url: imageRecord.url,
+          isPrimary:
+            typeof imageRecord.isPrimary === 'boolean'
+              ? imageRecord.isPrimary
+              : undefined,
+        }),
+      ];
     });
   }
 
