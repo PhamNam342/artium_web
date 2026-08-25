@@ -4,6 +4,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useI18n, LanguageSwitcher } from '../../i18n/I18nContext';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../../features/notifications/components/NotificationDropdown';
+import BrandLogo from './BrandLogo';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -33,8 +34,8 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <Link to="/home" className="text-xl font-bold tracking-tight text-black">
-            ARTIUM
+          <Link to="/home" className="text-black transition-opacity hover:opacity-75" aria-label="Artium home">
+            <BrandLogo />
           </Link>
 
           <nav className="hidden items-center gap-6 md:flex">

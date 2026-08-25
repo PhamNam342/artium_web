@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nContext';
+import BrandLogo from './BrandLogo';
 
 export default function Footer() {
   const { t } = useI18n();
@@ -9,9 +10,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <span className="text-lg font-bold text-white tracking-tight">
-              ARTIUM
-            </span>
+            <Link to="/" className="text-white transition-opacity hover:opacity-75" aria-label="Artium home">
+              <BrandLogo markClassName="h-7 w-7" textClassName="text-lg font-bold tracking-[-0.06em]" />
+            </Link>
             <p className="mt-3 text-sm leading-relaxed">
               {t('footer.description')}
             </p>

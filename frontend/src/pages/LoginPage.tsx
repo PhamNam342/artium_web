@@ -14,6 +14,7 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from '../features/auth/types';
 import { Eye, EyeOff } from 'lucide-react';
 import ForgotPasswordModal from '../features/auth/components/ForgotPasswordModal';
+import BrandLogo from '../shared/components/BrandLogo';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -139,13 +140,8 @@ export default function LoginPage() {
 
       {/* Header */}
       <div className="text-center mb-8">
-        <Link
-          to="/"
-          className="inline-block mb-6"
-        >
-          <span className="text-2xl font-bold tracking-tight text-black">
-            ARTIUM
-          </span>
+        <Link to="/" className="mb-6 inline-flex text-black transition-opacity hover:opacity-75" aria-label="Artium home">
+          <BrandLogo markClassName="h-9 w-9" textClassName="text-2xl font-bold tracking-[-0.06em]" />
         </Link>
 
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
