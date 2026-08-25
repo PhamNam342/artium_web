@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useI18n, LanguageSwitcher } from '../../i18n/I18nContext';
 import toast from 'react-hot-toast';
+import NotificationDropdown from '../../features/notifications/components/NotificationDropdown';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -64,6 +65,8 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+
+            {user && <NotificationDropdown />}
 
             {user ? (
               <div className="relative">

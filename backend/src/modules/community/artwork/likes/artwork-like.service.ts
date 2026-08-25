@@ -8,7 +8,10 @@ import { Repository } from 'typeorm';
 
 import { ArtworkLike } from './entities/artwork-like.entity';
 import { Artwork, ArtworkStatus } from '../../../artworks/artwork.entity';
-
+import { NotificationService } from '../../../notification/notification.service';
+import { NotificationType } from '../../../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../../../notification/enums/notification-entity-type.enum';
+import { t } from '../../../../common/utils/i18n.util';
 @Injectable()
 export class ArtworkLikeService {
   constructor(
@@ -17,6 +20,7 @@ export class ArtworkLikeService {
 
     @InjectRepository(Artwork)
     private readonly artworkRepository: Repository<Artwork>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   // ============================================
@@ -44,9 +48,10 @@ export class ArtworkLikeService {
   // ============================================
 
   async like(userId: string, artworkId: string) {
-    // Kiểm tra artwork tồn tại + public
-    await this.findPublicArtwork(artworkId);
+    // 1. Lấy artwork và kiểm tra public
+    const artwork = await this.findPublicArtwork(artworkId);
 
+    // 2. Kiểm tra user đã like chưa
     const existingLike = await this.artworkLikeRepository.findOne({
       where: {
         userId,
@@ -58,12 +63,29 @@ export class ArtworkLikeService {
       throw new ConflictException('Artwork already liked');
     }
 
+    // 3. Tạo like
     const like = this.artworkLikeRepository.create({
       userId,
       artworkId,
     });
 
-    return this.artworkLikeRepository.save(like);
+    // 4. Lưu like trước
+    const savedLike = await this.artworkLikeRepository.save(like);
+
+    // 5. Không gửi notification nếu tự like artwork của mình
+    if (artwork.sellerId !== userId) {
+      await this.notificationService.create({
+        recipientId: artwork.sellerId,
+        actorId: userId,
+        type: NotificationType.ARTWORK_LIKE,
+        entityType: NotificationEntityType.ARTWORK,
+        entityId: artwork.id,
+        title: t('notification.like_title'),
+        message: t('notification.like_message'),
+      });
+    }
+
+    return savedLike;
   }
 
   // ============================================

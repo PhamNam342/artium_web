@@ -1,0 +1,18 @@
+{
+  "not_found": "Không tìm thấy thư mục tác phẩm.",
+  "access_denied": "Bạn chỉ có thể quản lý thư mục của chính mình.",
+  "update_fields_required": "Cần cung cấp ít nhất một trường để cập nhật thư mục.",
+  "parent_id_required": "parentId là bắt buộc.",
+  "cannot_be_own_parent": "Một thư mục không thể là thư mục cha của chính nó.",
+  "cannot_move_to_descendant": "Không thể di chuyển thư mục vào thư mục con của nó.",
+  "children_must_be_moved": "Hãy di chuyển hoặc xóa các thư mục con trước khi xóa thư mục này.",
+  "validation": {
+    "required": "{{field}} là bắt buộc.",
+    "not_empty": "{{field}} không được để trống.",
+    "string": "{{field}} phải là chuỗi ký tự.",
+    "uuid": "{{field}} phải là UUID hợp lệ.",
+    "boolean": "{{field}} phải là giá trị đúng hoặc sai.",
+    "positive_integer": "{{field}} phải là số nguyên dương.",
+    "max_length": "{{field}} không được vượt quá {{maxLength}} ký tự."
+  }
+}

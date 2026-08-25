@@ -7,6 +7,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { SellerProfilesModule } from './identity/seller_profile/seller_profile.module';
 import { UserModule } from './identity/user/user.module';
 import * as path from 'path';
+import { NotificationModule } from './modules/notification/notification.module';
 import {
   AcceptLanguageResolver,
   HeaderResolver,
@@ -20,6 +21,7 @@ import { AppService } from './app.service';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CommunityModule } from './modules/community/community.module';
 @Module({
@@ -29,7 +31,7 @@ import { CommunityModule } from './modules/community/community.module';
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
-        path: path.join(__dirname, '/i18n/'),
+        path: path.join(__dirname, '../i18n'),
         watch: true,
       },
       resolvers: [
@@ -68,12 +70,14 @@ import { CommunityModule } from './modules/community/community.module';
     OrdersModule,
     PaymentsModule,
     ArtworksModule,
+    ArtworkFoldersModule,
     UploadModule,
     MailModule,
     AuthModule,
     UserModule,
     SellerProfilesModule,
     CommunityModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

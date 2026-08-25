@@ -40,6 +40,7 @@ export function ArtistForm({ profile }: ArtistFormProps) {
 
   const [saving, setSaving] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
+
   const [requestingVerify, setRequestingVerify] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
