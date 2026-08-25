@@ -189,19 +189,21 @@ export default function ArtworkDetailPage() {
             {dimensions && <p className="mt-2 flex items-center gap-2 text-sm text-slate-600"><Ruler className="h-4 w-4" aria-hidden="true" />{dimensions}</p>}
             {weight && <p className="mt-1 text-sm text-slate-600">{t('artworks.weight', { weight })}</p>}
             <div className="mt-7 border-y border-slate-200 py-5">
-              <p className="text-2xl font-bold text-slate-950">
-                {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2" aria-label={t('artworks.actionsLabel')}>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-2xl font-bold text-slate-950">
+                  {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
+                </p>
+                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
+                  {t('artworks.purchase')}
+                </button>
+              </div>
+              <div className="mt-2 flex items-center gap-3" aria-label={t('artworks.actionsLabel')}>
                 <ArtworkLikeButton artworkId={artwork.id} />
                 <ArtworkCommentButton
                   artwork={artwork}
                   commentCount={commentCount}
                   onCommentCountChange={setCommentCount}
                 />
-                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
-                  {t('artworks.buyNow')}
-                </button>
               </div>
               <p className="mt-3 text-sm text-slate-500">{t('artworks.contactArtist')}</p>
             </div>

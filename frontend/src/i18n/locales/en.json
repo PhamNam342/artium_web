@@ -253,6 +253,7 @@
     "addedToCart": "Added to cart",
     "cartAdded": "Artwork added to your cart.",
     "buyNow": "Buy now",
+    "purchase": "Purchase",
     "purchaseComingSoon": "Checkout is coming soon.",
     "aboutArtwork": "About this artwork",
     "lightboxLabel": "Images of {{title}}",
