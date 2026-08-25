@@ -370,9 +370,11 @@ export class ArtworksService {
     }
 
     if (!this.hasOwn(input, 'folderId')) {
-      throw new BadRequestException(t('artwork.validation.required', {
-        args: { field: 'folderId' },
-      }));
+      throw new BadRequestException(
+        t('artwork.validation.required', {
+          args: { field: 'folderId' },
+        }),
+      );
     }
 
     const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');

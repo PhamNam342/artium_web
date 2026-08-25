@@ -1,4 +1,10 @@
-import { ArrayMaxSize, ArrayNotEmpty, IsArray, IsOptional, IsUUID } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 import { artworkValidationMessage } from '../../../common/utils/artwork-validation-message.util';
 
 export class BulkMoveArtworksInput {
