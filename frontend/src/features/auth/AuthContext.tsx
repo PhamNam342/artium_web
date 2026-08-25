@@ -3,11 +3,13 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react';
 
 import * as authService from './authService';
 import type { User, JwtPayload } from './types';
+import { getUserProfile } from '../../services/userService';
 
 type UserRole = 'ARTIST' | 'COLLECTOR';
 
@@ -84,6 +86,7 @@ interface AuthContextType {
     bio?: string,
   ) => Promise<void>;
 
+  updateUser: (updates: Partial<Pick<User, 'full_name' | 'avatar_url'>>) => void;
   logout: () => Promise<void>;
 }
 
@@ -115,6 +118,35 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(initialAuthState.user);
   const [token, setToken] = useState<string | null>(initialAuthState.token);
   const [isLoading] = useState(false);
+  const userId = user?.id;
+
+  useEffect(() => {
+    if (!token || !userId) return;
+
+    let isCurrent = true;
+
+    void getUserProfile()
+      .then((profile) => {
+        if (!isCurrent) return;
+
+        setUser((currentUser) =>
+          currentUser?.id === profile.id
+            ? {
+                ...currentUser,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+              }
+            : currentUser,
+        );
+      })
+      .catch(() => {
+        // Keep the authenticated session usable if the profile request fails.
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [token, userId]);
 
   // =====================================================
   // Save session
@@ -139,6 +171,15 @@ export function AuthProvider({
     setToken(null);
     setUser(null);
   }, []);
+
+  const updateUser = useCallback(
+    (updates: Partial<Pick<User, 'full_name' | 'avatar_url'>>) => {
+      setUser((currentUser) =>
+        currentUser ? { ...currentUser, ...updates } : currentUser,
+      );
+    },
+    [],
+  );
 
   // =====================================================
   // Login Email / Password
@@ -272,6 +313,7 @@ export function AuthProvider({
         verifyOtp,
         loginWithGoogle,
         completeProfile,
+        updateUser,
         logout,
       }}
     >

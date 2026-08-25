@@ -84,11 +84,19 @@ export default function Header() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-white">
-                      {user.email[0].toUpperCase()}
-                    </span>
-                  </div>
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.full_name || user.email}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white">
+                        {user.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </button>
 
                 {userMenuOpen && (
