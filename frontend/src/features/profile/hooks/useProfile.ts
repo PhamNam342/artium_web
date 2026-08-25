@@ -15,7 +15,6 @@ export function useProfile() {
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
     getUserProfile()
       .then(setProfile)
       .catch(() => toast.error(t('profile.loadError')))

@@ -1,0 +1,18 @@
+{
+  "not_found": "Artwork folder not found.",
+  "access_denied": "You can only manage your own folders.",
+  "update_fields_required": "At least one folder field is required.",
+  "parent_id_required": "parentId is required.",
+  "cannot_be_own_parent": "A folder cannot be its own parent.",
+  "cannot_move_to_descendant": "A folder cannot be moved into a descendant.",
+  "children_must_be_moved": "Move or delete child folders before deleting this folder.",
+  "validation": {
+    "required": "{{field}} is required.",
+    "not_empty": "{{field}} must not be empty.",
+    "string": "{{field}} must be a string.",
+    "uuid": "{{field}} must be a valid UUID.",
+    "boolean": "{{field}} must be a boolean.",
+    "positive_integer": "{{field}} must be a positive integer.",
+    "max_length": "{{field}} must be at most {{maxLength}} characters."
+  }
+}

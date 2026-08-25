@@ -42,6 +42,7 @@ export type ArtworkStatus =
 export interface Artwork {
   id: string;
   sellerId: string;
+  folderId: string | null;
   title: string;
   description: string | null;
   price: string | null;
@@ -100,4 +101,5 @@ export interface ArtworkUpsertInput {
   editionRun?: string;
   location?: string;
   customTags?: string[];
+  folderId?: string | null;
 }

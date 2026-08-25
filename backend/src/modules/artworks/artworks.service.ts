@@ -26,6 +26,7 @@ import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
+import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
 
 type NormalizedListArtworksQuery = {
   page: number;
@@ -69,6 +70,8 @@ export class ArtworksService {
     private readonly artworkRepository: Repository<Artwork>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(ArtworkFolder)
+    private readonly folderRepository: Repository<ArtworkFolder>,
   ) {}
 
   async create(
@@ -76,6 +79,10 @@ export class ArtworksService {
     sellerId: string,
   ): Promise<ArtworkResponseDto> {
     const normalizedInput = this.normalizeCreateInput(input, sellerId);
+    await this.assertFolderOwnedBySeller(
+      normalizedInput.folderId,
+      normalizedInput.sellerId,
+    );
     const tags = await this.findTagsByIds(normalizedInput.tagIds);
 
     const artwork = this.artworkRepository.create({
@@ -303,6 +310,13 @@ export class ArtworksService {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
+    if (normalizedInput.folderId !== undefined) {
+      await this.assertFolderOwnedBySeller(
+        normalizedInput.folderId,
+        normalizedOwnerId,
+      );
+    }
+
     if (
       artwork.status === ArtworkStatus.RESERVED &&
       (artworkPatch.status !== undefined ||
@@ -351,6 +365,20 @@ export class ArtworksService {
     ownerId: string,
   ): Promise<ArtworkResponseDto> {
     return this.update(id, { isPublished }, ownerId);
+  }
+
+  private async assertFolderOwnedBySeller(
+    folderId: string | null,
+    sellerId: string,
+  ) {
+    if (!folderId) return;
+    const folder = await this.folderRepository.findOne({
+      where: { id: folderId, sellerId },
+      select: { id: true },
+    });
+    if (!folder) {
+      throw new BadRequestException('folderId does not belong to this seller');
+    }
   }
 
   private normalizeQuery(

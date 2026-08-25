@@ -9,7 +9,7 @@
   },
   "nav": {
     "home": "Trang chủ",
-    "artworks": "Tác phẩm",
+    "artworks": "Khám phá",
     "inventory": "Kho tác phẩm",
     "pricing": "Bảng giá",
     "login": "Đăng nhập",
@@ -55,7 +55,7 @@
   },
   "artworks": {
     "eyebrow": "Khám phá",
-    "title": "Tác phẩm nghệ thuật",
+    "title": "Khám phá",
     "subtitle": "Khám phá các tác phẩm nguyên bản được nghệ sĩ chia sẻ trên Artium.",
     "searchLabel": "Tìm tác phẩm",
     "searchPlaceholder": "Tên tác phẩm hoặc mô tả",

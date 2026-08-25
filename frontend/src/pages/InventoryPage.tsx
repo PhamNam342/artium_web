@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowUpDown,
@@ -14,6 +14,7 @@ import {
   LockKeyhole,
   MoreHorizontal,
   Folder,
+  FolderOpen,
   Pencil,
   Plus,
   Repeat2,
@@ -25,6 +26,8 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
+import { artworkFolderService } from '../features/artwork-folders/artworkFolderService';
+import type { ArtworkFolderTree } from '../features/artwork-folders/types';
 
 type ViewMode = 'list' | 'compact' | 'grid';
 
@@ -51,6 +54,7 @@ const EMPTY_FILTERS: InventoryFilters = {
 export default function InventoryPage() {
   const navigate = useNavigate();
   const { token, user } = useAuth();
+  const sellerId = user?.id;
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -65,8 +69,21 @@ export default function InventoryPage() {
   const [changingPublicationArtworkId, setChangingPublicationArtworkId] = useState<string | null>(null);
   const [artworkToDelete, setArtworkToDelete] = useState<Artwork | null>(null);
   const [isDeletingArtwork, setIsDeletingArtwork] = useState(false);
+  const [folders, setFolders] = useState<ArtworkFolderTree[]>([]);
+  const [isLoadingFolders, setIsLoadingFolders] = useState(false);
+  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [folderDialog, setFolderDialog] = useState<{ mode: 'create' | 'rename'; folder: ArtworkFolderTree | null } | null>(null);
+  const [folderToMove, setFolderToMove] = useState<ArtworkFolderTree | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<ArtworkFolderTree | null>(null);
+  const [artworkToMove, setArtworkToMove] = useState<Artwork | null>(null);
+  const [isSavingFolder, setIsSavingFolder] = useState(false);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  const refreshFolders = useCallback(async () => {
+    if (!token || !sellerId) return;
+    setFolders(await artworkFolderService.getTree(sellerId));
+  }, [sellerId, token]);
 
   useEffect(() => {
     const closeUploadMenu = (event: MouseEvent) => {
@@ -117,6 +134,27 @@ export default function InventoryPage() {
     return () => { isCurrent = false; };
   }, [token]);
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadFolders = async () => {
+      if (!token || !sellerId) return;
+      setIsLoadingFolders(true);
+      try {
+        const folderTree = await artworkFolderService.getTree(sellerId);
+        if (isCurrent) setFolders(folderTree);
+      } catch (error) {
+        console.error('Artwork folders failed to load', error);
+        if (isCurrent) toast.error('Unable to load folders. Please try again.');
+      } finally {
+        if (isCurrent) setIsLoadingFolders(false);
+      }
+    };
+
+    void loadFolders();
+    return () => { isCurrent = false; };
+  }, [sellerId, token]);
+
   const selectArtworkFiles = () => {
     setIsUploadMenuOpen(false);
     navigate('/inventory/upload');
@@ -159,11 +197,91 @@ export default function InventoryPage() {
     }
   };
 
+  const saveFolder = async (name: string) => {
+    if (!user?.id || !folderDialog) return;
+
+    setIsSavingFolder(true);
+    try {
+      if (folderDialog.mode === 'create') {
+        await artworkFolderService.create(user.id, {
+          name,
+          parentId: folderDialog.folder?.id ?? null,
+        });
+        toast.success('Folder created.');
+      } else if (folderDialog.folder) {
+        await artworkFolderService.update(folderDialog.folder.id, { name });
+        toast.success('Folder renamed.');
+      }
+      setFolderDialog(null);
+      await refreshFolders();
+    } catch (error) {
+      console.error('Artwork folder save failed', error);
+      toast.error('Unable to save folder. Please try again.');
+    } finally {
+      setIsSavingFolder(false);
+    }
+  };
+
+  const moveFolder = async (parentId: string | null) => {
+    if (!folderToMove) return;
+    setIsSavingFolder(true);
+    try {
+      await artworkFolderService.move(folderToMove.id, parentId);
+      setFolderToMove(null);
+      await refreshFolders();
+      toast.success('Folder moved.');
+    } catch (error) {
+      console.error('Artwork folder move failed', error);
+      toast.error('Unable to move folder. Please try again.');
+    } finally {
+      setIsSavingFolder(false);
+    }
+  };
+
+  const deleteFolder = async () => {
+    if (!folderToDelete) return;
+    setIsSavingFolder(true);
+    try {
+      await artworkFolderService.remove(folderToDelete.id);
+      if (activeFolderId === folderToDelete.id) setActiveFolderId(null);
+      setFolderToDelete(null);
+      await refreshFolders();
+      toast.success('Folder deleted.');
+    } catch (error) {
+      console.error('Artwork folder delete failed', error);
+      toast.error('This folder must be empty before it can be deleted.');
+    } finally {
+      setIsSavingFolder(false);
+    }
+  };
+
+  const moveArtwork = async (folderId: string | null) => {
+    if (!artworkToMove) return;
+    setIsSavingFolder(true);
+    try {
+      const updatedArtwork = await artworkService.updateArtwork(artworkToMove.id, { folderId });
+      setArtworks((current) => current.map((artwork) => (
+        artwork.id === updatedArtwork.id ? updatedArtwork : artwork
+      )));
+      setArtworkToMove(null);
+      await refreshFolders();
+      toast.success(folderId ? 'Artwork moved to folder.' : 'Artwork removed from folder.');
+    } catch (error) {
+      console.error('Artwork folder move failed', error);
+      toast.error('Unable to move artwork. Please try again.');
+    } finally {
+      setIsSavingFolder(false);
+    }
+  };
+
   const items = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const searchFiltered = query
-      ? artworks.filter((artwork) => artwork.title.toLowerCase().includes(query))
+    const folderFiltered = activeFolderId
+      ? artworks.filter((artwork) => artwork.folderId === activeFolderId)
       : artworks;
+    const searchFiltered = query
+      ? folderFiltered.filter((artwork) => artwork.title.toLowerCase().includes(query))
+      : folderFiltered;
 
     const filtered = searchFiltered.filter((artwork) => {
       if (appliedFilters.status && artwork.status !== appliedFilters.status) return false;
@@ -186,7 +304,7 @@ export default function InventoryPage() {
       const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
       return sortLabel === 'Date Created (Oldest)' ? firstDate - secondDate : secondDate - firstDate;
     });
-  }, [appliedFilters, artworks, search, sortLabel]);
+  }, [activeFolderId, appliedFilters, artworks, search, sortLabel]);
 
   const customTags = useMemo(
     () => [...new Set(artworks.flatMap((artwork) => artwork.customTags))].sort((first, second) => first.localeCompare(second)),
@@ -206,10 +324,10 @@ export default function InventoryPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              disabled
-              className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-[#a8c4ff] px-4 text-xs font-semibold text-[#9bbaff] disabled:cursor-not-allowed disabled:opacity-90"
+              onClick={() => setFolderDialog({ mode: 'create', folder: null })}
+              className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-[#2f6df6] px-4 text-xs font-semibold text-[#1764ed] transition-colors hover:bg-blue-50"
             >
-              <LockKeyhole size={19} strokeWidth={1.8} />
+              <Folder size={19} strokeWidth={1.8} />
               <Plus size={19} strokeWidth={1.8} />
               New folder
             </button>
@@ -252,6 +370,17 @@ export default function InventoryPage() {
             </div>
           </div>
         </div>
+
+        <FolderPanel
+          folders={folders}
+          activeFolderId={activeFolderId}
+          isLoading={isLoadingFolders}
+          onSelect={setActiveFolderId}
+          onCreate={(folder) => setFolderDialog({ mode: 'create', folder })}
+          onRename={(folder) => setFolderDialog({ mode: 'rename', folder })}
+          onMove={setFolderToMove}
+          onDelete={setFolderToDelete}
+        />
 
         <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
           <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
@@ -363,6 +492,7 @@ export default function InventoryPage() {
                   onEdit={(item) => navigate(`/inventory/upload/${item.id}`)}
                   onChangePublication={(item) => void changeArtworkPublication(item)}
                   changingPublicationArtworkId={changingPublicationArtworkId}
+                  onMoveToFolder={setArtworkToMove}
                   onDelete={setArtworkToDelete}
                 />
               ) : (
@@ -375,6 +505,7 @@ export default function InventoryPage() {
                       onEdit={() => navigate(`/inventory/upload/${item.id}`)}
                       onChangePublication={() => void changeArtworkPublication(item)}
                       isChangingPublication={changingPublicationArtworkId === item.id}
+                      onMoveToFolder={() => setArtworkToMove(item)}
                       onDelete={() => setArtworkToDelete(item)}
                     />
                   ))}
@@ -402,6 +533,41 @@ export default function InventoryPage() {
           onConfirm={() => void deleteArtwork()}
         />
       )}
+      {folderDialog && (
+        <FolderNameDialog
+          mode={folderDialog.mode}
+          folder={folderDialog.folder}
+          isSaving={isSavingFolder}
+          onCancel={() => setFolderDialog(null)}
+          onSubmit={(name) => void saveFolder(name)}
+        />
+      )}
+      {folderToMove && (
+        <MoveFolderDialog
+          folder={folderToMove}
+          folders={folders}
+          isSaving={isSavingFolder}
+          onCancel={() => setFolderToMove(null)}
+          onSubmit={(parentId) => void moveFolder(parentId)}
+        />
+      )}
+      {folderToDelete && (
+        <DeleteFolderDialog
+          folder={folderToDelete}
+          isDeleting={isSavingFolder}
+          onCancel={() => setFolderToDelete(null)}
+          onConfirm={() => void deleteFolder()}
+        />
+      )}
+      {artworkToMove && (
+        <MoveArtworkDialog
+          artwork={artworkToMove}
+          folders={folders}
+          isSaving={isSavingFolder}
+          onCancel={() => setArtworkToMove(null)}
+          onSubmit={(folderId) => void moveArtwork(folderId)}
+        />
+      )}
       {isFilterOpen && (
         <FilterDialog
           filters={filterDraft}
@@ -421,12 +587,13 @@ export default function InventoryPage() {
 
 const INVENTORY_TABLE_COLUMNS = 'grid-cols-[minmax(220px,1.35fr)_minmax(120px,.8fr)_minmax(130px,.8fr)_minmax(85px,.55fr)_minmax(65px,.4fr)_minmax(150px,.9fr)_minmax(130px,.8fr)_minmax(150px,.9fr)_minmax(160px,1fr)_minmax(180px,1.1fr)_44px]';
 
-function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onDelete }: {
+function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onMoveToFolder, onDelete }: {
   artworks: Artwork[];
   artistName: string;
   onEdit: (artwork: Artwork) => void;
   onChangePublication: (artwork: Artwork) => void;
   changingPublicationArtworkId: string | null;
+  onMoveToFolder: (artwork: Artwork) => void;
   onDelete: (artwork: Artwork) => void;
 }) {
   return (
@@ -455,6 +622,7 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
               onEdit={() => onEdit(artwork)}
               onChangePublication={() => onChangePublication(artwork)}
               isChangingPublication={changingPublicationArtworkId === artwork.id}
+              onMoveToFolder={() => onMoveToFolder(artwork)}
               onDelete={() => onDelete(artwork)}
             />
           ))}
@@ -464,12 +632,13 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
   );
 }
 
-function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, isChangingPublication, onDelete }: {
+function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete }: {
   artwork: Artwork;
   artistName: string;
   onEdit: () => void;
   onChangePublication: () => void;
   isChangingPublication: boolean;
+  onMoveToFolder: () => void;
   onDelete: () => void;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -497,18 +666,19 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
       <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{profileVisibility}</span>
       <span className="text-xs font-bold uppercase tracking-wide text-slate-500">{marketplaceVisibility}</span>
       <div className="justify-self-end">
-        {(artwork.status === 'DRAFT' || artwork.isPublished) && <DraftActionsMenu isOpen={isMenuOpen} onToggle={() => setIsMenuOpen((open) => !open)} onClose={() => setIsMenuOpen(false)} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={artwork.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
+        {(artwork.status === 'DRAFT' || artwork.isPublished) && <DraftActionsMenu isOpen={isMenuOpen} onToggle={() => setIsMenuOpen((open) => !open)} onClose={() => setIsMenuOpen(false)} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={artwork.isPublished} isChangingPublication={isChangingPublication} onMoveToFolder={onMoveToFolder} onDelete={onDelete} />}
       </div>
     </article>
   );
 }
 
-function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication, onDelete }: {
+function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete }: {
   item: Artwork;
   viewMode: ViewMode;
   onEdit: () => void;
   onChangePublication: () => void;
   isChangingPublication: boolean;
+  onMoveToFolder: () => void;
   onDelete: () => void;
 }) {
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
@@ -525,7 +695,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
       <article className="rounded-2xl border border-slate-200 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="flex items-start justify-between">
           <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={16} />}</div>
-          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onMoveToFolder={onMoveToFolder} onDelete={onDelete} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
         <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
@@ -541,7 +711,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
           <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
-          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onDelete={onDelete} />}
+          {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onMoveToFolder={onMoveToFolder} onDelete={onDelete} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
@@ -554,7 +724,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   );
 }
 
-function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublication, isPublished, isChangingPublication, onDelete }: {
+function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublication, isPublished, isChangingPublication, onMoveToFolder, onDelete }: {
   isOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
@@ -562,6 +732,7 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
   onChangePublication: () => void;
   isPublished: boolean;
   isChangingPublication: boolean;
+  onMoveToFolder: () => void;
   onDelete: () => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -591,12 +762,264 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
         <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
           <DraftAction icon={Pencil} label="Edit Artwork" onClick={() => { onEdit(); onClose(); }} />
           <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? 'Moving to draft…' : 'Publishing…') : (isPublished ? 'Change to Draft' : 'Change to Publish')} onClick={() => { onChangePublication(); onClose(); }} disabled={isChangingPublication} />
-          <DraftAction icon={Folder} label="Move to folder" />
+          <DraftAction icon={Folder} label="Move to folder" onClick={() => { onMoveToFolder(); onClose(); }} />
           <DraftAction icon={Trash2} label="Delete Artwork" destructive onClick={() => { onDelete(); onClose(); }} />
         </div>
       )}
     </div>
   );
+}
+
+function FolderPanel({ folders, activeFolderId, isLoading, onSelect, onCreate, onRename, onMove, onDelete }: {
+  folders: ArtworkFolderTree[];
+  activeFolderId: string | null;
+  isLoading: boolean;
+  onSelect: (folderId: string | null) => void;
+  onCreate: (parent: ArtworkFolderTree | null) => void;
+  onRename: (folder: ArtworkFolderTree) => void;
+  onMove: (folder: ArtworkFolderTree) => void;
+  onDelete: (folder: ArtworkFolderTree) => void;
+}) {
+  return (
+    <section aria-label="Artwork folders" className="mb-5 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
+      <div className="flex flex-wrap items-start gap-2">
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className={`inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm font-semibold transition-colors ${activeFolderId === null ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'}`}
+        >
+          <FolderOpen size={17} />
+          All artworks
+        </button>
+        {isLoading ? (
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">Loading folders…</span>
+        ) : folders.length === 0 ? (
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">No folders yet</span>
+        ) : (
+          folders.map((folder) => (
+            <FolderTreeNode
+              key={folder.id}
+              folder={folder}
+              activeFolderId={activeFolderId}
+              onSelect={onSelect}
+              onCreate={onCreate}
+              onRename={onRename}
+              onMove={onMove}
+              onDelete={onDelete}
+            />
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FolderTreeNode({ folder, activeFolderId, onSelect, onCreate, onRename, onMove, onDelete }: {
+  folder: ArtworkFolderTree;
+  activeFolderId: string | null;
+  onSelect: (folderId: string | null) => void;
+  onCreate: (parent: ArtworkFolderTree | null) => void;
+  onRename: (folder: ArtworkFolderTree) => void;
+  onMove: (folder: ArtworkFolderTree) => void;
+  onDelete: (folder: ArtworkFolderTree) => void;
+}) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const hasChildren = folder.children.length > 0;
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setIsMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMenuOpen]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1">
+        {hasChildren && (
+          <button type="button" aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${folder.name}`} aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="flex h-8 w-5 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-slate-200">
+            <ChevronRight size={17} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+          </button>
+        )}
+        {!hasChildren && <span className="w-5 shrink-0" />}
+        <div className={`inline-flex h-9 items-center rounded-full pr-1 transition-colors ${activeFolderId === folder.id ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'}`}>
+          <button type="button" onClick={() => onSelect(folder.id)} className="inline-flex h-full items-center gap-2 rounded-l-full px-3 text-sm font-semibold">
+            <Folder size={16} />
+            <span className="max-w-52 truncate">{folder.name}</span>
+            <span className="text-xs opacity-70">{folder.artworkCount}</span>
+          </button>
+          <div ref={menuRef} className="relative">
+            <button type="button" aria-label={`Actions for ${folder.name}`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
+              <MoreHorizontal size={17} />
+            </button>
+            {isMenuOpen && (
+              <div role="menu" className="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl">
+                <FolderMenuButton label="New subfolder" onClick={() => { onCreate(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Rename" onClick={() => { onRename(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Move folder" onClick={() => { onMove(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label="Delete" destructive onClick={() => { onDelete(folder); setIsMenuOpen(false); }} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {hasChildren && isExpanded && (
+        <div className="ml-2 border-l-2 border-slate-200 pl-3">
+          <div className="space-y-2">
+            {folder.children.map((child) => (
+              <FolderTreeNode
+                key={child.id}
+                folder={child}
+                activeFolderId={activeFolderId}
+                onSelect={onSelect}
+                onCreate={onCreate}
+                onRename={onRename}
+                onMove={onMove}
+                onDelete={onDelete}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FolderMenuButton({ label, destructive = false, onClick }: { label: string; destructive?: boolean; onClick: () => void }) {
+  return <button type="button" role="menuitem" onClick={onClick} className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-100 ${destructive ? 'text-red-600 hover:bg-red-50' : ''}`}>{label}</button>;
+}
+
+function FolderNameDialog({ mode, folder, isSaving, onCancel, onSubmit }: {
+  mode: 'create' | 'rename';
+  folder: ArtworkFolderTree | null;
+  isSaving: boolean;
+  onCancel: () => void;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState(mode === 'rename' ? folder?.name ?? '' : '');
+  const isCreatingChild = mode === 'create' && folder !== null;
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = name.trim();
+    if (value) onSubmit(value);
+  };
+
+  return (
+    <Dialog title={mode === 'rename' ? 'Rename folder' : isCreatingChild ? `New folder in ${folder.name}` : 'New folder'} onCancel={onCancel}>
+      <form onSubmit={submit}>
+        <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-name">Folder name</label>
+        <input id="folder-name" autoFocus maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. New collection" className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+        <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={mode === 'rename' ? 'Save' : 'Create folder'} disabled={!name.trim()} />
+      </form>
+    </Dialog>
+  );
+}
+
+function MoveFolderDialog({ folder, folders, isSaving, onCancel, onSubmit }: {
+  folder: ArtworkFolderTree;
+  folders: ArtworkFolderTree[];
+  isSaving: boolean;
+  onCancel: () => void;
+  onSubmit: (parentId: string | null) => void;
+}) {
+  const [parentId, setParentId] = useState(folder.parentId ?? '');
+  const blockedIds = new Set(flattenFolders([folder]).map(({ folder: item }) => item.id));
+  const options = flattenFolders(folders).filter((item) => !blockedIds.has(item.folder.id));
+
+  return (
+    <Dialog title={`Move ${folder.name}`} onCancel={onCancel}>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-parent">Parent folder</label>
+      <select id="folder-parent" value={parentId} onChange={(event) => setParentId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
+        <option value="">No parent (top level)</option>
+        {options.map(({ folder: option, depth }) => <option key={option.id} value={option.id}>{`${'— '.repeat(depth)}${option.name}`}</option>)}
+      </select>
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move folder" onSubmit={() => onSubmit(parentId || null)} />
+    </Dialog>
+  );
+}
+
+function MoveArtworkDialog({ artwork, folders, isSaving, onCancel, onSubmit }: {
+  artwork: Artwork;
+  folders: ArtworkFolderTree[];
+  isSaving: boolean;
+  onCancel: () => void;
+  onSubmit: (folderId: string | null) => void;
+}) {
+  const [folderId, setFolderId] = useState(artwork.folderId ?? '');
+  const options = flattenFolders(folders);
+
+  return (
+    <Dialog title={`Move ${artwork.title}`} onCancel={onCancel}>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="artwork-folder">Folder</label>
+      <select id="artwork-folder" value={folderId} onChange={(event) => setFolderId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
+        <option value="">No folder</option>
+        {options.map(({ folder, depth }) => <option key={folder.id} value={folder.id}>{`${'— '.repeat(depth)}${folder.name}`}</option>)}
+      </select>
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move artwork" onSubmit={() => onSubmit(folderId || null)} />
+    </Dialog>
+  );
+}
+
+function DeleteFolderDialog({ folder, isDeleting, onCancel, onConfirm }: {
+  folder: ArtworkFolderTree;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog title="Delete folder?" onCancel={onCancel}>
+      <p className="text-sm leading-6 text-slate-600">&ldquo;{folder.name}&rdquo; can only be deleted when it has no artworks or subfolders.</p>
+      <DialogActions onCancel={onCancel} isSaving={isDeleting} submitLabel="Delete folder" destructive onSubmit={onConfirm} />
+    </Dialog>
+  );
+}
+
+function Dialog({ title, children, onCancel }: { title: string; children: React.ReactNode; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-5" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}>
+      <section role="dialog" aria-modal="true" aria-label={title} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <h2 className="text-xl font-bold text-slate-950">{title}</h2>
+        <div className="mt-4">{children}</div>
+      </section>
+    </div>
+  );
+}
+
+function DialogActions({ onCancel, isSaving, submitLabel, onSubmit, disabled = false, destructive = false }: {
+  onCancel: () => void;
+  isSaving: boolean;
+  submitLabel: string;
+  onSubmit?: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+}) {
+  return (
+    <div className="mt-6 flex justify-end gap-3">
+      <button type="button" onClick={onCancel} disabled={isSaving} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-50">Cancel</button>
+      <button type={onSubmit ? 'button' : 'submit'} onClick={onSubmit} disabled={isSaving || disabled} className={`rounded-full px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>{isSaving ? 'Saving…' : submitLabel}</button>
+    </div>
+  );
+}
+
+function flattenFolders(folders: ArtworkFolderTree[], depth = 0): Array<{ folder: ArtworkFolderTree; depth: number }> {
+  return folders.flatMap((folder) => [
+    { folder, depth },
+    ...flattenFolders(folder.children, depth + 1),
+  ]);
 }
 
 function FilterDialog({ filters, customTags, anchorRef, onChange, onCancel, onApply }: {

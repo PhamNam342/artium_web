@@ -20,6 +20,7 @@ import { AppService } from './app.service';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ArtworksModule } from './modules/artworks/artworks.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CommunityModule } from './modules/community/community.module';
 @Module({
@@ -68,6 +69,7 @@ import { CommunityModule } from './modules/community/community.module';
     OrdersModule,
     PaymentsModule,
     ArtworksModule,
+    ArtworkFoldersModule,
     UploadModule,
     MailModule,
     AuthModule,
