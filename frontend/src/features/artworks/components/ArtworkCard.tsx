@@ -2,11 +2,13 @@ import { ImageOff, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n/I18nContext';
+import type { PublicUserProfile } from '../../../services/userService';
 import { formatArtworkPrice, getArtworkImage } from '../artworkService';
 import type { Artwork } from '../types';
 
 interface ArtworkCardProps {
   artwork: Artwork;
+  artist?: PublicUserProfile;
 }
 
 function getImageAspectRatio(artwork: Artwork, image?: ReturnType<typeof getArtworkImage>) {
@@ -17,12 +19,12 @@ function getImageAspectRatio(artwork: Artwork, image?: ReturnType<typeof getArtw
   return `${Math.max(0.65, Math.min(width / height, 1.55))}`;
 }
 
-export default function ArtworkCard({ artwork }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, artist }: ArtworkCardProps) {
   const image = getArtworkImage(artwork.images);
   const { language, t } = useI18n();
   const [hasImageError, setHasImageError] = useState(false);
   const imageAspectRatio = getImageAspectRatio(artwork, image);
-  const artistHandle = `@${artwork.sellerId.slice(0, 8)}`;
+  const artistName = artist?.full_name || t('artworks.artist');
 
   return (
     <Link
@@ -62,10 +64,18 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
 
       <div className="p-3">
         <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-            <UserRound className="h-3 w-3" aria-hidden="true" />
-          </span>
-          <span className="truncate" title={artwork.sellerId}>{artistHandle}</span>
+          {artist?.avatar_url ? (
+            <img
+              src={artist.avatar_url}
+              alt=""
+              className="h-5 w-5 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+              <UserRound className="h-3 w-3" aria-hidden="true" />
+            </span>
+          )}
+          <span className="truncate" title={artistName}>{artistName}</span>
         </div>
         <h2 className="mt-1 line-clamp-2 text-[15px] font-semibold leading-5 text-slate-950">{artwork.title}</h2>
         {artwork.tags.length > 0 && (

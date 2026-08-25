@@ -53,6 +53,11 @@ $ npm run test
 # e2e tests
 $ npm run test:e2e
 
+# PostgreSQL integration test for artwork Top picks
+# 1. Copy .env.test.example to .env.test and set TEST_DB_* to a dedicated test database.
+# 2. Create the test database once, for example: createdb artium_test
+$ npm run test:top-picks:e2e
+
 # test coverage
 $ npm run test:cov
 ```

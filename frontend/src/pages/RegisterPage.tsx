@@ -6,6 +6,7 @@ import { useI18n, LanguageSwitcher } from '../i18n/I18nContext';
 import toast from 'react-hot-toast';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../features/auth/types';
+import BrandLogo from '../shared/components/BrandLogo';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -145,10 +146,8 @@ export default function RegisterPage() {
       </div>
 
       <div className="text-center mb-8">
-        <Link to="/" className="inline-block mb-6">
-          <span className="text-2xl font-bold tracking-tight text-black">
-            ARTIUM
-          </span>
+        <Link to="/" className="mb-6 inline-flex text-black transition-opacity hover:opacity-75" aria-label="Artium home">
+          <BrandLogo markClassName="h-9 w-9" textClassName="text-2xl font-bold tracking-[-0.06em]" />
         </Link>
 
         {step === 1 ? (

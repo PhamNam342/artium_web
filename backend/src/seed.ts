@@ -6,6 +6,7 @@ import { User, UserRole } from './identity/user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Artwork, ArtworkStatus } from './modules/artworks/artwork.entity';
 import { Tag } from './modules/artworks/tag.entity';
+import { ArtworkLike } from './modules/community/artwork/likes/entities/artwork-like.entity';
 import {
   SellerProfile,
   VerificationStatus,
@@ -96,7 +97,7 @@ const artworkSeeds = [
     price: '27300000.00',
     materials: 'oil on canvas',
     dimensions: { height: 90, width: 120, unit: 'cm' },
-    image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988f7',
+    image: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4',
     tags: ['painting', 'abstract'],
     artistEmail: 'amelia.artist@artium.com',
   },
@@ -140,7 +141,7 @@ const artworkSeeds = [
     price: '30680000.00',
     materials: 'limestone',
     dimensions: { height: 45, width: 18, depth: 16, unit: 'cm' },
-    image: 'https://images.unsplash.com/photo-1549887534-1541e9326642',
+    image: 'https://images.unsplash.com/photo-1612196808214-b8e1d6145a8c',
     tags: ['sculpture'],
     artistEmail: 'noah.artist@artium.com',
   },
@@ -316,6 +317,28 @@ const artistSeeds = [
   },
 ];
 
+const artworkLikeCountsByTitle: Record<string, number> = {
+  'Amber Horizon': 10,
+  'Tidal Memory': 9,
+  'Garden After Rain': 8,
+  'Stone Vessel No. 3': 7,
+  'Red Thread': 7,
+  'Fields of Blue': 6,
+  'Quiet Form': 6,
+  'Violet Noon': 5,
+  'Mangrove Study': 5,
+  'Earth Bowl': 4,
+  'Night Bloom': 4,
+  'Limestone Figure': 3,
+  'Golden Monsoon': 3,
+  'Lotus at First Light': 2,
+  'Saigon Windows': 2,
+  'Woven Silence': 2,
+  'Indigo Current': 1,
+  'Concrete Poetry': 1,
+  'Orbit Study': 1,
+};
+
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   console.log('🌱 Bắt đầu chạy Seeder...');
@@ -328,6 +351,7 @@ async function bootstrap() {
       const sellerProfileRepository = manager.getRepository(SellerProfile);
       const artworkRepository = manager.getRepository(Artwork);
       const tagRepository = manager.getRepository(Tag);
+      const artworkLikeRepository = manager.getRepository(ArtworkLike);
 
       const adminEmail = 'admin@artium.com';
       let admin = await userRepository.findOneBy({ email: adminEmail });
@@ -505,6 +529,74 @@ async function bootstrap() {
       } else {
         console.log(' Dữ liệu tác phẩm mẫu đã tồn tại. Bỏ qua.');
       }
+
+      const seededArtworks = await artworkRepository.find();
+      const seededArtworksByTitle = new Map(
+        seededArtworks
+          .filter((artwork) => seededArtworkTitles.has(artwork.title))
+          .map((artwork) => [artwork.title, artwork]),
+      );
+      const seededArtworkIds = new Set(
+        [...seededArtworksByTitle.values()].map((artwork) => artwork.id),
+      );
+      const likeUserIds = [admin, ...artistsByEmail.values()].map(
+        (user) => user.id,
+      );
+      const existingLikes = await artworkLikeRepository.find();
+      const existingLikeKeys = new Set(
+        existingLikes.map((like) => `${like.artworkId}:${like.userId}`),
+      );
+      const likesToCreate: ArtworkLike[] = [];
+      const desiredLikeKeys = new Set<string>();
+
+      for (const [title, desiredLikeCount] of Object.entries(
+        artworkLikeCountsByTitle,
+      )) {
+        const artwork = seededArtworksByTitle.get(title);
+        if (!artwork) continue;
+
+        const eligibleUserIds = likeUserIds.filter(
+          (userId) => userId !== artwork.sellerId,
+        );
+        if (eligibleUserIds.length === 0) continue;
+
+        const startIndex =
+          [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) %
+          eligibleUserIds.length;
+
+        for (let index = 0; index < desiredLikeCount; index += 1) {
+          const userId =
+            eligibleUserIds[(startIndex + index) % eligibleUserIds.length];
+          const likeKey = `${artwork.id}:${userId}`;
+          desiredLikeKeys.add(likeKey);
+
+          if (existingLikeKeys.has(likeKey)) continue;
+
+          likesToCreate.push(
+            artworkLikeRepository.create({
+              artworkId: artwork.id,
+              userId,
+            }),
+          );
+          existingLikeKeys.add(likeKey);
+        }
+      }
+
+      const likesToRemove = existingLikes.filter(
+        (like) =>
+          seededArtworkIds.has(like.artworkId) &&
+          !desiredLikeKeys.has(`${like.artworkId}:${like.userId}`),
+      );
+
+      if (likesToCreate.length > 0) {
+        await artworkLikeRepository.save(likesToCreate);
+      }
+      if (likesToRemove.length > 0) {
+        await artworkLikeRepository.remove(likesToRemove);
+      }
+      console.log(
+        `Đã đồng bộ lượt thích mẫu: +${likesToCreate.length}, -${likesToRemove.length}.`,
+      );
     });
   } catch (error) {
     console.error('Lỗi khi chạy Seeder:', error);
