@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { NotificationResponseDto } from './dto/notification-response.dto';
 import { NotificationGateway } from './notification.gateway';
 @Injectable()
 export class NotificationService {
@@ -37,12 +38,15 @@ export class NotificationService {
     if (notificationWithActor) {
       this.notificationGateway.sendToUser(
         data.recipientId,
-        notificationWithActor,
+        new NotificationResponseDto(notificationWithActor),
       );
       return notificationWithActor;
     }
 
-    this.notificationGateway.sendToUser(data.recipientId, savedNotification);
+    this.notificationGateway.sendToUser(
+      data.recipientId,
+      new NotificationResponseDto(savedNotification),
+    );
 
     return savedNotification;
   }
