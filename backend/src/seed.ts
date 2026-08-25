@@ -536,6 +536,9 @@ async function bootstrap() {
           .filter((artwork) => seededArtworkTitles.has(artwork.title))
           .map((artwork) => [artwork.title, artwork]),
       );
+      const seededArtworkIds = new Set(
+        [...seededArtworksByTitle.values()].map((artwork) => artwork.id),
+      );
       const likeUserIds = [admin, ...artistsByEmail.values()].map(
         (user) => user.id,
       );
@@ -544,6 +547,7 @@ async function bootstrap() {
         existingLikes.map((like) => `${like.artworkId}:${like.userId}`),
       );
       const likesToCreate: ArtworkLike[] = [];
+      const desiredLikeKeys = new Set<string>();
 
       for (const [title, desiredLikeCount] of Object.entries(
         artworkLikeCountsByTitle,
@@ -554,6 +558,8 @@ async function bootstrap() {
         const eligibleUserIds = likeUserIds.filter(
           (userId) => userId !== artwork.sellerId,
         );
+        if (eligibleUserIds.length === 0) continue;
+
         const startIndex =
           [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) %
           eligibleUserIds.length;
@@ -562,6 +568,7 @@ async function bootstrap() {
           const userId =
             eligibleUserIds[(startIndex + index) % eligibleUserIds.length];
           const likeKey = `${artwork.id}:${userId}`;
+          desiredLikeKeys.add(likeKey);
 
           if (existingLikeKeys.has(likeKey)) continue;
 
@@ -575,10 +582,21 @@ async function bootstrap() {
         }
       }
 
+      const likesToRemove = existingLikes.filter(
+        (like) =>
+          seededArtworkIds.has(like.artworkId) &&
+          !desiredLikeKeys.has(`${like.artworkId}:${like.userId}`),
+      );
+
       if (likesToCreate.length > 0) {
         await artworkLikeRepository.save(likesToCreate);
       }
-      console.log(`Đã thêm ${likesToCreate.length} lượt thích mẫu cho tác phẩm.`);
+      if (likesToRemove.length > 0) {
+        await artworkLikeRepository.remove(likesToRemove);
+      }
+      console.log(
+        `Đã đồng bộ lượt thích mẫu: +${likesToCreate.length}, -${likesToRemove.length}.`,
+      );
     });
   } catch (error) {
     console.error('Lỗi khi chạy Seeder:', error);
