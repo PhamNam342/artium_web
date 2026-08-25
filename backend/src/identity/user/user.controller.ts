@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -24,7 +25,8 @@ import { UploadService } from '../../modules/upload/upload.service';
 import type { UploadedAvatarFile } from '../../modules/upload/upload.types';
 
 import { ConfigService } from '@nestjs/config';
-
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 @Controller('identity/users')
 export class UserController {
   constructor(
@@ -68,5 +70,10 @@ export class UserController {
     );
 
     return this.userService.updateAvatar(req.user.id, avatarUrl);
+  }
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  async deleteMyAccount(@CurrentUser() user: AuthenticatedUser) {
+    return this.userService.deactivateAccount(user.id);
   }
 }

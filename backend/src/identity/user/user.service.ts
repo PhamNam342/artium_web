@@ -154,4 +154,24 @@ export class UserService {
       location: updatedUser.location,
     };
   }
+  // deactivate user
+  async deactivateAccount(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    user.is_active = false;
+
+    await this.userRepository.save(user);
+
+    return {
+      message: t('user.account_deleted'),
+    };
+  }
 }

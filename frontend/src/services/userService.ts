@@ -124,3 +124,8 @@ export async function updateSellerProfileVisibility(
   );
   return res.data;
 }
+export async function deleteMyAccount() {
+  const response = await api.delete('/identity/users/me');
+
+  return response.data;
+}

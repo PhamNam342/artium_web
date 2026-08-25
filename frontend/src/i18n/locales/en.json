@@ -201,7 +201,20 @@
       "fair": "Fair password",
       "good": "Good password",
       "strong": "Strong password"
-    }
+    },
+    "unverified":"Unverified",
+    "deleteAccount": {
+    "title": "Delete Account",
+    "description": "Your account will be deactivated. Your data will be retained.",
+    "button": "Delete Account",
+    "confirmTitle": "Delete your account?",
+    "confirmDescription": "Are you sure you want to delete your account? Your account will be deactivated and you will no longer be able to access it.",
+    "confirmButton": "Delete Account",
+    "deleting": "Deleting...",
+    "success": "Your account has been deactivated successfully.",
+    "error": "Failed to delete your account.",
+    "cancel":"Cancel"
+  }
   },
   "orders": {
     "title": "Your Orders",
@@ -278,4 +291,5 @@
     "missingOrder": "The payment order could not be found.",
     "lookupError": "Unable to load the payment status."
   }
+
   }

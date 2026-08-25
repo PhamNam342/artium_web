@@ -1,3 +1,5 @@
 {
-  "user_not_found": "Không tìm thấy người dùng"
+  "user_not_found": "Không tìm thấy người dùng",
+  "cannot_delete_other_account":"Không thể xoá tài khoản",
+  "account_deleted":"Đã xoá tài khoản"
 }
