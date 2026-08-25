@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, ShoppingCart, Tag, X } from 'lucide-react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { ArrowLeft, ChevronLeft, ChevronRight, ImageOff, Maximize2, Ruler, Tag, X } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import { useAuth } from '../features/auth/AuthContext';
 import type { Artwork } from '../features/artworks/types';
@@ -28,7 +27,6 @@ function formatWeight(artwork: Artwork) {
 export default function ArtworkDetailPage() {
   const { language, t } = useI18n();
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
@@ -36,7 +34,6 @@ export default function ArtworkDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInCart, setIsInCart] = useState(false);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   useEffect(() => {
@@ -99,16 +96,6 @@ export default function ArtworkDetailPage() {
     setSelectedIndex((current) => (current + offset + images.length) % images.length);
   };
 
-  const handleAddToCart = () => {
-    if (!user) {
-      navigate('/login', { state: { from: `${location.pathname}${location.search}${location.hash}` } });
-      return;
-    }
-
-    setIsInCart(true);
-    toast.success(t('artworks.cartAdded'));
-  };
-
   const handleBuyNow = () => {
     if (!artwork) return;
     if (!user) {
@@ -169,10 +156,6 @@ export default function ArtworkDetailPage() {
                   commentCount={commentCount}
                   onCommentCountChange={setCommentCount}
                 />
-                <button type="button" onClick={handleAddToCart} disabled={isInCart} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-blue-600 px-4 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:cursor-default disabled:border-emerald-600 disabled:text-emerald-700">
-                  <ShoppingCart className="h-4 w-4" />
-                  {t(isInCart ? 'artworks.addedToCart' : 'artworks.addToCart')}
-                </button>
                 <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
                   {t('artworks.buyNow')}
                 </button>
