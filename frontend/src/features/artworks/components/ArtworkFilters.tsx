@@ -1,6 +1,8 @@
 import { Camera, RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useI18n } from '../../../i18n/I18nContext';
+import { useAuth } from '../../auth/AuthContext';
+import type { ArtistFiltersValue } from '../../artists/types';
 import type { ArtworkFiltersValue } from '../types';
 
 interface ArtworkFiltersProps {
@@ -9,6 +11,9 @@ interface ArtworkFiltersProps {
   activeCategory: ArtworkCategory;
   onCategoryChange: (category: ArtworkCategory) => void;
   resultCount?: number;
+  artistValue: ArtistFiltersValue;
+  onArtistChange: (value: ArtistFiltersValue) => void;
+  artistResultCount?: number;
 }
 
 export type ArtworkCategory = 'top-picks' | 'artworks' | 'profiles';
@@ -25,14 +30,37 @@ export default function ArtworkFilters({
   activeCategory,
   onCategoryChange,
   resultCount,
+  artistValue,
+  onArtistChange,
+  artistResultCount,
 }: ArtworkFiltersProps) {
   const { t } = useI18n();
-  const [isFiltersOpen, setIsFiltersOpen] = useState(Boolean(value.minPrice || value.maxPrice));
+  const { user } = useAuth();
+  const [isFiltersOpen, setIsFiltersOpen] = useState(
+    Boolean(value.minPrice || value.maxPrice),
+  );
+  const isProfiles = activeCategory === 'profiles';
   const updateValue = (field: keyof ArtworkFiltersValue, fieldValue: string) => {
     onChange({ ...value, [field]: fieldValue });
   };
+  const updateArtistValue = (
+    field: keyof ArtistFiltersValue,
+    fieldValue: string | boolean,
+  ) => {
+    onArtistChange({ ...artistValue, [field]: fieldValue });
+  };
   const resetFilters = () => onChange({ search: '', minPrice: '', maxPrice: '' });
-  const hasFilters = Boolean(value.search || value.minPrice || value.maxPrice);
+  const resetArtistFilters = () =>
+    onArtistChange({
+      search: '',
+      verifiedOnly: false,
+      followingOnly: false,
+    });
+  const hasArtworkFilters = Boolean(value.search || value.minPrice || value.maxPrice);
+  const hasArtistFilters = Boolean(
+    artistValue.search || artistValue.verifiedOnly || artistValue.followingOnly,
+  );
+  const hasFilters = isProfiles ? hasArtistFilters : hasArtworkFilters;
 
   return (
     <div className="border-b border-slate-200 bg-white">
@@ -59,10 +87,22 @@ export default function ArtworkFilters({
           <label className="relative block min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <input
-              value={value.search}
-              onChange={(event) => updateValue('search', event.target.value)}
-              placeholder={t('artworks.discoverSearchPlaceholder')}
-              aria-label={t('artworks.searchLabel')}
+              value={isProfiles ? artistValue.search : value.search}
+              onChange={(event) => {
+                if (isProfiles) {
+                  updateArtistValue('search', event.target.value);
+                } else {
+                  updateValue('search', event.target.value);
+                }
+              }}
+              placeholder={t(
+                isProfiles
+                  ? 'artists.searchPlaceholder'
+                  : 'artworks.discoverSearchPlaceholder',
+              )}
+              aria-label={t(
+                isProfiles ? 'artists.searchLabel' : 'artworks.searchLabel',
+              )}
               className="h-10 w-full rounded-full border border-slate-200 bg-white py-2 pl-10 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
             />
             <Camera className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
@@ -86,39 +126,76 @@ export default function ArtworkFilters({
       {isFiltersOpen && (
         <div className="border-t border-slate-100">
           <div className="mx-auto flex max-w-[1600px] flex-wrap items-end gap-3 px-5 py-3 sm:px-6 lg:px-8">
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">{t('artworks.minPrice')}</span>
-              <input
-                type="number"
-                min="0"
-                value={value.minPrice}
-                onChange={(event) => updateValue('minPrice', event.target.value)}
-                placeholder="0"
-                className="h-9 w-36 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-600">{t('artworks.maxPrice')}</span>
-              <input
-                type="number"
-                min="0"
-                value={value.maxPrice}
-                onChange={(event) => updateValue('maxPrice', event.target.value)}
-                placeholder={t('artworks.noLimit')}
-                className="h-9 w-36 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-              />
-            </label>
+            {isProfiles ? (
+              <>
+                <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={artistValue.verifiedOnly}
+                    onChange={(event) =>
+                      updateArtistValue('verifiedOnly', event.target.checked)
+                    }
+                    className="h-4 w-4 accent-slate-950"
+                  />
+                  {t('artists.verifiedOnly')}
+                </label>
+                <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                  <input
+                    type="checkbox"
+                    checked={artistValue.followingOnly}
+                    disabled={!user}
+                    onChange={(event) =>
+                      updateArtistValue('followingOnly', event.target.checked)
+                    }
+                    className="h-4 w-4 accent-slate-950"
+                  />
+                  {t('artists.followingOnly')}
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-slate-600">{t('artworks.minPrice')}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={value.minPrice}
+                    onChange={(event) => updateValue('minPrice', event.target.value)}
+                    placeholder="0"
+                    className="h-9 w-36 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-slate-600">{t('artworks.maxPrice')}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={value.maxPrice}
+                    onChange={(event) => updateValue('maxPrice', event.target.value)}
+                    placeholder={t('artworks.noLimit')}
+                    className="h-9 w-36 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                  />
+                </label>
+              </>
+            )}
             {hasFilters && (
               <button
                 type="button"
-                onClick={resetFilters}
+                onClick={isProfiles ? resetArtistFilters : resetFilters}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                {t('artworks.clearFilters')}
+                {t(isProfiles ? 'artists.clearFilters' : 'artworks.clearFilters')}
               </button>
             )}
-            {resultCount !== undefined && <span className="ml-auto pb-2 text-xs text-slate-500">{t('artworks.resultCount', { count: resultCount })}</span>}
+            {(isProfiles ? artistResultCount : resultCount) !== undefined && (
+              <span className="ml-auto pb-2 text-xs text-slate-500">
+                {t(
+                  isProfiles ? 'artists.resultCount' : 'artworks.resultCount',
+                  { count: isProfiles ? artistResultCount ?? 0 : resultCount ?? 0 },
+                )}
+              </span>
+            )}
           </div>
         </div>
       )}

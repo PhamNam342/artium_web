@@ -29,7 +29,14 @@
     "alphabetLabel": "Lọc nghệ sĩ theo chữ cái đầu",
     "emptyLetter": "Không có nghệ sĩ bắt đầu bằng chữ {{letter}}.",
     "loadError": "Không thể tải danh sách nghệ sĩ. Vui lòng thử lại sau.",
-    "followError": "Không thể cập nhật trạng thái theo dõi. Vui lòng thử lại."
+    "followError": "Không thể cập nhật trạng thái theo dõi. Vui lòng thử lại.",
+    "searchPlaceholder": "Tìm nghệ sĩ",
+    "searchLabel": "Tìm nghệ sĩ",
+    "verifiedOnly": "Chỉ nghệ sĩ đã xác minh",
+    "followingOnly": "Nghệ sĩ bạn theo dõi",
+    "resultCount": "{{count}} nghệ sĩ",
+    "clearFilters": "Xóa lọc",
+    "emptyFilters": "Không có nghệ sĩ phù hợp với bộ lọc."
   },
   "admin": {
     "users": {

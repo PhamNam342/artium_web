@@ -2,16 +2,25 @@ import { useEffect, useState } from 'react';
 import ArtworkFilters, { type ArtworkCategory } from '../features/artworks/components/ArtworkFilters';
 import ArtworkGrid from '../features/artworks/components/ArtworkGrid';
 import ArtistDirectory from '../features/artists/components/ArtistDirectory';
+import type { ArtistFiltersValue } from '../features/artists/types';
 import { artworkService } from '../features/artworks/artworkService';
 import type { Artwork, ArtworkFiltersValue, ArtworkListMeta } from '../features/artworks/types';
 import { useI18n } from '../i18n/I18nContext';
 
 const INITIAL_FILTERS: ArtworkFiltersValue = { search: '', minPrice: '', maxPrice: '' };
+const INITIAL_ARTIST_FILTERS: ArtistFiltersValue = {
+  search: '',
+  verifiedOnly: false,
+  followingOnly: false,
+};
 const PAGE_SIZE = 12;
 
 export default function ArtworksPage() {
   const { t } = useI18n();
   const [filters, setFilters] = useState<ArtworkFiltersValue>(INITIAL_FILTERS);
+  const [artistFilters, setArtistFilters] = useState<ArtistFiltersValue>(
+    INITIAL_ARTIST_FILTERS,
+  );
   const [activeCategory, setActiveCategory] = useState<ArtworkCategory>('top-picks');
   //const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -67,9 +76,11 @@ export default function ArtworksPage() {
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
         resultCount={meta?.total}
+        artistValue={artistFilters}
+        onArtistChange={setArtistFilters}
       />
       {activeCategory === 'profiles' ? (
-        <ArtistDirectory />
+        <ArtistDirectory filters={artistFilters} />
       ) : (
         <section className="mx-auto max-w-[1600px] px-5 py-6 sm:px-6 lg:px-8 lg:py-8">
           <ArtworkGrid

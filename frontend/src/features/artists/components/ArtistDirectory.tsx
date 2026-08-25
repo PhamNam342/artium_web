@@ -13,6 +13,7 @@ import {
   unfollowUser,
 } from '../../../services/followService';
 import { useI18n } from '../../../i18n/I18nContext';
+import type { ArtistFiltersValue } from '../types';
 
 function ArtistAvatar({ artist }: { artist: PublicUserProfile }) {
   const initial = artist.full_name?.charAt(0).toUpperCase() || 'A';
@@ -98,7 +99,19 @@ function ArtistCard({
   );
 }
 
-export default function ArtistDirectory() {
+interface ArtistDirectoryProps {
+  filters?: ArtistFiltersValue;
+}
+
+const DEFAULT_FILTERS: ArtistFiltersValue = {
+  search: '',
+  verifiedOnly: false,
+  followingOnly: false,
+};
+
+export default function ArtistDirectory({
+  filters = DEFAULT_FILTERS,
+}: ArtistDirectoryProps) {
   const { t } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -132,7 +145,6 @@ export default function ArtistDirectory() {
 
   useEffect(() => {
     if (!user || artists.length === 0) {
-      setFollowingById({});
       return;
     }
 
@@ -150,6 +162,8 @@ export default function ArtistDirectory() {
     };
   }, [artists, user]);
 
+  const currentFollowingById = user ? followingById : {};
+
   const handleFollow = async (artist: PublicUserProfile) => {
     if (!user) {
       navigate('/login', { state: { from: '/artists' } });
@@ -157,7 +171,7 @@ export default function ArtistDirectory() {
     }
     if (artist.id === user.id) return;
 
-    const wasFollowing = Boolean(followingById[artist.id]);
+    const wasFollowing = Boolean(currentFollowingById[artist.id]);
     setUpdatingId(artist.id);
     try {
       if (wasFollowing) {
@@ -176,10 +190,37 @@ export default function ArtistDirectory() {
     }
   };
 
-  const verifiedArtists = artists
+  const filteredArtists = artists.filter((artist) => {
+    const normalizedSearch = filters.search
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLocaleLowerCase();
+    const searchableText = [
+      artist.full_name,
+      artist.location,
+      artist.seller_profile?.bio,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLocaleLowerCase();
+
+    if (normalizedSearch && !searchableText.includes(normalizedSearch)) {
+      return false;
+    }
+    if (filters.verifiedOnly && !artist.seller_profile?.is_verified) {
+      return false;
+    }
+    if (filters.followingOnly && !currentFollowingById[artist.id]) {
+      return false;
+    }
+    return true;
+  });
+  const verifiedArtists = filteredArtists
     .filter((artist) => artist.seller_profile?.is_verified)
     .slice(0, 6);
-  const browseArtists = [...artists].sort((a, b) =>
+  const browseArtists = [...filteredArtists].sort((a, b) =>
     (a.full_name || '').localeCompare(b.full_name || ''),
   );
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -235,7 +276,7 @@ export default function ArtistDirectory() {
             <ArtistCard
               key={artist.id}
               artist={artist}
-              isFollowing={Boolean(followingById[artist.id])}
+              isFollowing={Boolean(currentFollowingById[artist.id])}
               isUpdating={updatingId === artist.id}
               onFollow={handleFollow}
               followLabel={t('artists.follow')}
@@ -278,7 +319,9 @@ export default function ArtistDirectory() {
         </div>
         {filteredBrowseArtists.length === 0 ? (
           <p className="mt-7 text-sm text-slate-500">
-            {t('artists.emptyLetter', { letter: selectedLetter || '' })}
+            {selectedLetter
+              ? t('artists.emptyLetter', { letter: selectedLetter })
+              : t('artists.emptyFilters')}
           </p>
         ) : (
           <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -286,7 +329,7 @@ export default function ArtistDirectory() {
             <ArtistCard
               key={artist.id}
               artist={artist}
-              isFollowing={Boolean(followingById[artist.id])}
+              isFollowing={Boolean(currentFollowingById[artist.id])}
               isUpdating={updatingId === artist.id}
               onFollow={handleFollow}
               followLabel={t('artists.follow')}

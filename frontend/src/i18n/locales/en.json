@@ -29,7 +29,14 @@
     "alphabetLabel": "Filter artists by first letter",
     "emptyLetter": "No artists found starting with {{letter}}.",
     "loadError": "We couldn't load artists. Please try again later.",
-    "followError": "We couldn't update the follow status. Please try again."
+    "followError": "We couldn't update the follow status. Please try again.",
+    "searchPlaceholder": "Search artists",
+    "searchLabel": "Search artists",
+    "verifiedOnly": "Verified artists only",
+    "followingOnly": "Artists you follow",
+    "resultCount": "{{count}} artists",
+    "clearFilters": "Clear filters",
+    "emptyFilters": "No artists match your filters."
   },
   "admin": {
     "users": {
