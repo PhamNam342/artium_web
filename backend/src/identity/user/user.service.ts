@@ -339,11 +339,37 @@ export class UserService {
       },
     });
 
+    // Monthly new users for the last 6 months
+    const monthlyRaw = await this.userRepository
+      .createQueryBuilder('user')
+      .select("TO_CHAR(DATE_TRUNC('month', user.created_at), 'YYYY-MM')", 'month')
+      .addSelect('COUNT(*)', 'count')
+      .where("user.created_at >= NOW() - INTERVAL '6 months'")
+      .groupBy("DATE_TRUNC('month', user.created_at)")
+      .orderBy("DATE_TRUNC('month', user.created_at)", 'ASC')
+      .getRawMany<{ month: string; count: string }>();
+
+    // Fill missing months so we always have 6 data points
+    const now = new Date();
+    const monthlyUsers: { month: string; users: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const found = monthlyRaw.find((r) => r.month === key);
+      monthlyUsers.push({ month: key, users: found ? Number(found.count) : 0 });
+    }
+
     return {
       totalUsers,
       totalArtists,
       totalCollectors,
       totalPendingVerifications,
+      monthlyUsers,
+      roleBreakdown: [
+        { name: 'Artists', value: totalArtists },
+        { name: 'Collectors', value: totalCollectors },
+        { name: 'Others', value: Math.max(0, totalUsers - totalArtists - totalCollectors) },
+      ],
     };
   }
 

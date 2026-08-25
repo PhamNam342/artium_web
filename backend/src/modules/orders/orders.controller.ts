@@ -11,6 +11,7 @@ import {
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 import { JwtAuthGuard } from '../../identity/auth/jwt-auth.guard';
 import type { RequestWithUser } from '../../identity/auth/interfaces/request-with-user.interface';
 
@@ -23,7 +24,7 @@ export class OrdersController {
   async createOrder(
     @Req() req: RequestWithUser,
     @Body() createOrderDto: CreateOrderDto,
-  ) {
+  ): Promise<OrderResponseDto> {
     return this.ordersService.createOrder(req.user.id, createOrderDto);
   }
 
@@ -36,17 +37,25 @@ export class OrdersController {
   }
 
   @Post(':id/payment/cancel')
-  async cancelPayment(@Req() req: RequestWithUser, @Param('id') id: string) {
+  async cancelPayment(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ): Promise<OrderResponseDto> {
     return this.ordersService.cancelPayment(id, req.user);
   }
 
   @Get()
-  async getUserOrders(@Req() req: RequestWithUser) {
+  async getUserOrders(
+    @Req() req: RequestWithUser,
+  ): Promise<OrderResponseDto[]> {
     return this.ordersService.getUserOrders(req.user.id);
   }
 
   @Get(':id')
-  async getOrderById(@Req() req: RequestWithUser, @Param('id') id: string) {
+  async getOrderById(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+  ): Promise<OrderResponseDto> {
     return this.ordersService.getOrderById(id, req.user);
   }
 
@@ -55,7 +64,7 @@ export class OrdersController {
     @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
-  ) {
+  ): Promise<OrderResponseDto> {
     return this.ordersService.updateOrderStatus(
       id,
       updateOrderStatusDto,

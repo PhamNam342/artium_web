@@ -150,6 +150,77 @@ export class ListArtworksResponseDto {
   meta!: ArtworkListMetaResponseDto;
 }
 
+export class AdminArtworkImageResponseDto {
+  @Expose()
+  url!: string;
+
+  @Expose()
+  isPrimary?: boolean;
+}
+
+export class AdminArtworkResponseDto {
+  @Expose()
+  id!: string;
+
+  @Expose()
+  sellerId!: string;
+
+  @Expose()
+  sellerName!: string | null;
+
+  @Expose()
+  sellerEmail!: string | null;
+
+  @Expose()
+  sellerAvatarUrl!: string | null;
+
+  @Expose()
+  title!: string;
+
+  @Expose()
+  status!: ArtworkStatus;
+
+  @Expose()
+  isPublished!: boolean;
+
+  @Expose()
+  price!: string | null;
+
+  @Expose()
+  currency!: string | null;
+
+  @Expose()
+  @Type(() => AdminArtworkImageResponseDto)
+  images!: AdminArtworkImageResponseDto[];
+
+  @Expose()
+  createdAt!: string;
+}
+
+export class AdminArtworkListMetaResponseDto {
+  @Expose()
+  page!: number;
+
+  @Expose()
+  limit!: number;
+
+  @Expose()
+  total!: number;
+
+  @Expose()
+  totalPages!: number;
+}
+
+export class AdminListArtworksResponseDto {
+  @Expose()
+  @Type(() => AdminArtworkResponseDto)
+  data!: AdminArtworkResponseDto[];
+
+  @Expose()
+  @Type(() => AdminArtworkListMetaResponseDto)
+  meta!: AdminArtworkListMetaResponseDto;
+}
+
 export class DeleteArtworkResponseDto {
   @Expose()
   success!: boolean;

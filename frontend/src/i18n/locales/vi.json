@@ -87,7 +87,67 @@
       "totalUsers": "Tổng số người dùng",
       "totalArtists": "Tổng số nghệ sĩ",
       "totalCollectors": "Tổng số nhà sưu tập",
-      "pendingVerifications": "Yêu cầu chờ duyệt"
+      "pendingVerifications": "Yêu cầu chờ duyệt",
+      "lastUpdated": "Dữ liệu thực",
+      "chart": {
+        "userGrowth": "Tăng trưởng người dùng",
+        "last6Months": "Đăng ký mới — 6 tháng gần đây",
+        "newUsers": "Người dùng mới",
+        "roleBreakdown": "Phân loại vai trò",
+        "distribution": "Phân bổ theo loại tài khoản",
+        "noData": "Không có dữ liệu"
+      }
+    },
+    "artworks": {
+      "title": "Quản lý tác phẩm",
+      "subtitle": "Xem xét và xóa các tác phẩm vi phạm quy định nền tảng.",
+      "searchPlaceholder": "Tìm kiếm tác phẩm theo tên...",
+      "table": {
+        "artwork": "Tác phẩm",
+        "status": "Trạng thái",
+        "price": "Giá",
+        "createdAt": "Ngày tạo",
+        "actions": "Hành động",
+        "empty": "Không tìm thấy tác phẩm nào phù hợp."
+      },
+      "actions": {
+        "delete": "Xóa"
+      },
+      "confirmModal": {
+        "title": "Xóa tác phẩm",
+        "desc": "Bạn có chắc chắn muốn xóa vĩnh viễn \"{{title}}\"? Hành động này không thể hoàn tác và nghệ sĩ sẽ được thông báo.",
+        "reasonLabel": "Lý do xóa",
+        "reasonOptional": "không bắt buộc",
+        "reasonPlaceholder": "Vd: Vi phạm quy định cộng đồng, nội dung không phù hợp...",
+        "cancel": "Hủy bỏ",
+        "confirm": "Xóa tác phẩm"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách tác phẩm",
+        "deleteSuccess": "Đã xóa tác phẩm thành công. Nghệ sĩ đã được thông báo.",
+        "deleteError": "Xóa tác phẩm thất bại"
+      },
+      "detail": {
+        "title": "Chi tiết tác phẩm",
+        "published": "Đã đăng",
+        "unpublished": "Chưa đăng",
+        "price": "Giá",
+        "createdAt": "Ngày tạo",
+        "views": "Lượt xem",
+        "artist": "Nghệ sĩ",
+        "description": "Mô tả",
+        "materials": "Chất liệu",
+        "location": "Vị trí",
+        "dimensions": "Kích thước",
+        "weight": "Trọng lượng",
+        "tags": "Thẻ",
+        "artworkId": "ID tác phẩm",
+        "close": "Đóng"
+      },
+      "paginationLabel": "Hiển thị {{start}} đến {{end}} trong {{total}} kết quả",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "pageInfo": "Trang {{page}} / {{totalPages}}"
     }
   },
   "auth": {

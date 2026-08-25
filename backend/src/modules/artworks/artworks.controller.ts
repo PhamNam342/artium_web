@@ -19,6 +19,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../identity/user/entities/user.entity';
 import { ArtworksService } from './artworks.service';
 import {
+  AdminListArtworksResponseDto,
   ArtworkResponseDto,
   ArtworkTagResponseDto,
   DeleteArtworkResponseDto,
@@ -36,6 +37,7 @@ import {
   UpdateArtworkPublishDto,
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
+import { AdminDeleteArtworkDto } from './dto/admin-delete-artwork.dto';
 
 @Controller(['artwork', 'artworks'])
 export class ArtworksController {
@@ -46,6 +48,15 @@ export class ArtworksController {
     @Query() query: ListArtworksQueryDto,
   ): Promise<ListArtworksResponseDto> {
     return this.artworksService.findAll(query);
+  }
+
+  @Get('admin/list')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminFindAll(
+    @Query() query: ListArtworksQueryDto,
+  ): Promise<AdminListArtworksResponseDto> {
+    return this.artworksService.adminFindAll(query);
   }
 
   @Get('mine')
@@ -119,6 +130,17 @@ export class ArtworksController {
     @Body() body: UpdateArtworkDto,
   ): Promise<ArtworkResponseDto> {
     return this.artworksService.update(id, body, req.user.id);
+  }
+
+  @Delete('admin/:id')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminRemove(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: AdminDeleteArtworkDto,
+  ): Promise<DeleteArtworkResponseDto> {
+    return this.artworksService.adminRemove(id, req.user.id, body.reason);
   }
 
   @Delete(':id')
