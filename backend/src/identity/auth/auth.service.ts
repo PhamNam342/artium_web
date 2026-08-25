@@ -329,14 +329,8 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !user.is_active) {
       return;
-    }
-    if (!user.is_active) {
-      throw new HttpException(
-        t('auth.account_inactive'),
-        HttpStatus.UNAUTHORIZED,
-      );
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await this.cacheManager.set(
