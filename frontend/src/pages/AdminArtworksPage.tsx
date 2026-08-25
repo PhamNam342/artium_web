@@ -186,7 +186,7 @@ export default function AdminArtworksPage() {
                             {artwork.title}
                           </p>
                           <p className="truncate text-xs text-gray-500 max-w-[180px]">
-                            {artwork.sellerId}
+                            {artwork.sellerName || artwork.sellerEmail || artwork.sellerId}
                           </p>
                         </div>
                       </div>

@@ -79,8 +79,9 @@ export interface AdminArtwork {
   id: string;
   title: string;
   sellerId: string;
-  sellerName?: string;
-  sellerEmail?: string;
+  sellerName: string | null;
+  sellerEmail: string | null;
+  sellerAvatarUrl: string | null;
   status: string;
   isPublished: boolean;
   price: string | null;
@@ -114,7 +115,7 @@ export async function getAdminArtworks(
   if (params.sellerId) query.append('sellerId', params.sellerId);
 
   const res = await api.get<{ data: AdminArtwork[]; meta: { page: number; limit: number; total: number; totalPages: number } }>(
-    `/artworks?${query.toString()}`,
+    `/artworks/admin/list?${query.toString()}`,
   );
   const { data, meta } = res.data;
   return {

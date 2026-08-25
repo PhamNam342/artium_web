@@ -204,6 +204,78 @@ export class ArtworksService {
     });
   }
 
+  async adminFindAll(query: ListArtworksQueryDto): Promise<{
+    data: Array<{
+      id: string;
+      sellerId: string;
+      sellerName: string | null;
+      sellerEmail: string | null;
+      sellerAvatarUrl: string | null;
+      title: string;
+      status: string;
+      isPublished: boolean;
+      price: string | null;
+      currency: string | null;
+      images: ArtworkImage[];
+      createdAt: Date;
+    }>;
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
+    const filters = this.normalizeQuery(query);
+    const offset = (filters.page - 1) * filters.limit;
+
+    const qb = this.artworkRepository
+      .createQueryBuilder('artwork')
+      .leftJoin('users', 'u', 'u.id = artwork.seller_id')
+      .select([
+        'artwork.id AS id',
+        'artwork.seller_id AS "sellerId"',
+        'u.full_name AS "sellerName"',
+        'u.email AS "sellerEmail"',
+        'u.avatar_url AS "sellerAvatarUrl"',
+        'artwork.title AS title',
+        'artwork.status AS status',
+        'artwork.is_published AS "isPublished"',
+        'artwork.price AS price',
+        'artwork.currency AS currency',
+        'artwork.images AS images',
+        'artwork.created_at AS "createdAt"',
+      ]);
+
+    if (filters.search) {
+      qb.andWhere(
+        '(artwork.title ILIKE :search OR artwork.description ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    if (filters.sellerId) {
+      qb.andWhere('artwork.seller_id = :sellerId', { sellerId: filters.sellerId });
+    }
+
+    const totalRow = await qb
+      .clone()
+      .select('COUNT(*) AS cnt')
+      .getRawOne<{ cnt: string }>();
+    const total = Number(totalRow?.cnt ?? 0);
+
+    const rows = await qb
+      .orderBy('artwork.created_at', 'DESC')
+      .offset(offset)
+      .limit(filters.limit)
+      .getRawMany();
+
+    return {
+      data: rows,
+      meta: {
+        page: filters.page,
+        limit: filters.limit,
+        total,
+        totalPages: Math.ceil(total / filters.limit) || 1,
+      },
+    };
+  }
+
   async findMine(
     sellerId: string,
     query: ListArtworksQueryDto,

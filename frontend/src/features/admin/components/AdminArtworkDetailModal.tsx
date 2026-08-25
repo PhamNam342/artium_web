@@ -29,6 +29,10 @@ export default function AdminArtworkDetailModal({ artwork, isOpen, onClose, onDe
   const images = artwork.images ?? [];
   const activeImage = images[activeImageIdx];
 
+  // Seller display — data already comes from the API JOIN
+  const sellerDisplayName = artwork.sellerName || artwork.sellerEmail || artwork.sellerId;
+  const sellerEmail = artwork.sellerEmail;
+
   const handleDeleteClick = () => {
     onDeleteClick(artwork);
   };
@@ -177,8 +181,11 @@ export default function AdminArtworkDetailModal({ artwork, isOpen, onClose, onDe
                     {t('admin.artworks.detail.artist')}
                   </p>
                   <p className="text-sm font-semibold text-gray-900 truncate">
-                    {artwork.sellerName ?? artwork.sellerEmail ?? artwork.sellerId}
+                    {sellerDisplayName}
                   </p>
+                  {sellerEmail && sellerEmail !== sellerDisplayName && (
+                    <p className="text-xs text-gray-500 truncate">{sellerEmail}</p>
+                  )}
                 </div>
               </div>
             </div>

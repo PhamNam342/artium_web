@@ -49,6 +49,13 @@ export class ArtworksController {
     return this.artworksService.findAll(query);
   }
 
+  @Get('admin/list')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminFindAll(@Query() query: ListArtworksQueryDto) {
+    return this.artworksService.adminFindAll(query);
+  }
+
   @Get('mine')
   @Roles(UserRole.ARTIST)
   @UseGuards(JwtAuthGuard, RolesGuard)
