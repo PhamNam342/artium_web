@@ -8,9 +8,11 @@ import ConfirmActionModal from '../features/admin/components/ConfirmActionModal'
 import UserDetailsModal from '../features/admin/components/UserDetailsModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../features/auth/AuthContext';
 
 export default function AdminUsersPage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [data, setData] = useState<PaginatedAdminUsers | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -132,6 +134,7 @@ export default function AdminUsersPage() {
       <UserTable
         users={data?.data || []}
         isLoading={isLoading}
+        currentUserId={user?.id}
         onActionClick={handleActionClick}
         onViewClick={(user) => {
           setViewedUser(user);

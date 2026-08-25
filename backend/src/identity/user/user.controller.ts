@@ -89,8 +89,9 @@ export class UserController {
   async toggleUserStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('is_active') isActive: boolean,
+    @Req() req: RequestWithUser,
   ) {
-    return this.userService.toggleUserStatus(id, isActive);
+    return this.userService.toggleUserStatus(id, isActive, req.user.id);
   }
 
   // =========================

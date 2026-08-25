@@ -5,11 +5,18 @@ import { useI18n } from '../../../i18n/I18nContext';
 interface UserTableProps {
   users: AdminUser[];
   isLoading: boolean;
+  currentUserId?: string;
   onActionClick: (user: AdminUser) => void;
   onViewClick: (user: AdminUser) => void;
 }
 
-export default function UserTable({ users, isLoading, onActionClick, onViewClick }: UserTableProps) {
+export default function UserTable({
+  users,
+  isLoading,
+  currentUserId,
+  onActionClick,
+  onViewClick,
+}: UserTableProps) {
   const { t } = useI18n();
 
   if (isLoading) {
@@ -98,26 +105,28 @@ export default function UserTable({ users, isLoading, onActionClick, onViewClick
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => onActionClick(user)}
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${
-                      user.is_active 
-                        ? 'text-red-700 bg-red-50 hover:bg-red-100' 
-                        : 'text-green-700 bg-green-50 hover:bg-green-100'
-                    }`}
-                  >
-                    {user.is_active ? (
-                    <>
-                      <Ban className="w-4 h-4" />
-                      {t('admin.users.actions.disable')}
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      {t('admin.users.actions.enable')}
-                    </>
+                  {user.id !== currentUserId && (
+                    <button
+                      onClick={() => onActionClick(user)}
+                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md ${
+                        user.is_active
+                          ? 'text-red-700 bg-red-50 hover:bg-red-100'
+                          : 'text-green-700 bg-green-50 hover:bg-green-100'
+                      }`}
+                    >
+                      {user.is_active ? (
+                        <>
+                          <Ban className="w-4 h-4" />
+                          {t('admin.users.actions.disable')}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          {t('admin.users.actions.enable')}
+                        </>
+                      )}
+                    </button>
                   )}
-                  </button>
                 </div>
               </td>
             </tr>

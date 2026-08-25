@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -257,7 +261,15 @@ export class UserService {
     };
   }
 
-  async toggleUserStatus(userId: string, isActive: boolean) {
+  async toggleUserStatus(
+    userId: string,
+    isActive: boolean,
+    actorUserId: string,
+  ) {
+    if (userId === actorUserId && !isActive) {
+      throw new BadRequestException('You cannot disable your own account.');
+    }
+
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
