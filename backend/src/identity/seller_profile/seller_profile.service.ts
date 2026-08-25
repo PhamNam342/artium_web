@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -6,7 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { SellerProfile, VerificationStatus } from './entities/seller_profile.entity';
+import {
+  SellerProfile,
+  VerificationStatus,
+} from './entities/seller_profile.entity';
 import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 import { t } from '../../common/utils/i18n.util';
 @Injectable()
@@ -78,6 +82,15 @@ export class SellerProfilesService {
       throw new ForbiddenException(t('seller_profile.cannot_update'));
     }
 
+    if (
+      profile.verificationStatus === VerificationStatus.PENDING ||
+      profile.verificationStatus === VerificationStatus.APPROVED
+    ) {
+      throw new BadRequestException(
+        'This verification request cannot be submitted again.',
+      );
+    }
+
     profile.verificationStatus = VerificationStatus.PENDING;
 
     return this.sellerProfileRepository.save(profile);
@@ -109,15 +122,42 @@ export class SellerProfilesService {
   }
 
   async approveVerification(profileId: string): Promise<SellerProfile> {
-    const profile = await this.findById(profileId);
-    profile.verificationStatus = VerificationStatus.APPROVED;
-    profile.isVerified = true;
-    return this.sellerProfileRepository.save(profile);
+    const result = await this.sellerProfileRepository.update(
+      {
+        id: profileId,
+        verificationStatus: VerificationStatus.PENDING,
+      },
+      {
+        verificationStatus: VerificationStatus.APPROVED,
+        isVerified: true,
+      },
+    );
+
+    if (!result.affected) {
+      await this.findById(profileId);
+      throw new BadRequestException('Verification request is not pending.');
+    }
+
+    return this.findById(profileId);
   }
 
   async rejectVerification(profileId: string): Promise<SellerProfile> {
-    const profile = await this.findById(profileId);
-    profile.verificationStatus = VerificationStatus.REJECTED;
-    return this.sellerProfileRepository.save(profile);
+    const result = await this.sellerProfileRepository.update(
+      {
+        id: profileId,
+        verificationStatus: VerificationStatus.PENDING,
+      },
+      {
+        verificationStatus: VerificationStatus.REJECTED,
+        isVerified: false,
+      },
+    );
+
+    if (!result.affected) {
+      await this.findById(profileId);
+      throw new BadRequestException('Verification request is not pending.');
+    }
+
+    return this.findById(profileId);
   }
 }

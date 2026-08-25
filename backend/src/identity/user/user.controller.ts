@@ -35,7 +35,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly uploadService: UploadService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   // =========================
   // Admin Endpoints
@@ -54,10 +54,26 @@ export class UserController {
   async getAllUsers(
     @Query('page') page: string,
     @Query('limit') limit: string,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
   ) {
-    const pageNum = page ? parseInt(page, 10) : 1;
-    const limitNum = limit ? parseInt(limit, 10) : 10;
-    return this.userService.findAllUsers(pageNum, limitNum);
+    const parsedPage = Number.parseInt(page, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    const pageNum =
+      Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const limitNum =
+      Number.isInteger(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 10;
+    const activeFilter =
+      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+
+    return this.userService.findAllUsers(
+      pageNum,
+      limitNum,
+      search,
+      activeFilter,
+    );
   }
 
   @Get('admin/:id')

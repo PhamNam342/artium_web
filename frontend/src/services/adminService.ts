@@ -6,8 +6,19 @@ export interface AdminUser {
   full_name: string | null;
   role: 'ARTIST' | 'COLLECTOR' | 'ADMIN' | null;
   is_active: boolean;
-  avatar_url?: string;
+  avatar_url: string | null;
   created_at: string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  location: string | null;
+  seller_profile: {
+    id: string;
+    bio: string | null;
+    website_url: string | null;
+    is_visible: boolean;
+    is_verified: boolean;
+  } | null;
 }
 
 export interface PaginatedAdminUsers {
@@ -38,8 +49,10 @@ export async function getAdminUsers(params: GetUsersParams): Promise<PaginatedAd
   return res.data;
 }
 
-export async function getAdminUserDetail(userId: string): Promise<any> {
-  const res = await api.get(`/identity/users/admin/${userId}`);
+export async function getAdminUserDetail(
+  userId: string,
+): Promise<AdminUserDetail> {
+  const res = await api.get<AdminUserDetail>(`/identity/users/admin/${userId}`);
   return res.data;
 }
 

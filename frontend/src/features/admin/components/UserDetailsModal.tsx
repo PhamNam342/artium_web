@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X, User, MapPin, Link as LinkIcon, Shield, Briefcase, Calendar } from 'lucide-react';
 import { getAdminUserDetail } from '../../../services/adminService';
-import type { AdminUser } from '../../../services/adminService';
+import type {
+  AdminUser,
+  AdminUserDetail,
+} from '../../../services/adminService';
 
 interface UserDetailsModalProps {
   isOpen: boolean;
@@ -10,13 +13,14 @@ interface UserDetailsModalProps {
 }
 
 export default function UserDetailsModal({ isOpen, user, onClose }: UserDetailsModalProps) {
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<AdminUserDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
       const fetchProfile = async () => {
         setIsLoading(true);
+        setProfile(null);
         try {
           const data = await getAdminUserDetail(user.id);
           setProfile(data);
@@ -28,8 +32,6 @@ export default function UserDetailsModal({ isOpen, user, onClose }: UserDetailsM
         }
       };
       fetchProfile();
-    } else {
-      setProfile(null);
     }
   }, [isOpen, user]);
 

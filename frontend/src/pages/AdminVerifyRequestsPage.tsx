@@ -44,9 +44,11 @@ export default function AdminVerifyRequestsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, t]);
 
   useEffect(() => {
+    // The request updates state asynchronously after it resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRequests();
   }, [fetchRequests]);
 

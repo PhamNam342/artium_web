@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Mail,
   User,
@@ -41,18 +41,6 @@ export function ArtistForm({ profile }: ArtistFormProps) {
   const [saving, setSaving] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
   const [requestingVerify, setRequestingVerify] = useState(false);
-
-  useEffect(() => {
-    setFullName(profile.full_name ?? '');
-    setLocation(profile.location ?? '');
-    setBio(seller?.bio ?? '');
-    setWebsiteUrl(seller?.website_url ?? '');
-    setIsVisible(seller?.is_visible ?? true);
-    setVerifyStatus(seller?.verification_status ?? 'NONE');
-    setShowLocation(!!profile.location);
-    setShowBio(!!seller?.bio);
-    setShowWebsite(!!seller?.website_url);
-  }, [profile, seller]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

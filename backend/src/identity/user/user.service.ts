@@ -2,9 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { User } from './entities/user.entity';
-import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
-import { UserRole } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
+import {
+  SellerProfile,
+  VerificationStatus,
+} from '../seller_profile/entities/seller_profile.entity';
 import { t } from '../../common/utils/i18n.util';
 @Injectable()
 export class UserService {
@@ -160,12 +162,31 @@ export class UserService {
   // Admin Endpoints
   // =========================
 
-  async findAllUsers(page: number = 1, limit: number = 10) {
-    const [users, total] = await this.userRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
+  async findAllUsers(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    isActive?: boolean,
+  ) {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .orderBy('user.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const normalizedSearch = search?.trim();
+    if (normalizedSearch) {
+      query.andWhere(
+        '(user.full_name ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${normalizedSearch}%` },
+      );
+    }
+
+    if (isActive !== undefined) {
+      query.andWhere('user.is_active = :isActive', { isActive });
+    }
+
+    const [users, total] = await query.getManyAndCount();
 
     return {
       data: users.map((user) => ({
@@ -174,6 +195,7 @@ export class UserService {
         full_name: user.full_name,
         role: user.role,
         is_active: user.is_active,
+        avatar_url: user.avatar_url,
         created_at: user.created_at,
       })),
       total,
@@ -224,7 +246,7 @@ export class UserService {
     ]);
 
     const totalPendingVerifications = await this.sellerProfileRepository.count({
-      where: { verificationStatus: 'PENDING' } as any, // casting as any to bypass exact enum type check if it complains
+      where: { verificationStatus: VerificationStatus.PENDING },
     });
 
     return {
@@ -248,7 +270,9 @@ export class UserService {
     await this.userRepository.save(user);
 
     return {
-      message: isActive ? 'Tài khoản đã được kích hoạt' : 'Tài khoản đã bị vô hiệu hóa',
+      message: isActive
+        ? 'Tài khoản đã được kích hoạt'
+        : 'Tài khoản đã bị vô hiệu hóa',
       user: {
         id: user.id,
         is_active: user.is_active,

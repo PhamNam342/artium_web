@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, debouncedSearch, status]);
+  }, [page, limit, debouncedSearch, status, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
