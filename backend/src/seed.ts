@@ -167,9 +167,14 @@ async function bootstrap() {
         email: adminEmail,
         password: hashedPassword,
         full_name: 'Super Admin',
+        role: UserRole.ADMIN,
       });
       admin = await userRepository.save(admin);
       console.log(`Đã tạo tài khoản Admin: ${adminEmail}`);
+    } else if (admin.role !== UserRole.ADMIN) {
+      admin.role = UserRole.ADMIN;
+      admin = await userRepository.save(admin);
+      console.log(`Đã cập nhật role ADMIN cho: ${adminEmail}`);
     } else {
       console.log('Tài khoản Admin đã tồn tại. Bỏ qua.');
     }
