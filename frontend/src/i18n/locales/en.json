@@ -88,6 +88,40 @@
       "totalArtists": "Total Artists",
       "totalCollectors": "Total Collectors",
       "pendingVerifications": "Pending Verifications"
+    },
+    "artworks": {
+      "title": "Artwork Management",
+      "subtitle": "Review and remove artworks that violate platform guidelines.",
+      "searchPlaceholder": "Search artworks by title...",
+      "table": {
+        "artwork": "Artwork",
+        "status": "Status",
+        "price": "Price",
+        "createdAt": "Created",
+        "actions": "Actions",
+        "empty": "No artworks found matching your search."
+      },
+      "actions": {
+        "delete": "Remove"
+      },
+      "confirmModal": {
+        "title": "Remove Artwork",
+        "desc": "Are you sure you want to permanently remove \"{{title}}\"? This action cannot be undone and the artist will be notified.",
+        "reasonLabel": "Reason for removal",
+        "reasonOptional": "optional",
+        "reasonPlaceholder": "e.g. Violates community guidelines, inappropriate content...",
+        "cancel": "Cancel",
+        "confirm": "Remove Artwork"
+      },
+      "messages": {
+        "fetchError": "Failed to load artworks",
+        "deleteSuccess": "Artwork removed successfully. The artist has been notified.",
+        "deleteError": "Failed to remove artwork"
+      },
+      "paginationLabel": "Showing {{start}} to {{end}} of {{total}} results",
+      "previous": "Previous",
+      "next": "Next",
+      "pageInfo": "Page {{page}} of {{totalPages}}"
     }
   },
   "auth": {

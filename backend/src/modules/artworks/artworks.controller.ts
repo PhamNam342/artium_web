@@ -33,6 +33,11 @@ import {
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
 
+class AdminDeleteArtworkDto {
+  reason?: string;
+}
+
+
 @Controller(['artwork', 'artworks'])
 export class ArtworksController {
   constructor(private readonly artworksService: ArtworksService) {}
@@ -105,6 +110,17 @@ export class ArtworksController {
     @Body() body: UpdateArtworkDto,
   ): Promise<ArtworkResponseDto> {
     return this.artworksService.update(id, body, req.user.id);
+  }
+
+  @Delete('admin/:id')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminRemove(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: AdminDeleteArtworkDto,
+  ): Promise<DeleteArtworkResponseDto> {
+    return this.artworksService.adminRemove(id, req.user.id, body.reason);
   }
 
   @Delete(':id')

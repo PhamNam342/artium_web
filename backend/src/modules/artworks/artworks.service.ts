@@ -27,6 +27,10 @@ import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
 import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../notification/enums/notification-entity-type.enum';
+
 
 type NormalizedListArtworksQuery = {
   page: number;
@@ -72,6 +76,7 @@ export class ArtworksService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(ArtworkFolder)
     private readonly folderRepository: Repository<ArtworkFolder>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(
@@ -346,6 +351,46 @@ export class ArtworksService {
 
     if (!result.affected) {
       throw new NotFoundException(t('artwork.not_found'));
+    }
+
+    return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async adminRemove(
+    id: string,
+    adminId: string,
+    reason?: string,
+  ): Promise<DeleteArtworkResponseDto> {
+    const artworkId = this.cleanRequiredUuid(id, 'id');
+
+    const artwork = await this.artworkRepository.findOne({
+      where: { id: artworkId },
+      select: { id: true, sellerId: true, title: true },
+    });
+
+    if (!artwork) {
+      throw new NotFoundException(t('artwork.not_found'));
+    }
+
+    await this.artworkRepository.delete({ id: artworkId });
+
+    // Notify the artist whose artwork was removed
+    try {
+      const message = reason
+        ? `Your artwork "${artwork.title}" has been removed by an administrator. Reason: ${reason}`
+        : `Your artwork "${artwork.title}" has been removed by an administrator for violating platform guidelines.`;
+
+      await this.notificationService.create({
+        recipientId: artwork.sellerId,
+        actorId: adminId,
+        type: NotificationType.ARTWORK_DELETED_BY_ADMIN,
+        entityType: NotificationEntityType.ARTWORK,
+        entityId: artwork.id,
+        title: 'Artwork Removed',
+        message,
+      });
+    } catch {
+      // Notification failure should not block the delete response
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });

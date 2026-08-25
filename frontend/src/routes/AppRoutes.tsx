@@ -23,7 +23,9 @@ import CheckoutPage from '../pages/CheckoutPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import AdminArtworksPage from '../pages/AdminArtworksPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
+
 
 function GuestRoute() {
   const { user, isLoading } = useAuth();
@@ -139,6 +141,7 @@ export default function AppRoutes() {
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/verify-requests" element={<AdminVerifyRequestsPage />} />
+            <Route path="/admin/artworks" element={<AdminArtworksPage />} />
           </Route>
         </Route>
 

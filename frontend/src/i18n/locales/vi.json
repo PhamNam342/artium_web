@@ -88,6 +88,40 @@
       "totalArtists": "Tổng số nghệ sĩ",
       "totalCollectors": "Tổng số nhà sưu tập",
       "pendingVerifications": "Yêu cầu chờ duyệt"
+    },
+    "artworks": {
+      "title": "Quản lý tác phẩm",
+      "subtitle": "Xem xét và xóa các tác phẩm vi phạm quy định nền tảng.",
+      "searchPlaceholder": "Tìm kiếm tác phẩm theo tên...",
+      "table": {
+        "artwork": "Tác phẩm",
+        "status": "Trạng thái",
+        "price": "Giá",
+        "createdAt": "Ngày tạo",
+        "actions": "Hành động",
+        "empty": "Không tìm thấy tác phẩm nào phù hợp."
+      },
+      "actions": {
+        "delete": "Xóa"
+      },
+      "confirmModal": {
+        "title": "Xóa tác phẩm",
+        "desc": "Bạn có chắc chắn muốn xóa vĩnh viễn \"{{title}}\"? Hành động này không thể hoàn tác và nghệ sĩ sẽ được thông báo.",
+        "reasonLabel": "Lý do xóa",
+        "reasonOptional": "không bắt buộc",
+        "reasonPlaceholder": "Vd: Vi phạm quy định cộng đồng, nội dung không phù hợp...",
+        "cancel": "Hủy bỏ",
+        "confirm": "Xóa tác phẩm"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách tác phẩm",
+        "deleteSuccess": "Đã xóa tác phẩm thành công. Nghệ sĩ đã được thông báo.",
+        "deleteError": "Xóa tác phẩm thất bại"
+      },
+      "paginationLabel": "Hiển thị {{start}} đến {{end}} trong {{total}} kết quả",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "pageInfo": "Trang {{page}} / {{totalPages}}"
     }
   },
   "auth": {

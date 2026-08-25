@@ -72,3 +72,68 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const res = await api.get<AdminDashboardStats>('/identity/users/admin/dashboard');
   return res.data;
 }
+
+// ---- Artworks ----
+
+export interface AdminArtwork {
+  id: string;
+  title: string;
+  sellerId: string;
+  sellerName?: string;
+  sellerEmail?: string;
+  status: string;
+  isPublished: boolean;
+  price: string | null;
+  currency: string | null;
+  images: Array<{ url: string; isPrimary?: boolean }>;
+  createdAt: string;
+}
+
+export interface PaginatedAdminArtworks {
+  data: AdminArtwork[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface GetArtworksParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sellerId?: string;
+}
+
+export async function getAdminArtworks(
+  params: GetArtworksParams,
+): Promise<PaginatedAdminArtworks> {
+  const query = new URLSearchParams();
+  if (params.page) query.append('page', params.page.toString());
+  if (params.limit) query.append('limit', params.limit.toString());
+  if (params.search) query.append('search', params.search);
+  if (params.sellerId) query.append('sellerId', params.sellerId);
+
+  const res = await api.get<{ data: AdminArtwork[]; meta: { page: number; limit: number; total: number; totalPages: number } }>(
+    `/artworks?${query.toString()}`,
+  );
+  const { data, meta } = res.data;
+  return {
+    data,
+    total: meta.total,
+    page: meta.page,
+    limit: meta.limit,
+    totalPages: meta.totalPages,
+  };
+}
+
+export async function adminDeleteArtwork(
+  artworkId: string,
+  reason?: string,
+): Promise<{ success: boolean }> {
+  const res = await api.delete<{ success: boolean }>(
+    `/artworks/admin/${artworkId}`,
+    { data: { reason } },
+  );
+  return res.data;
+}
+
