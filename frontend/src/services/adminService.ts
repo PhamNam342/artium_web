@@ -139,4 +139,3 @@ export async function adminDeleteArtwork(
   );
   return res.data;
 }
-

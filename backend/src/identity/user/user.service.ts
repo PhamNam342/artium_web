@@ -103,6 +103,36 @@ export class UserService {
     };
   }
 
+  async findPublicArtists() {
+    const artists = await this.userRepository.find({
+      where: {
+        role: UserRole.ARTIST,
+        is_active: true,
+      },
+      relations: {
+        sellerProfile: true,
+      },
+      order: {
+        full_name: 'ASC',
+      },
+    });
+
+    return artists
+      .filter((artist) => artist.sellerProfile?.isVisible)
+      .map((artist) => ({
+        id: artist.id,
+        full_name: artist.full_name,
+        role: artist.role,
+        avatar_url: artist.avatar_url,
+        location: artist.location,
+        seller_profile: {
+          bio: artist.sellerProfile.bio,
+          website_url: artist.sellerProfile.websiteUrl,
+          is_verified: artist.sellerProfile.isVerified,
+        },
+      }));
+  }
+
   // =====================================================
   // Update Profile
   // =====================================================

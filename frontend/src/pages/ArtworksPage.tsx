@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ArtworkFilters, { type ArtworkCategory } from '../features/artworks/components/ArtworkFilters';
 import ArtworkGrid from '../features/artworks/components/ArtworkGrid';
+import ArtistDirectory from '../features/artists/components/ArtistDirectory';
 import { artworkService } from '../features/artworks/artworkService';
 import type { Artwork, ArtworkFiltersValue, ArtworkListMeta } from '../features/artworks/types';
 import { useI18n } from '../i18n/I18nContext';
@@ -26,20 +27,22 @@ export default function ArtworksPage() {
 
   const handleCategoryChange = (category: ArtworkCategory) => {
     setActiveCategory(category);
-    //setSelectedProfileId(null);
     setPage(1);
   };
 
   useEffect(() => {
+    if (activeCategory === 'profiles') {
+      return;
+    }
+
     const timeoutId = window.setTimeout(async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const isProfilesView = activeCategory === 'profiles';
         const response = await artworkService.getArtworks({
           ...filters,
-          page: isProfilesView ? 1 : page,
-          limit: isProfilesView ? 100 : PAGE_SIZE,
+          page,
+          limit: PAGE_SIZE,
         });
         setArtworks(response.data);
         setMeta(response.meta);
@@ -65,19 +68,19 @@ export default function ArtworksPage() {
         onCategoryChange={handleCategoryChange}
         resultCount={meta?.total}
       />
-      <section className="mx-auto max-w-[1600px] px-5 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <ArtworkGrid
-          artworks={artworks}
-          meta={meta}
-          isLoading={isLoading}
-          error={error}
-          onPageChange={setPage}
-          variant={activeCategory === 'profiles' ? 'profiles' : 'artworks'}
-          //selectedProfileId={selectedProfileId}
-          //onProfileSelect={setSelectedProfileId}
-          //onProfileBack={() => setSelectedProfileId(null)}
-        />
-      </section>
+      {activeCategory === 'profiles' ? (
+        <ArtistDirectory />
+      ) : (
+        <section className="mx-auto max-w-[1600px] px-5 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <ArtworkGrid
+            artworks={artworks}
+            meta={meta}
+            isLoading={isLoading}
+            error={error}
+            onPageChange={setPage}
+          />
+        </section>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { existsSync } from 'fs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -24,6 +25,12 @@ import { UploadModule } from './modules/upload/upload.module';
 import { ArtworkFoldersModule } from './modules/artwork-folders/artwork-folders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CommunityModule } from './modules/community/community.module';
+
+const sourceI18nPath = path.join(__dirname, 'i18n');
+const i18nPath = existsSync(sourceI18nPath)
+  ? sourceI18nPath
+  : path.join(__dirname, '../i18n');
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -31,7 +38,7 @@ import { CommunityModule } from './modules/community/community.module';
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
-        path: path.join(__dirname, '../i18n'),
+        path: i18nPath,
         watch: true,
       },
       resolvers: [

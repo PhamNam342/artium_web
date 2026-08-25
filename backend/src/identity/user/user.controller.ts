@@ -104,6 +104,11 @@ export class UserController {
     return this.userService.findById(req.user.id);
   }
 
+  @Get('artists')
+  async getArtists() {
+    return this.userService.findPublicArtists();
+  }
+
   @Get(':userId')
   async getUser(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.userService.findPublicProfile(userId);
