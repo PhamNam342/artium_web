@@ -243,7 +243,10 @@ export class ArtworksService {
         'artwork.currency AS currency',
         'artwork.images AS images',
         'artwork.created_at AS "createdAt"',
-      ]);
+      ])
+      .andWhere('artwork.status != :deletedStatus', {
+        deletedStatus: ArtworkStatus.DELETED,
+      });
 
     if (filters.search) {
       qb.andWhere(

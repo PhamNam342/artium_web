@@ -395,6 +395,10 @@ describe('ArtworksService', () => {
       ],
       meta: { page: 1, limit: 12, total: 1, totalPages: 1 },
     });
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+      'artwork.status != :deletedStatus',
+      { deletedStatus: ArtworkStatus.DELETED },
+    );
   });
 
   it('rejects an invalid artwork detail id', async () => {
