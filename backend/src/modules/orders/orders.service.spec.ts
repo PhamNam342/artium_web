@@ -16,6 +16,13 @@ describe('OrdersService', () => {
       collectorId: collector.id,
       artworkId: 'artwork-id',
       status: OrderStatus.PENDING,
+      collector: {
+        id: collector.id,
+        email: 'collector@example.com',
+        full_name: 'Collector Name',
+        avatar_url: null,
+        password: 'hashed-password-must-not-be-exposed',
+      },
       artwork: { id: 'artwork-id', status: ArtworkStatus.RESERVED },
     } as Order;
     const findOne = jest.fn().mockResolvedValue(order);
@@ -28,9 +35,20 @@ describe('OrdersService', () => {
       {} as ConfigService,
     );
 
-    await expect(service.getOrderById('order-id', collector)).resolves.toBe(
-      order,
-    );
+    const response = await service.getOrderById('order-id', collector);
+
+    expect(response.id).toBe(order.id);
+    expect(response.collectorId).toBe(collector.id);
+    expect(response.artworkId).toBe(order.artworkId);
+    expect(response.artwork?.id).toBe(order.artworkId);
+    expect(response.artwork?.status).toBe(ArtworkStatus.RESERVED);
+    expect(response.collector).toEqual({
+      id: collector.id,
+      email: 'collector@example.com',
+      fullName: 'Collector Name',
+      avatarUrl: null,
+    });
+    expect(response.collector).not.toHaveProperty('password');
 
     expect(findOne).toHaveBeenCalledWith({
       where: { id: 'order-id' },
