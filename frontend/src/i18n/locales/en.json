@@ -299,6 +299,8 @@
   "profile": {
   "title": "My Profile",
   "subtitle": "Manage your personal information and account settings",
+  "followingStat": "Following",
+  "followersStat": "Followers",
   "artist": "Artist",
   "collector": "Collector",
   "verified": "Verified",

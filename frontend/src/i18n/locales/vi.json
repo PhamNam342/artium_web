@@ -298,9 +298,11 @@
     "unauthorized": "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại."
   },
   "profile": {
-    "title": "Hồ sơ cá nhân",
-    "subtitle": "Quản lý thông tin cá nhân và cài đặt tài khoản",
-    "artist": "Nghệ sĩ",
+  "title": "Hồ sơ cá nhân",
+  "subtitle": "Quản lý thông tin cá nhân và cài đặt tài khoản",
+  "followingStat": "Đang theo dõi",
+  "followersStat": "Người theo dõi",
+  "artist": "Nghệ sĩ",
     "collector": "Nhà sưu tập",
     "verified": "Đã xác minh",
     "notVerified": "Chưa xác minh",
