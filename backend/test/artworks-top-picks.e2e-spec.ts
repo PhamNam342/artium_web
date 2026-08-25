@@ -13,12 +13,13 @@ import { Tag } from '../src/modules/artworks/tag.entity';
 import { ArtworkLike } from '../src/modules/community/artwork/likes/entities/artwork-like.entity';
 import { NotificationService } from '../src/modules/notification/notification.service';
 import { User, UserRole } from '../src/identity/user/entities/user.entity';
+import { SellerProfile } from '../src/identity/seller_profile/entities/seller_profile.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       ...getTestDatabaseOptions(),
-      entities: [Artwork, ArtworkFolder, ArtworkLike, Tag, User],
+      entities: [Artwork, ArtworkFolder, ArtworkLike, SellerProfile, Tag, User],
       synchronize: false,
     }),
     TypeOrmModule.forFeature([Artwork, ArtworkFolder, Tag]),
