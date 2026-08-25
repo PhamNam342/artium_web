@@ -373,5 +373,64 @@
       "momentLike": "{{actor}} liked your moment",
       "momentComment": "{{actor}} commented on your moment"
     }
+  },
+  "pricing": {
+    "eyebrow": "Artium for artists",
+    "hero": {
+      "titleLine1": "Focus on creating.",
+      "titleLine2": "Let Artium handle the rest.",
+      "description": "A focused platform to showcase, manage, and sell your art on your own terms."
+    },
+    "billing": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "save": "Save 20%",
+      "trial": "Try Studio free for 14 days · Cancel anytime"
+    },
+    "mostPopular": "Most popular",
+    "free": "Free",
+    "currency": "₫",
+    "perMonth": "/ month",
+    "paidAnnually": "Billed {{price}} / year",
+    "includes": "Includes:",
+    "yes": "Yes",
+    "no": "No",
+    "unlimited": "Unlimited",
+    "plans": {
+      "free": {
+        "name": "Free", "kicker": "Start your journey", "description": "Everything you need to introduce your first artworks.", "button": "Use for free",
+        "features": ["Up to 10 artworks", "Artist profile page", "Receive collector inquiries", "Digital certificates of authenticity"]
+      },
+      "studio": {
+        "name": "Studio", "kicker": "For artists", "description": "A complete toolkit to run your studio and sell art professionally.", "button": "Start free trial",
+        "features": ["Unlimited artworks", "Artwork inventory & collections", "Online payments", "Discount codes & invoices", "Collector contacts"]
+      },
+      "gallery": {
+        "name": "Gallery", "kicker": "For galleries", "description": "Manage multiple artists, artworks, and client relationships in one place.", "button": "Contact sales",
+        "features": ["Everything in Studio", "Multiple artist management", "Custom domain website", "Team permissions", "Priority support"]
+      }
+    },
+    "comparison": {
+      "eyebrow": "Compare plans", "titleLine1": "Choose the right space", "titleLine2": "for your journey.", "description": "Expand your toolkit as your art practice grows — without a long-term commitment.", "feature": "Feature",
+      "Quản lý tác phẩm": "Artwork management", "Số lượng tác phẩm": "Artwork limit", "Quản lý bộ sưu tập": "Collection management", "Chứng nhận tác phẩm số": "Digital certificates of authenticity", "Xuất nhãn tác phẩm": "Export artwork labels",
+      "Bán hàng & khách hàng": "Sales & collectors", "Nhận yêu cầu mua": "Purchase inquiries", "Thanh toán trực tuyến": "Online payments", "CRM nhà sưu tầm": "Collector CRM", "Mã ưu đãi & hoá đơn": "Promo codes & invoices",
+      "Hiện diện trực tuyến": "Online presence", "Hồ sơ nghệ sĩ": "Artist profile", "Tên miền tuỳ chỉnh": "Custom domain", "Quản lý nhiều nghệ sĩ": "Multiple artist management"
+    },
+    "services": {
+      "eyebrow": "Support services", "titleLine1": "Start faster", "titleLine2": "with a helping hand.", "description": "Spend more time in the studio and let the Artium team take care of the rest.",
+      "items": {
+        "migration": { "title": "Artwork data migration", "price": "From ₫490,000", "description": "We help you bring your existing portfolio to Artium accurately and neatly." },
+        "storefront": { "title": "Storefront setup", "price": "From ₫1,500,000", "description": "Create an online sales space that carries your own identity." },
+        "consulting": { "title": "Gallery operations consulting", "price": "Custom quote", "description": "Set up artist, collector, and artwork workflows for your team." }
+      }
+    },
+    "learnMore": "Learn more",
+    "faq": { "titleLine1": "Questions", "titleLine2": "you may have.", "description": "Can't find an answer? The Artium team is always here to help." },
+    "faqs": [
+      { "question": "Can I change plans at any time?", "answer": "Yes. You can upgrade, downgrade, or cancel at any time. New features become available immediately when you upgrade." },
+      { "question": "Does Studio include a free trial?", "answer": "Yes, you can try Studio free for 14 days. No payment card is required to get started." },
+      { "question": "How are transaction fees calculated?", "answer": "Artium does not charge listing fees. Any payment processing fee is clearly displayed before you activate online payments." }
+    ],
+    "cta": { "eyebrow": "Get started today", "title": "Your art deserves a space of its own.", "button": "Create a free account" }
   }
 }
