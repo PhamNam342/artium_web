@@ -43,4 +43,17 @@ export class SellerProfilesController {
       dto.isVisible,
     );
   }
+
+  @Put(':profileId/verify-request')
+  async requestVerification(
+    @Param('profileId') profileId: string,
+    @CurrentUser()
+    user: {
+      id: string;
+      email: string;
+      role: string;
+    },
+  ) {
+    return this.sellerProfilesService.requestVerification(profileId, user.id);
+  }
 }

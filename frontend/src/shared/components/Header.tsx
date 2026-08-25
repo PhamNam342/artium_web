@@ -31,24 +31,34 @@ export default function Header() {
             ARTIUM
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/home" className="text-sm text-gray-600 hover:text-black transition-colors">
-              {t('nav.home')}
-            </Link>
-            <Link to="/artworks" className="text-xs text-gray-600 hover:text-black transition-colors">
-              {t('nav.artworks')}
-            </Link>
-            {user?.role === 'ARTIST' && (
-              <Link to="/inventory" className="text-xs text-gray-600 hover:text-black transition-colors">
-                {t('nav.inventory')}
-              </Link>
+          <nav className="hidden items-center gap-6 md:flex">
+            {user?.role !== 'ADMIN' && (
+              <>
+                <Link to="/" className="text-xs text-gray-600 hover:text-black transition-colors">
+                  {t('nav.home')}
+                </Link>
+                <Link to="/artworks" className="text-xs text-gray-600 hover:text-black transition-colors">
+                  {t('nav.artworks')}
+                </Link>
+                {user?.role === 'ARTIST' && (
+                  <Link to="/inventory" className="text-xs text-gray-600 hover:text-black transition-colors">
+                    {t('nav.inventory')}
+                  </Link>
+                )}
+                <Link to="/pricing" className="text-xs text-gray-600 hover:text-black transition-colors">
+                  {t('nav.pricing')}
+                </Link>
+                {user && (
+                  <Link to="/orders" className="text-sm text-gray-600 hover:text-black transition-colors">
+                    {t('nav.orders')}
+                  </Link>
+                )}
+              </>
             )}
-            <Link to="/pricing" className="text-xs text-gray-600 hover:text-black transition-colors">
-              {t('nav.pricing')}
-            </Link>
-            {user && (
-              <Link to="/orders" className="text-sm text-gray-600 hover:text-black transition-colors">
-                {t('nav.orders')}
+            
+            {user?.role === 'ADMIN' && (
+              <Link to="/admin/dashboard" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                {t('admin.dashboard.title') || 'Dashboard'}
               </Link>
             )}
           </nav>
@@ -82,13 +92,24 @@ export default function Header() {
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">{user.role}</p>
                       </div>
-                      <Link
-                        to="/profile"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        {t('nav.profile')}
-                      </Link>
+                      {user?.role !== 'ADMIN' && (
+                        <Link
+                          to="/profile"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          {t('nav.profile')}
+                        </Link>
+                      )}
+                      {user?.role === 'ADMIN' && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          {t('admin.dashboard.title') || 'Dashboard'}
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={handleLogout}

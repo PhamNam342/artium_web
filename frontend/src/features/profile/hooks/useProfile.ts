@@ -15,10 +15,26 @@ export function useProfile() {
 
   useEffect(() => {
     if (!user) return;
-    getUserProfile()
-      .then(setProfile)
-      .catch(() => toast.error(t('profile.loadError')))
-      .finally(() => setLoading(false));
+
+    let isCurrent = true;
+    const loadProfile = async () => {
+      setLoading(true);
+
+      try {
+        const nextProfile = await getUserProfile();
+        if (isCurrent) setProfile(nextProfile);
+      } catch {
+        if (isCurrent) toast.error(t('profile.loadError'));
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [user, t]);
 
   const updateAvatarUrl = (avatarUrl: string | null) =>

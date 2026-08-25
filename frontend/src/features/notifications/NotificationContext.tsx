@@ -105,14 +105,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Socket Connection and Event Listeners
   useEffect(() => {
     if (!token || !user) {
-      setNotifications([]);
-      setUnreadCount(0);
+      const clearNotifications = async () => {
+        setNotifications([]);
+        setUnreadCount(0);
+      };
+
+      void clearNotifications();
       disconnectNotificationSocket();
       return;
     }
 
     // Load initial notifications
-    fetchNotifications();
+    // fetchNotifications updates state after the request resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchNotifications();
 
     connectNotificationSocket((newNotif: Notification) => {
       setNotifications((prev) => [newNotif, ...prev]);
@@ -186,6 +192,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (!context) {

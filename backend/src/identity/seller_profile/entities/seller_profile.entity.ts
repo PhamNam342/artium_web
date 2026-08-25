@@ -8,6 +8,13 @@ import {
 
 import { User } from '../../user/entities/user.entity';
 
+export enum VerificationStatus {
+  NONE = 'NONE',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 @Entity('seller_profiles')
 export class SellerProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -52,4 +59,12 @@ export class SellerProfile {
     default: false,
   })
   isVerified!: boolean;
+
+  @Column({
+    name: 'verification_status',
+    type: 'enum',
+    enum: VerificationStatus,
+    default: VerificationStatus.NONE,
+  })
+  verificationStatus!: VerificationStatus;
 }

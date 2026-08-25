@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { User } from './entities/user.entity';
-import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
-import { UserRole } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
+import {
+  SellerProfile,
+  VerificationStatus,
+} from '../seller_profile/entities/seller_profile.entity';
 import { t } from '../../common/utils/i18n.util';
 @Injectable()
 export class UserService {
@@ -45,6 +51,7 @@ export class UserService {
             website_url: user.sellerProfile.websiteUrl,
             is_visible: user.sellerProfile.isVisible,
             is_verified: user.sellerProfile.isVerified,
+            verification_status: user.sellerProfile.verificationStatus,
           }
         : null,
     };
@@ -152,6 +159,136 @@ export class UserService {
       role: updatedUser.role,
       avatar_url: updatedUser.avatar_url,
       location: updatedUser.location,
+    };
+  }
+
+  // =========================
+  // Admin Endpoints
+  // =========================
+
+  async findAllUsers(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    isActive?: boolean,
+  ) {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .orderBy('user.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const normalizedSearch = search?.trim();
+    if (normalizedSearch) {
+      query.andWhere(
+        '(user.full_name ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${normalizedSearch}%` },
+      );
+    }
+
+    if (isActive !== undefined) {
+      query.andWhere('user.is_active = :isActive', { isActive });
+    }
+
+    const [users, total] = await query.getManyAndCount();
+
+    return {
+      data: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        is_active: user.is_active,
+        avatar_url: user.avatar_url,
+        created_at: user.created_at,
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getAdminUserDetail(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        sellerProfile: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      location: user.location,
+      is_active: user.is_active,
+      created_at: user.created_at,
+      seller_profile: user.sellerProfile
+        ? {
+            id: user.sellerProfile.id,
+            bio: user.sellerProfile.bio,
+            website_url: user.sellerProfile.websiteUrl,
+            is_visible: user.sellerProfile.isVisible,
+            is_verified: user.sellerProfile.isVerified,
+          }
+        : null,
+    };
+  }
+
+  async getAdminDashboardStats() {
+    const [totalUsers, totalArtists, totalCollectors] = await Promise.all([
+      this.userRepository.count(),
+      this.userRepository.count({ where: { role: UserRole.ARTIST } }),
+      this.userRepository.count({ where: { role: UserRole.COLLECTOR } }),
+    ]);
+
+    const totalPendingVerifications = await this.sellerProfileRepository.count({
+      where: { verificationStatus: VerificationStatus.PENDING },
+    });
+
+    return {
+      totalUsers,
+      totalArtists,
+      totalCollectors,
+      totalPendingVerifications,
+    };
+  }
+
+  async toggleUserStatus(
+    userId: string,
+    isActive: boolean,
+    actorUserId: string,
+  ) {
+    if (userId === actorUserId && !isActive) {
+      throw new BadRequestException('You cannot disable your own account.');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    user.is_active = isActive;
+    await this.userRepository.save(user);
+
+    return {
+      message: isActive
+        ? 'Tài khoản đã được kích hoạt'
+        : 'Tài khoản đã bị vô hiệu hóa',
+      user: {
+        id: user.id,
+        is_active: user.is_active,
+      },
     };
   }
 }

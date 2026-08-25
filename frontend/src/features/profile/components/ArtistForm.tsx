@@ -15,6 +15,7 @@ import {
   updateProfile,
   updateSellerProfile,
   updateSellerProfileVisibility,
+  requestVerification,
   type UserProfile,
 } from '../../../services/userService';
 
@@ -31,6 +32,7 @@ export function ArtistForm({ profile }: ArtistFormProps) {
   const [bio, setBio] = useState(seller?.bio ?? '');
   const [websiteUrl, setWebsiteUrl] = useState(seller?.website_url ?? '');
   const [isVisible, setIsVisible] = useState(seller?.is_visible ?? true);
+  const [verifyStatus, setVerifyStatus] = useState(seller?.verification_status ?? 'NONE');
 
   const [showLocation, setShowLocation] = useState(!!profile.location);
   const [showBio, setShowBio] = useState(!!seller?.bio);
@@ -39,19 +41,27 @@ export function ArtistForm({ profile }: ArtistFormProps) {
   const [saving, setSaving] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
+  const [requestingVerify, setRequestingVerify] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!seller) return;
     setSaving(true);
     try {
       await updateProfile({
         full_name: fullName.trim() || undefined,
         location: showLocation ? location.trim() || undefined : undefined,
       });
-      await updateSellerProfile(seller.id, {
-        bio: showBio ? bio.trim() || undefined : undefined,
-        websiteUrl: showWebsite ? websiteUrl.trim() || undefined : undefined,
-      });
+      if (seller) {
+        await updateSellerProfile(seller.id, {
+          bio: showBio ? bio.trim() || undefined : undefined,
+          websiteUrl: showWebsite ? websiteUrl.trim() || undefined : undefined,
+        });
+      } else {
+        // If seller was null, it was just created by updateProfile in backend.
+        // Reload to get the new profile.
+        window.location.reload();
+        return;
+      }
       toast.success(t('profile.updateSuccess'));
     } catch {
       toast.error(t('profile.updateError'));
@@ -71,6 +81,31 @@ export function ArtistForm({ profile }: ArtistFormProps) {
       toast.error(t('profile.visibilityError'));
     } finally {
       setTogglingVisibility(false);
+    }
+  };
+
+  const handleRequestVerify = async () => {
+    if (!seller) return;
+    setRequestingVerify(true);
+    try {
+      await requestVerification(seller.id);
+      setVerifyStatus('PENDING');
+      toast.success(t('profile.verifyRequestSuccess') || 'Verification requested successfully');
+    } catch {
+      toast.error(t('profile.verifyRequestError') || 'Failed to request verification');
+    } finally {
+      setRequestingVerify(false);
+    }
+  };
+
+  const handleCreateProfile = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({});
+      window.location.reload();
+    } catch {
+      toast.error(t('profile.updateError'));
+      setSaving(false);
     }
   };
 
@@ -213,14 +248,44 @@ export function ArtistForm({ profile }: ArtistFormProps) {
             </button>
           )}
 
-          {seller.is_verified && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-              <span className="text-sm text-green-700 font-medium">
-                {t('profile.verifiedAccount')}
-              </span>
+          {/* Verification section */}
+          <div className="flex flex-col gap-2 p-3 border border-gray-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-700">{t('profile.verificationStatus') || 'Verification Status'}</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {verifyStatus === 'APPROVED' && (t('profile.verifiedDesc') || 'Your account is verified.')}
+                  {verifyStatus === 'PENDING' && (t('profile.pendingDesc') || 'Your verification request is under review.')}
+                  {verifyStatus === 'REJECTED' && (t('profile.rejectedDesc') || 'Your previous verification request was rejected.')}
+                  {verifyStatus === 'NONE' && (t('profile.unverifiedDesc') || 'Get a verified badge to build trust with collectors.')}
+                </p>
+              </div>
+              
+              {verifyStatus === 'APPROVED' && (
+                <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {t('profile.verifiedStatus') || 'Verified'}
+                </div>
+              )}
+              {verifyStatus === 'PENDING' && (
+                <div className="flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-xs font-semibold">
+                  {t('profile.pendingStatus') || 'Pending'}
+                </div>
+              )}
             </div>
-          )}
+            
+            {(verifyStatus === 'NONE' || verifyStatus === 'REJECTED') && (
+               <button 
+                 type="button" 
+                 onClick={handleRequestVerify}
+                 disabled={requestingVerify}
+                 className="mt-2 text-sm text-center bg-gray-100 text-gray-700 hover:bg-gray-200 py-1.5 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+               >
+                 {requestingVerify ? <Loader2 className="animate-spin h-4 w-4"/> : null}
+                 {t('profile.requestVerification') || 'Request Verification'}
+               </button>
+            )}
+          </div>
 
           <div className="flex items-center justify-between px-3 py-3 border border-gray-200 rounded-lg">
             <div>
@@ -246,8 +311,17 @@ export function ArtistForm({ profile }: ArtistFormProps) {
           </div>
         </>
       ) : (
-        <div className="px-3 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-          {t('profile.profileNotCreated')}
+        <div className="flex flex-col gap-3 px-4 py-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+          <p>{t('profile.profileNotCreated') || 'Your artist profile is missing.'}</p>
+          <button 
+            type="button" 
+            onClick={handleCreateProfile} 
+            disabled={saving}
+            className="w-max px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin inline mr-1" /> : null}
+            {t('profile.createProfile') || 'Create Artist Profile'}
+          </button>
         </div>
       )}
 
