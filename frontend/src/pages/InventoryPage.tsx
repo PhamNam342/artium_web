@@ -25,12 +25,14 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
+import { useI18n } from '../i18n/I18nContext';
 import { artworkService, formatArtworkPrice, getArtworkImage } from '../features/artworks/artworkService';
 import type { Artwork } from '../features/artworks/types';
 import { artworkFolderService } from '../features/artwork-folders/artworkFolderService';
 import type { ArtworkFolderTree } from '../features/artwork-folders/types';
 
 type ViewMode = 'list' | 'compact' | 'grid';
+type SortOption = 'newest' | 'oldest' | 'title';
 
 type InventoryFilters = {
   status: string;
@@ -55,6 +57,7 @@ const EMPTY_FILTERS: InventoryFilters = {
 export default function InventoryPage() {
   const navigate = useNavigate();
   const { token, user } = useAuth();
+  const { t } = useI18n();
   const sellerId = user?.id;
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [search, setSearch] = useState('');
@@ -63,7 +66,7 @@ export default function InventoryPage() {
   const [filterDraft, setFilterDraft] = useState<InventoryFilters>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<InventoryFilters>(EMPTY_FILTERS);
   const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
-  const [sortLabel, setSortLabel] = useState('Date Created (Newest)');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [isLoadingArtworks, setIsLoadingArtworks] = useState(true);
   const [artworkLoadError, setArtworkLoadError] = useState(false);
@@ -148,7 +151,7 @@ export default function InventoryPage() {
         if (isCurrent) setFolders(folderTree);
       } catch (error) {
         console.error('Artwork folders failed to load', error);
-        if (isCurrent) toast.error('Unable to load folders. Please try again.');
+        if (isCurrent) toast.error(t('inventory.loadErrorTitle'));
       } finally {
         if (isCurrent) setIsLoadingFolders(false);
       }
@@ -156,7 +159,7 @@ export default function InventoryPage() {
 
     void loadFolders();
     return () => { isCurrent = false; };
-  }, [sellerId, token]);
+  }, [sellerId, t, token]);
 
   const selectArtworkFiles = () => {
     setIsUploadMenuOpen(false);
@@ -174,10 +177,10 @@ export default function InventoryPage() {
       setArtworks((current) => current.map((artwork) => (
         artwork.id === updatedArtwork.id ? updatedArtwork : artwork
       )));
-      toast.success(shouldPublish ? 'Artwork is now published.' : 'Artwork moved to drafts.');
+      toast.success(shouldPublish ? t('inventory.changeToPublish') : t('inventory.changeToDraft'));
     } catch (error) {
       console.error('Artwork publication update failed', error);
-      toast.error(shouldPublish ? 'Unable to publish this artwork. Please try again.' : 'Unable to move this artwork to drafts. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setChangingPublicationArtworkId(null);
     }
@@ -196,10 +199,10 @@ export default function InventoryPage() {
         return next;
       });
       setArtworkToDelete(null);
-      toast.success('Artwork deleted.');
+      toast.success(t('inventory.deleteArtwork'));
     } catch (error) {
       console.error('Artwork deletion failed', error);
-      toast.error('Unable to delete this artwork. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsDeletingArtwork(false);
     }
@@ -215,16 +218,16 @@ export default function InventoryPage() {
           name,
           parentId: folderDialog.folder?.id ?? null,
         });
-        toast.success('Folder created.');
+        toast.success(t('inventory.createFolder'));
       } else if (folderDialog.folder) {
         await artworkFolderService.update(folderDialog.folder.id, { name });
-        toast.success('Folder renamed.');
+        toast.success(t('inventory.renameFolder'));
       }
       setFolderDialog(null);
       await refreshFolders();
     } catch (error) {
       console.error('Artwork folder save failed', error);
-      toast.error('Unable to save folder. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsSavingFolder(false);
     }
@@ -237,10 +240,10 @@ export default function InventoryPage() {
       await artworkFolderService.move(folderToMove.id, parentId);
       setFolderToMove(null);
       await refreshFolders();
-      toast.success('Folder moved.');
+      toast.success(t('inventory.moveFolder'));
     } catch (error) {
       console.error('Artwork folder move failed', error);
-      toast.error('Unable to move folder. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsSavingFolder(false);
     }
@@ -254,10 +257,10 @@ export default function InventoryPage() {
       if (activeFolderId === folderToDelete.id) setActiveFolderId(null);
       setFolderToDelete(null);
       await refreshFolders();
-      toast.success('Folder deleted.');
+      toast.success(t('inventory.deleteFolder'));
     } catch (error) {
       console.error('Artwork folder delete failed', error);
-      toast.error('This folder must be empty before it can be deleted.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsSavingFolder(false);
     }
@@ -273,10 +276,10 @@ export default function InventoryPage() {
       )));
       setArtworkToMove(null);
       await refreshFolders();
-      toast.success(folderId ? 'Artwork moved to folder.' : 'Artwork removed from folder.');
+      toast.success(t('inventory.moveArtwork'));
     } catch (error) {
       console.error('Artwork folder move failed', error);
-      toast.error('Unable to move artwork. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsSavingFolder(false);
     }
@@ -296,10 +299,10 @@ export default function InventoryPage() {
       setSelectedArtworkIds(new Set());
       setIsBulkMoveDialogOpen(false);
       await refreshFolders();
-      toast.success(folderId ? `${artworkIds.length} artworks moved to folder.` : `${artworkIds.length} artworks removed from folder.`);
+      toast.success(t('inventory.moveArtworksPlural', { count: artworkIds.length }));
     } catch (error) {
       console.error('Bulk artwork folder move failed', error);
-      toast.error('Unable to move the selected artworks. Please try again.');
+      toast.error(t('common.unexpectedError'));
     } finally {
       setIsSavingFolder(false);
     }
@@ -330,12 +333,12 @@ export default function InventoryPage() {
     });
 
     return [...filtered].sort((first, second) => {
-      if (sortLabel === 'Title (A–Z)') return first.title.localeCompare(second.title);
+      if (sortOption === 'title') return first.title.localeCompare(second.title);
       const firstDate = first.createdAt ? new Date(first.createdAt).getTime() : 0;
       const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
-      return sortLabel === 'Date Created (Oldest)' ? firstDate - secondDate : secondDate - firstDate;
+      return sortOption === 'oldest' ? firstDate - secondDate : secondDate - firstDate;
     });
-  }, [activeFolderId, appliedFilters, artworks, search, sortLabel]);
+  }, [activeFolderId, appliedFilters, artworks, search, sortOption]);
 
   const customTags = useMemo(
     () => [...new Set(artworks.flatMap((artwork) => artwork.customTags))].sort((first, second) => first.localeCompare(second)),
@@ -368,9 +371,9 @@ export default function InventoryPage() {
       <div className="mx-auto max-w-[1920px]">
         <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
           <div>
-            <h1 className="text-[24px] font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[26px]">Inventory</h1>
+            <h1 className="text-[24px] font-bold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[26px]">{t('inventory.title')}</h1>
             <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
-              Uploads stay private until you&apos;re ready. List on the marketplace to get discovered.
+              {t('inventory.description')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -381,7 +384,7 @@ export default function InventoryPage() {
             >
               <Folder size={19} strokeWidth={1.8} />
               <Plus size={19} strokeWidth={1.8} />
-              New folder
+              {t('inventory.newFolder')}
             </button>
             <div ref={uploadMenuRef} className="relative">
               <button
@@ -392,7 +395,7 @@ export default function InventoryPage() {
               className="inline-flex h-10 items-center gap-2 rounded-full border-2 border-[#2f6df6] px-4 text-xs font-semibold text-[#1764ed] transition-colors hover:bg-blue-50"
               >
                 <CirclePlus size={19} strokeWidth={1.9} />
-                Upload Artwork
+                {t('inventory.uploadArtwork')}
               </button>
               {isUploadMenuOpen && (
                 <div
@@ -406,7 +409,7 @@ export default function InventoryPage() {
                     className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-slate-950 transition-colors hover:bg-slate-50"
                   >
                     <Plus size={24} strokeWidth={1.7} />
-                    Upload an artwork
+                    {t('inventory.uploadAnArtwork')}
                   </button>
                   <button
                     type="button"
@@ -415,7 +418,7 @@ export default function InventoryPage() {
                     className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-slate-400"
                   >
                     <LockKeyhole size={24} strokeWidth={1.45} />
-                    Bulk upload
+                    {t('inventory.bulkUpload')}
                   </button>
                 </div>
               )}
@@ -437,38 +440,38 @@ export default function InventoryPage() {
         <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
           {selectedArtworkCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-4 py-3 text-sm sm:px-5 lg:px-6">
-              <span className="font-semibold text-blue-950">{selectedArtworkCount} artwork{selectedArtworkCount === 1 ? '' : 's'} selected</span>
+              <span className="font-semibold text-blue-950">{t(selectedArtworkCount === 1 ? 'inventory.selected' : 'inventory.selectedPlural', { count: selectedArtworkCount })}</span>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => setSelectedArtworkIds(new Set())} className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 font-semibold text-slate-600 hover:bg-blue-100">
-                  <X size={16} /> Clear
+                  <X size={16} /> {t('inventory.clear')}
                 </button>
                 <button type="button" onClick={() => setIsBulkMoveDialogOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-full bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700">
-                  <Folder size={16} /> Move to folder
+                  <Folder size={16} /> {t('inventory.moveToFolder')}
                 </button>
               </div>
             </div>
           )}
           <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
-            <div className="text-sm font-semibold text-slate-950">Artworks</div>
+            <div className="text-sm font-semibold text-slate-950">{t('inventory.artworks')}</div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <label className="relative block sm:w-[280px]">
-                <span className="sr-only">Search by artwork title</span>
+                <span className="sr-only">{t('inventory.searchByTitle')}</span>
                 <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-950" size={21} strokeWidth={2} />
                 <input
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search by artwork title"
+                  placeholder={t('inventory.searchByTitle')}
                   className="h-[46px] w-full rounded-full border-2 border-slate-300 bg-white pl-[48px] pr-4 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-500"
                 />
               </label>
 
               <div className="inline-flex h-[46px] overflow-hidden rounded-[16px] bg-slate-100 p-1">
                 {([
-                  ['list', AlignJustify, 'List view'],
-                  ['compact', List, 'Compact view'],
-                  ['grid', Grid2X2, 'Grid view'],
+                  ['list', AlignJustify, t('inventory.listView')],
+                  ['compact', List, t('inventory.compactView')],
+                  ['grid', Grid2X2, t('inventory.gridView')],
                 ] as const).map(([mode, Icon, label]) => (
                   <button
                     type="button"
@@ -490,22 +493,22 @@ export default function InventoryPage() {
                   className="inline-flex h-[46px] items-center gap-2 rounded-[12px] bg-slate-100 px-3 text-sm font-semibold text-slate-900 hover:bg-slate-200"
                 >
                   <ArrowUpDown size={21} strokeWidth={1.8} />
-                  <span>Sort by</span>
-                  <span className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium">{sortLabel}</span>
+                  <span>{t('inventory.sortBy')}</span>
+                  <span className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium">{t(`inventory.sort${sortOption.charAt(0).toUpperCase()}${sortOption.slice(1)}`)}</span>
                 </button>
                 {isSortOpen && (
                   <div className="absolute right-0 top-[70px] z-10 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
-                    {['Date Created (Newest)', 'Date Created (Oldest)', 'Title (A–Z)'].map((option) => (
+                    {(['newest', 'oldest', 'title'] as const).map((option) => (
                       <button
                         type="button"
                         key={option}
                         onClick={() => {
-                          setSortLabel(option);
+                          setSortOption(option);
                           setIsSortOpen(false);
                         }}
                         className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100"
                       >
-                        {option}
+                        {t(`inventory.sort${option.charAt(0).toUpperCase()}${option.slice(1)}`)}
                       </button>
                     ))}
                   </div>
@@ -523,7 +526,7 @@ export default function InventoryPage() {
                   className={`inline-flex h-[46px] items-center gap-2.5 rounded-[12px] px-3 text-sm font-semibold transition-colors ${isFilterOpen ? 'bg-slate-200' : 'bg-slate-100 hover:bg-slate-200'}`}
                 >
                   <SlidersHorizontal size={22} strokeWidth={1.8} />
-                  Filter
+                  {t('inventory.filter')}
                 </button>
               </div>
             </div>
@@ -532,28 +535,28 @@ export default function InventoryPage() {
           <div className="min-h-[440px] px-4 py-5 sm:px-5 lg:px-6">
             {isLoadingArtworks ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
-                <p className="text-sm font-medium">Loading your artworks…</p>
+                <p className="text-sm font-medium">{t('inventory.loadingArtworks')}</p>
               </div>
             ) : artworkLoadError ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
                 <div>
-                  <p className="text-lg font-semibold text-slate-700">We couldn&apos;t load your inventory</p>
-                  <p className="mt-1 text-sm">Please refresh and try again.</p>
+                  <p className="text-lg font-semibold text-slate-700">{t('inventory.loadErrorTitle')}</p>
+                  <p className="mt-1 text-sm">{t('inventory.refreshAndTryAgain')}</p>
                 </div>
               </div>
             ) : items.length === 0 ? (
               <div className="flex min-h-[560px] items-center justify-center text-center text-slate-500">
                 <div>
                   <Search className="mx-auto mb-3" size={32} />
-                  <p className="text-lg font-semibold text-slate-700">No artworks found</p>
-                  <p className="mt-1 text-sm">Try a different title.</p>
+                  <p className="text-lg font-semibold text-slate-700">{t('inventory.noArtworksTitle')}</p>
+                  <p className="mt-1 text-sm">{t('inventory.tryDifferentTitle')}</p>
                 </div>
               </div>
             ) : (
               viewMode === 'compact' ? (
                 <InventoryTable
                   artworks={items}
-                  artistName={user?.email.split('@')[0] || 'Your account'}
+                  artistName={user?.email.split('@')[0] || t('inventory.yourAccount')}
                   onEdit={(item) => navigate(`/inventory/upload/${item.id}`)}
                   onChangePublication={(item) => void changeArtworkPublication(item)}
                   changingPublicationArtworkId={changingPublicationArtworkId}
@@ -585,11 +588,11 @@ export default function InventoryPage() {
             )}
 
             <div className="mt-8 flex items-center justify-center gap-10 text-slate-900">
-              <button type="button" aria-label="Previous page" disabled className="cursor-not-allowed text-slate-400">
+              <button type="button" aria-label={t('inventory.previousPage')} disabled className="cursor-not-allowed text-slate-400">
                 <ChevronLeft size={30} strokeWidth={1.5} />
               </button>
               <span className="text-[22px] font-semibold">1</span>
-              <button type="button" aria-label="Next page" disabled className="cursor-not-allowed text-slate-400">
+              <button type="button" aria-label={t('inventory.nextPage')} disabled className="cursor-not-allowed text-slate-400">
                 <ChevronRight size={30} strokeWidth={1.5} />
               </button>
             </div>
@@ -667,6 +670,20 @@ export default function InventoryPage() {
 
 const INVENTORY_TABLE_COLUMNS = 'grid-cols-[minmax(220px,1.35fr)_minmax(120px,.8fr)_minmax(130px,.8fr)_minmax(85px,.55fr)_minmax(65px,.4fr)_minmax(150px,.9fr)_minmax(130px,.8fr)_minmax(150px,.9fr)_minmax(160px,1fr)_minmax(180px,1.1fr)_44px]';
 
+function getArtworkStatusLabel(status: Artwork['status'], t: ReturnType<typeof useI18n>['t']) {
+  const labels: Record<Artwork['status'], string> = {
+    DRAFT: t('inventory.draft'),
+    ACTIVE: t('inventory.active'),
+    SOLD: t('inventory.sold'),
+    RESERVED: t('inventory.reserved'),
+    INACTIVE: t('inventory.inactive'),
+    DELETED: t('inventory.deleted'),
+    PENDING_REVIEW: t('inventory.pendingReview'),
+  };
+
+  return labels[status];
+}
+
 function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onMoveToFolder, onDelete, selectedArtworkIds, allArtworksSelected, onToggleArtwork, onToggleAllArtworks }: {
   artworks: Artwork[];
   artistName: string;
@@ -680,21 +697,23 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
   onToggleArtwork: (artworkId: string) => void;
   onToggleAllArtworks: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="overflow-x-auto pb-1">
       <div className="min-w-[1520px]">
         <div className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950`}>
-          <div className="flex items-center gap-4"><input aria-label="Select all visible artworks" type="checkbox" checked={allArtworksSelected} onChange={onToggleAllArtworks} className="h-5 w-5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" /><span className="inline-flex items-center gap-2">Title <ArrowUpDown size={16} className="text-slate-400" /></span></div>
-          <span>Artist name</span>
-          <span>Listing status</span>
-          <span>Price</span>
-          <span>Qty</span>
-          <span>Dimensions</span>
-          <span>Location</span>
-          <span>Custom tags</span>
-          <span>Profile Visibility</span>
-          <span>Marketplace Visibility</span>
-          <span className="sr-only">Actions</span>
+          <div className="flex items-center gap-4"><input aria-label={t('inventory.artworks')} type="checkbox" checked={allArtworksSelected} onChange={onToggleAllArtworks} className="h-5 w-5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" /><span className="inline-flex items-center gap-2">{t('inventory.artworkTitle')} <ArrowUpDown size={16} className="text-slate-400" /></span></div>
+          <span>{t('inventory.artistName')}</span>
+          <span>{t('inventory.listingStatus')}</span>
+          <span>{t('inventory.price')}</span>
+          <span>{t('inventory.quantity')}</span>
+          <span>{t('inventory.dimensions')}</span>
+          <span>{t('inventory.location')}</span>
+          <span>{t('inventory.customTags')}</span>
+          <span>{t('inventory.profileVisibility')}</span>
+          <span>{t('inventory.marketplaceVisibility')}</span>
+          <span className="sr-only">{t('inventory.actions')}</span>
         </div>
 
         <div className="mt-4 space-y-3">
@@ -729,24 +748,25 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
   isSelected: boolean;
   onToggleSelection: () => void;
 }) {
+  const { language, t } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const image = getArtworkImage(artwork.images);
   const dimensions = artwork.dimensions
     ? `${[artwork.dimensions.height, artwork.dimensions.width, artwork.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${artwork.dimensions.unit ?? ''}`.trim()
     : '—';
-  const profileVisibility = artwork.isPublished ? 'Shown on profile' : 'Hidden on profile';
-  const marketplaceVisibility = artwork.isPublished ? 'Listed' : 'Unlisted';
+  const profileVisibility = artwork.isPublished ? t('inventory.public') : t('inventory.private');
+  const marketplaceVisibility = artwork.isPublished ? t('inventory.listed') : t('inventory.notListed');
 
   return (
     <article className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-xl bg-slate-50 px-5 py-4 text-sm text-slate-800`}>
       <div className="flex min-w-0 items-center gap-4">
-        <input aria-label={`Select ${artwork.title}`} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="h-5 w-5 shrink-0 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <input aria-label={t('inventory.selectArtwork', { title: artwork.title })} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="h-5 w-5 shrink-0 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || artwork.title} className="h-full w-full object-cover" /> : <ImageOff size={15} />}</div>
         <h2 className="line-clamp-2 font-semibold text-slate-950">{artwork.title}</h2>
       </div>
       <span>{artistName}</span>
-      <span className="font-bold tracking-wide text-slate-500">{artwork.status}</span>
-      <span>{formatArtworkPrice(artwork.price, artwork.currency, 'en-US', 'Price on request')}</span>
+      <span className="font-bold tracking-wide text-slate-500">{getArtworkStatusLabel(artwork.status, t)}</span>
+      <span>{formatArtworkPrice(artwork.price, artwork.currency, language === 'vi' ? 'vi-VN' : 'en-US', t('artworks.priceOnRequest'))}</span>
       <span>—</span>
       <span>{dimensions}</span>
       <span className="truncate">{artwork.location || '—'}</span>
@@ -771,6 +791,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   isSelected: boolean;
   onToggleSelection: () => void;
 }) {
+  const { t } = useI18n();
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
   const closeDraftMenu = () => setIsDraftMenuOpen(false);
   const image = getArtworkImage(item.images);
@@ -778,7 +799,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
     ? `${[item.dimensions.height, item.dimensions.width, item.dimensions.depth].filter((value) => value !== undefined).join(' × ')} ${item.dimensions.unit ?? ''}`.trim()
     : '—';
   const material = item.materials || '—';
-  const listingStatus = item.isPublished ? 'Listed' : 'Not listed';
+  const listingStatus = item.isPublished ? t('inventory.listed') : t('inventory.notListed');
 
   if (viewMode === 'grid') {
     return (
@@ -788,7 +809,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
           {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onMoveToFolder={onMoveToFolder} onDelete={onDelete} />}
         </div>
         <h2 className="mt-3 text-lg font-medium text-slate-700">{item.title}</h2>
-        <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{item.status}</p>
+        <p className="mt-3 text-sm font-semibold tracking-wide text-slate-500">{getArtworkStatusLabel(item.status, t)}</p>
       </article>
     );
   }
@@ -796,19 +817,19 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   return (
     <article className={`rounded-2xl border border-slate-200 px-6 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.08)] ${viewMode === 'compact' ? 'min-h-[126px]' : 'min-h-[168px]'}`}>
       <div className="flex items-start gap-4">
-        <input aria-label={`Select ${item.title}`} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <input aria-label={t('inventory.selectArtwork', { title: item.title })} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
         <div className="flex h-[48px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={12} />}</div>
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
-          <span className="text-xs font-bold tracking-wide text-slate-500">{item.status}</span>
+          <span className="text-xs font-bold tracking-wide text-slate-500">{getArtworkStatusLabel(item.status, t)}</span>
           {(item.status === 'DRAFT' || item.isPublished) && <DraftActionsMenu isOpen={isDraftMenuOpen} onToggle={() => setIsDraftMenuOpen((open) => !open)} onClose={closeDraftMenu} onEdit={onEdit} onChangePublication={onChangePublication} isPublished={item.isPublished} isChangingPublication={isChangingPublication} onMoveToFolder={onMoveToFolder} onDelete={onDelete} />}
         </div>
       </div>
       <div className="mt-5 grid gap-x-10 gap-y-2.5 text-[13px] sm:grid-cols-2">
-        <InventoryField label="Material" value={material} />
-        <InventoryField label="Location" value={item.location || '—'} />
-        <InventoryField label="Dimensions" value={dimensions} />
-        <InventoryField label="Listing status" value={listingStatus} />
+        <InventoryField label={t('inventory.material')} value={material} />
+        <InventoryField label={t('inventory.location')} value={item.location || '—'} />
+        <InventoryField label={t('inventory.dimensions')} value={dimensions} />
+        <InventoryField label={t('inventory.listingStatus')} value={listingStatus} />
       </div>
     </article>
   );
@@ -825,6 +846,7 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
   onMoveToFolder: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useI18n();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -847,13 +869,13 @@ function DraftActionsMenu({ isOpen, onToggle, onClose, onEdit, onChangePublicati
 
   return (
     <div ref={menuRef} className="relative">
-      <button type="button" aria-label="Draft artwork actions" aria-expanded={isOpen} onClick={onToggle} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
+      <button type="button" aria-label={t('inventory.artworkActions')} aria-expanded={isOpen} onClick={onToggle} className="text-slate-950"><MoreHorizontal size={19} strokeWidth={2.6} /></button>
       {isOpen && (
         <div role="menu" className="absolute right-0 top-8 z-20 w-[270px] rounded-[16px] border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(15,23,42,0.18)]">
-          <DraftAction icon={Pencil} label="Edit Artwork" onClick={() => { onEdit(); onClose(); }} />
-          <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? 'Moving to draft…' : 'Publishing…') : (isPublished ? 'Change to Draft' : 'Change to Publish')} onClick={() => { onChangePublication(); onClose(); }} disabled={isChangingPublication} />
-          <DraftAction icon={Folder} label="Move to folder" onClick={() => { onMoveToFolder(); onClose(); }} />
-          <DraftAction icon={Trash2} label="Delete Artwork" destructive onClick={() => { onDelete(); onClose(); }} />
+          <DraftAction icon={Pencil} label={t('inventory.editArtwork')} onClick={() => { onEdit(); onClose(); }} />
+          <DraftAction icon={Repeat2} label={isChangingPublication ? (isPublished ? t('inventory.movingToDraft') : t('inventory.publishing')) : (isPublished ? t('inventory.changeToDraft') : t('inventory.changeToPublish'))} onClick={() => { onChangePublication(); onClose(); }} disabled={isChangingPublication} />
+          <DraftAction icon={Folder} label={t('inventory.moveToFolder')} onClick={() => { onMoveToFolder(); onClose(); }} />
+          <DraftAction icon={Trash2} label={t('inventory.deleteArtwork')} destructive onClick={() => { onDelete(); onClose(); }} />
         </div>
       )}
     </div>
@@ -870,8 +892,10 @@ function FolderPanel({ folders, activeFolderId, isLoading, onSelect, onCreate, o
   onMove: (folder: ArtworkFolderTree) => void;
   onDelete: (folder: ArtworkFolderTree) => void;
 }) {
+  const { t } = useI18n();
+
   return (
-    <section aria-label="Artwork folders" className="mb-5 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
+    <section aria-label={t('inventory.artworks')} className="mb-5 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
       <div className="flex flex-wrap items-start gap-2">
         <button
           type="button"
@@ -879,12 +903,12 @@ function FolderPanel({ folders, activeFolderId, isLoading, onSelect, onCreate, o
           className={`inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm font-semibold transition-colors ${activeFolderId === null ? 'bg-slate-950 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'}`}
         >
           <FolderOpen size={17} />
-          All artworks
+          {t('inventory.allArtworks')}
         </button>
         {isLoading ? (
-          <span className="h-9 px-2 text-sm leading-9 text-slate-500">Loading folders…</span>
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">{t('inventory.loadingFolders')}</span>
         ) : folders.length === 0 ? (
-          <span className="h-9 px-2 text-sm leading-9 text-slate-500">No folders yet</span>
+          <span className="h-9 px-2 text-sm leading-9 text-slate-500">{t('inventory.noFolders')}</span>
         ) : (
           folders.map((folder) => (
             <FolderTreeNode
@@ -913,6 +937,7 @@ function FolderTreeNode({ folder, activeFolderId, onSelect, onCreate, onRename, 
   onMove: (folder: ArtworkFolderTree) => void;
   onDelete: (folder: ArtworkFolderTree) => void;
 }) {
+  const { t } = useI18n();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -940,7 +965,7 @@ function FolderTreeNode({ folder, activeFolderId, onSelect, onCreate, onRename, 
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
         {hasChildren && (
-          <button type="button" aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${folder.name}`} aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="flex h-8 w-5 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-slate-200">
+          <button type="button" aria-label={t(isExpanded ? 'inventory.collapseFolder' : 'inventory.expandFolder', { name: folder.name })} aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="flex h-8 w-5 shrink-0 items-center justify-center rounded text-slate-500 hover:bg-slate-200">
             <ChevronRight size={17} className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
           </button>
         )}
@@ -952,15 +977,15 @@ function FolderTreeNode({ folder, activeFolderId, onSelect, onCreate, onRename, 
             <span className="text-xs opacity-70">{folder.artworkCount}</span>
           </button>
           <div ref={menuRef} className="relative">
-            <button type="button" aria-label={`Actions for ${folder.name}`} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
+            <button type="button" aria-label={t('inventory.folderActions', { name: folder.name })} aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen((open) => !open)} className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-black/10">
               <MoreHorizontal size={17} />
             </button>
             {isMenuOpen && (
               <div role="menu" className="absolute right-0 top-9 z-30 w-48 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-800 shadow-xl">
-                <FolderMenuButton label="New subfolder" onClick={() => { onCreate(folder); setIsMenuOpen(false); }} />
-                <FolderMenuButton label="Rename" onClick={() => { onRename(folder); setIsMenuOpen(false); }} />
-                <FolderMenuButton label="Move folder" onClick={() => { onMove(folder); setIsMenuOpen(false); }} />
-                <FolderMenuButton label="Delete" destructive onClick={() => { onDelete(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label={t('inventory.newSubfolder')} onClick={() => { onCreate(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label={t('inventory.rename')} onClick={() => { onRename(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label={t('inventory.moveFolder')} onClick={() => { onMove(folder); setIsMenuOpen(false); }} />
+                <FolderMenuButton label={t('inventory.delete')} destructive onClick={() => { onDelete(folder); setIsMenuOpen(false); }} />
               </div>
             )}
           </div>
@@ -999,6 +1024,7 @@ function FolderNameDialog({ mode, folder, isSaving, onCancel, onSubmit }: {
   onCancel: () => void;
   onSubmit: (name: string) => void;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState(mode === 'rename' ? folder?.name ?? '' : '');
   const isCreatingChild = mode === 'create' && folder !== null;
 
@@ -1009,11 +1035,11 @@ function FolderNameDialog({ mode, folder, isSaving, onCancel, onSubmit }: {
   };
 
   return (
-    <Dialog title={mode === 'rename' ? 'Rename folder' : isCreatingChild ? `New folder in ${folder.name}` : 'New folder'} onCancel={onCancel}>
+    <Dialog title={mode === 'rename' ? t('inventory.renameFolder') : isCreatingChild ? t('inventory.newFolderIn', { name: folder.name }) : t('inventory.newFolder')} onCancel={onCancel}>
       <form onSubmit={submit}>
-        <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-name">Folder name</label>
-        <input id="folder-name" autoFocus maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. New collection" className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-        <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={mode === 'rename' ? 'Save' : 'Create folder'} disabled={!name.trim()} />
+        <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-name">{t('inventory.folderName')}</label>
+        <input id="folder-name" autoFocus maxLength={100} value={name} onChange={(event) => setName(event.target.value)} placeholder={t('inventory.folderNameExample')} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+        <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={mode === 'rename' ? t('inventory.save') : t('inventory.createFolder')} disabled={!name.trim()} />
       </form>
     </Dialog>
   );
@@ -1026,18 +1052,19 @@ function MoveFolderDialog({ folder, folders, isSaving, onCancel, onSubmit }: {
   onCancel: () => void;
   onSubmit: (parentId: string | null) => void;
 }) {
+  const { t } = useI18n();
   const [parentId, setParentId] = useState(folder.parentId ?? '');
   const blockedIds = new Set(flattenFolders([folder]).map(({ folder: item }) => item.id));
   const options = flattenFolders(folders).filter((item) => !blockedIds.has(item.folder.id));
 
   return (
-    <Dialog title={`Move ${folder.name}`} onCancel={onCancel}>
-      <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-parent">Parent folder</label>
+    <Dialog title={t('inventory.moveFolder')} onCancel={onCancel}>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="folder-parent">{t('inventory.parentFolder')}</label>
       <select id="folder-parent" value={parentId} onChange={(event) => setParentId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
-        <option value="">No parent (top level)</option>
+        <option value="">{t('inventory.noParentFolder')}</option>
         {options.map(({ folder: option, depth }) => <option key={option.id} value={option.id}>{`${'— '.repeat(depth)}${option.name}`}</option>)}
       </select>
-      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move folder" onSubmit={() => onSubmit(parentId || null)} />
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={t('inventory.moveFolder')} onSubmit={() => onSubmit(parentId || null)} />
     </Dialog>
   );
 }
@@ -1049,17 +1076,18 @@ function MoveArtworkDialog({ artwork, folders, isSaving, onCancel, onSubmit }: {
   onCancel: () => void;
   onSubmit: (folderId: string | null) => void;
 }) {
+  const { t } = useI18n();
   const [folderId, setFolderId] = useState(artwork.folderId ?? '');
   const options = flattenFolders(folders);
 
   return (
-    <Dialog title={`Move ${artwork.title}`} onCancel={onCancel}>
-      <label className="block text-sm font-semibold text-slate-700" htmlFor="artwork-folder">Folder</label>
+    <Dialog title={t('inventory.moveArtwork')} onCancel={onCancel}>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="artwork-folder">{t('inventory.folder')}</label>
       <select id="artwork-folder" value={folderId} onChange={(event) => setFolderId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
-        <option value="">No folder</option>
+        <option value="">{t('inventory.noFolder')}</option>
         {options.map(({ folder, depth }) => <option key={folder.id} value={folder.id}>{`${'— '.repeat(depth)}${folder.name}`}</option>)}
       </select>
-      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move artwork" onSubmit={() => onSubmit(folderId || null)} />
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={t('inventory.moveArtwork')} onSubmit={() => onSubmit(folderId || null)} />
     </Dialog>
   );
 }
@@ -1071,18 +1099,19 @@ function BulkMoveArtworksDialog({ artworkCount, folders, isSaving, onCancel, onS
   onCancel: () => void;
   onSubmit: (folderId: string | null) => void;
 }) {
+  const { t } = useI18n();
   const [folderId, setFolderId] = useState('');
   const options = flattenFolders(folders);
 
   return (
-    <Dialog title={`Move ${artworkCount} artwork${artworkCount === 1 ? '' : 's'}`} onCancel={onCancel}>
-      <p className="mb-4 text-sm leading-6 text-slate-600">Choose where to move the selected artworks.</p>
-      <label className="block text-sm font-semibold text-slate-700" htmlFor="bulk-artwork-folder">Folder</label>
+    <Dialog title={t(artworkCount === 1 ? 'inventory.moveArtworks' : 'inventory.moveArtworksPlural', { count: artworkCount })} onCancel={onCancel}>
+      <p className="mb-4 text-sm leading-6 text-slate-600">{t('inventory.chooseFolder')}</p>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="bulk-artwork-folder">{t('inventory.folder')}</label>
       <select id="bulk-artwork-folder" autoFocus value={folderId} onChange={(event) => setFolderId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
-        <option value="">No folder</option>
+        <option value="">{t('inventory.noFolder')}</option>
         {options.map(({ folder, depth }) => <option key={folder.id} value={folder.id}>{`${'— '.repeat(depth)}${folder.name}`}</option>)}
       </select>
-      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move artworks" onSubmit={() => onSubmit(folderId || null)} />
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel={t('inventory.moveArtworksPlural', { count: artworkCount })} onSubmit={() => onSubmit(folderId || null)} />
     </Dialog>
   );
 }
@@ -1093,10 +1122,12 @@ function DeleteFolderDialog({ folder, isDeleting, onCancel, onConfirm }: {
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
-    <Dialog title="Delete folder?" onCancel={onCancel}>
-      <p className="text-sm leading-6 text-slate-600">&ldquo;{folder.name}&rdquo; can only be deleted when it has no artworks or subfolders.</p>
-      <DialogActions onCancel={onCancel} isSaving={isDeleting} submitLabel="Delete folder" destructive onSubmit={onConfirm} />
+    <Dialog title={t('inventory.deleteFolder')} onCancel={onCancel}>
+      <p className="text-sm leading-6 text-slate-600">{t('inventory.deleteFolderDescription', { name: folder.name })}</p>
+      <DialogActions onCancel={onCancel} isSaving={isDeleting} submitLabel={t('inventory.deleteFolder')} destructive onSubmit={onConfirm} />
     </Dialog>
   );
 }
@@ -1120,10 +1151,12 @@ function DialogActions({ onCancel, isSaving, submitLabel, onSubmit, disabled = f
   disabled?: boolean;
   destructive?: boolean;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="mt-6 flex justify-end gap-3">
-      <button type="button" onClick={onCancel} disabled={isSaving} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-50">Cancel</button>
-      <button type={onSubmit ? 'button' : 'submit'} onClick={onSubmit} disabled={isSaving || disabled} className={`rounded-full px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>{isSaving ? 'Saving…' : submitLabel}</button>
+      <button type="button" onClick={onCancel} disabled={isSaving} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-50">{t('inventory.cancel')}</button>
+      <button type={onSubmit ? 'button' : 'submit'} onClick={onSubmit} disabled={isSaving || disabled} className={`rounded-full px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 ${destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>{isSaving ? t('inventory.saving') : submitLabel}</button>
     </div>
   );
 }
@@ -1143,6 +1176,7 @@ function FilterDialog({ filters, customTags, anchorRef, onChange, onCancel, onAp
   onCancel: () => void;
   onApply: () => void;
 }) {
+  const { t } = useI18n();
   const [position, setPosition] = useState({ top: 90, right: 24 });
 
   useEffect(() => {
@@ -1192,37 +1226,37 @@ function FilterDialog({ filters, customTags, anchorRef, onChange, onCancel, onAp
         }}
         className="absolute overflow-y-auto rounded-[24px] bg-white p-5 shadow-[0_12px_26px_rgba(15,23,42,0.24)] sm:p-7"
       >
-        <h2 id="inventory-filter-title" className="text-base font-bold text-slate-500">Filters</h2>
+        <h2 id="inventory-filter-title" className="text-base font-bold text-slate-500">{t('inventory.filters')}</h2>
         <div className="mt-4 space-y-3">
-          <FilterSelect label="Status" value={filters.status} onChange={(value) => onChange('status', value)} options={[
-            ['DRAFT', 'Draft'], ['ACTIVE', 'Active'], ['SOLD', 'Sold'], ['RESERVED', 'Reserved'], ['INACTIVE', 'Inactive'],
+          <FilterSelect label={t('inventory.status')} value={filters.status} onChange={(value) => onChange('status', value)} options={[
+            ['DRAFT', t('inventory.draft')], ['ACTIVE', t('inventory.active')], ['SOLD', t('inventory.sold')], ['RESERVED', t('inventory.reserved')], ['INACTIVE', t('inventory.inactive')],
           ]} />
-          <FilterSelect label="Listing Type" value={filters.listingType} onChange={(value) => onChange('listingType', value)} options={[
-            ['listed', 'Listed on marketplace'], ['not-listed', 'Not listed'],
+          <FilterSelect label={t('inventory.listingType')} value={filters.listingType} onChange={(value) => onChange('listingType', value)} options={[
+            ['listed', t('inventory.listedOnMarketplace')], ['not-listed', t('inventory.notListed')],
           ]} />
-          <FilterTextInput label="Location" value={filters.location} onChange={(value) => onChange('location', value)} />
-          <FilterSelect label="Custom tags" value={filters.customTag} onChange={(value) => onChange('customTag', value)} options={customTags.map((tag) => [tag, tag])} />
-          <FilterSelect label="Visibility Type" value={filters.visibilityType} onChange={(value) => onChange('visibilityType', value)} options={[
-            ['public', 'Public'], ['private', 'Private'],
+          <FilterTextInput label={t('inventory.location')} value={filters.location} onChange={(value) => onChange('location', value)} />
+          <FilterSelect label={t('inventory.customTags')} value={filters.customTag} onChange={(value) => onChange('customTag', value)} options={customTags.map((tag) => [tag, tag])} />
+          <FilterSelect label={t('inventory.visibilityType')} value={filters.visibilityType} onChange={(value) => onChange('visibilityType', value)} options={[
+            ['public', t('inventory.public')], ['private', t('inventory.private')],
           ]} />
         </div>
 
         <div className="mt-4">
-          <p className="text-sm font-bold text-slate-500">Date range</p>
+          <p className="text-sm font-bold text-slate-500">{t('inventory.dateRange')}</p>
           <div className="mt-2.5">
-            <FilterSelect label="Date created" value="created" onChange={() => undefined} options={[["created", "Date created"]]} />
+            <FilterSelect label={t('inventory.dateCreated')} value="created" onChange={() => undefined} options={[["created", t('inventory.dateCreated')]]} />
           </div>
           <div className="mt-2.5 flex min-h-[48px] flex-col gap-1.5 rounded-[14px] border-2 border-slate-200 px-4 py-2 sm:flex-row sm:items-center">
             <CalendarDays className="shrink-0 text-slate-500" size={18} strokeWidth={2} />
-            <input aria-label="Start date" type="date" value={filters.dateFrom} onChange={(event) => onChange('dateFrom', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
-            <span className="hidden text-slate-400 sm:block">to</span>
-            <input aria-label="End date" type="date" value={filters.dateTo} min={filters.dateFrom || undefined} onChange={(event) => onChange('dateTo', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
+            <input aria-label={t('inventory.startDate')} type="date" value={filters.dateFrom} onChange={(event) => onChange('dateFrom', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
+            <span className="hidden text-slate-400 sm:block">{t('inventory.to')}</span>
+            <input aria-label={t('inventory.endDate')} type="date" value={filters.dateTo} min={filters.dateFrom || undefined} onChange={(event) => onChange('dateTo', event.target.value)} className="min-w-0 flex-1 bg-transparent text-xs font-medium text-slate-800 outline-none" />
           </div>
         </div>
 
         <div className="mt-5 flex items-center justify-center gap-3">
-          <button type="button" onClick={onCancel} className="min-w-[115px] rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-slate-50">Cancel</button>
-          <button type="button" onClick={onApply} className="min-w-[115px] rounded-full bg-blue-600 px-5 py-2 text-sm font-bold text-white hover:bg-blue-700">Apply</button>
+          <button type="button" onClick={onCancel} className="min-w-[115px] rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-slate-50">{t('inventory.cancel')}</button>
+          <button type="button" onClick={onApply} className="min-w-[115px] rounded-full bg-blue-600 px-5 py-2 text-sm font-bold text-white hover:bg-blue-700">{t('inventory.apply')}</button>
         </div>
       </section>
     </div>
@@ -1262,14 +1296,16 @@ function DeleteArtworkDialog({ artworkTitle, isDeleting, onCancel, onConfirm }: 
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 p-5" role="presentation">
       <section role="dialog" aria-modal="true" aria-labelledby="delete-artwork-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <h2 id="delete-artwork-title" className="text-xl font-bold text-slate-950">Delete artwork?</h2>
-        <p className="mt-3 text-sm leading-6 text-slate-600">&ldquo;{artworkTitle}&rdquo; will be permanently deleted. This action cannot be undone.</p>
+        <h2 id="delete-artwork-title" className="text-xl font-bold text-slate-950">{t('inventory.deleteArtworkTitle')}</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600">{t('inventory.deleteArtworkDescription', { title: artworkTitle })}</p>
         <div className="mt-6 flex justify-end gap-3">
-          <button type="button" onClick={onCancel} disabled={isDeleting} className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
-          <button type="button" onClick={onConfirm} disabled={isDeleting} className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300">{isDeleting ? 'Deleting…' : 'Delete artwork'}</button>
+          <button type="button" onClick={onCancel} disabled={isDeleting} className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">{t('inventory.cancel')}</button>
+          <button type="button" onClick={onConfirm} disabled={isDeleting} className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300">{isDeleting ? t('inventory.deleting') : t('inventory.deleteArtwork')}</button>
         </div>
       </section>
     </div>
