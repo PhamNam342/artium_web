@@ -200,6 +200,12 @@ export class UserService {
       throw new NotFoundException(t('user.user_not_found'));
     }
 
+    if (user.role === UserRole.ADMIN) {
+      throw new BadRequestException(
+        'Administrators cannot deactivate their own account.',
+      );
+    }
+
     user.is_active = false;
 
     await this.userRepository.save(user);
