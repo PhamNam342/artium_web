@@ -87,7 +87,16 @@
       "totalUsers": "Total Users",
       "totalArtists": "Total Artists",
       "totalCollectors": "Total Collectors",
-      "pendingVerifications": "Pending Verifications"
+      "pendingVerifications": "Pending Verifications",
+      "lastUpdated": "Live data",
+      "chart": {
+        "userGrowth": "User Growth",
+        "last6Months": "New registrations — last 6 months",
+        "newUsers": "New Users",
+        "roleBreakdown": "User Roles",
+        "distribution": "Distribution by account type",
+        "noData": "No data available"
+      }
     },
     "artworks": {
       "title": "Artwork Management",

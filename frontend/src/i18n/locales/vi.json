@@ -87,7 +87,16 @@
       "totalUsers": "Tổng số người dùng",
       "totalArtists": "Tổng số nghệ sĩ",
       "totalCollectors": "Tổng số nhà sưu tập",
-      "pendingVerifications": "Yêu cầu chờ duyệt"
+      "pendingVerifications": "Yêu cầu chờ duyệt",
+      "lastUpdated": "Dữ liệu thực",
+      "chart": {
+        "userGrowth": "Tăng trưởng người dùng",
+        "last6Months": "Đăng ký mới — 6 tháng gần đây",
+        "newUsers": "Người dùng mới",
+        "roleBreakdown": "Phân loại vai trò",
+        "distribution": "Phân bổ theo loại tài khoản",
+        "noData": "Không có dữ liệu"
+      }
     },
     "artworks": {
       "title": "Quản lý tác phẩm",

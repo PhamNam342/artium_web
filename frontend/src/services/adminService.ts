@@ -66,6 +66,8 @@ export interface AdminDashboardStats {
   totalArtists: number;
   totalCollectors: number;
   totalPendingVerifications: number;
+  monthlyUsers: { month: string; users: number }[];
+  roleBreakdown: { name: string; value: number }[];
 }
 
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
