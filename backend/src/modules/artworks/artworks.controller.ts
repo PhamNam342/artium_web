@@ -29,6 +29,10 @@ import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import {
+  BulkMoveArtworksInput,
+  BulkMoveArtworksResponseDto,
+} from './dto/bulk-move-artworks.dto';
+import {
   UpdateArtworkPublishDto,
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
@@ -64,6 +68,16 @@ export class ArtworksController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   createTag(@Body() body: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
     return this.artworksService.createTag(body);
+  }
+
+  @Post('bulk/move')
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  bulkMove(
+    @Req() req: RequestWithUser,
+    @Body() body: BulkMoveArtworksInput,
+  ): Promise<BulkMoveArtworksResponseDto> {
+    return this.artworksService.bulkMove(body, req.user.id);
   }
 
   @Get(':id')

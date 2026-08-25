@@ -21,6 +21,7 @@ import {
   Search,
   SlidersHorizontal,
   Trash2,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../features/auth/AuthContext';
@@ -76,6 +77,8 @@ export default function InventoryPage() {
   const [folderToMove, setFolderToMove] = useState<ArtworkFolderTree | null>(null);
   const [folderToDelete, setFolderToDelete] = useState<ArtworkFolderTree | null>(null);
   const [artworkToMove, setArtworkToMove] = useState<Artwork | null>(null);
+  const [selectedArtworkIds, setSelectedArtworkIds] = useState<Set<string>>(new Set());
+  const [isBulkMoveDialogOpen, setIsBulkMoveDialogOpen] = useState(false);
   const [isSavingFolder, setIsSavingFolder] = useState(false);
   const uploadMenuRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
@@ -187,6 +190,11 @@ export default function InventoryPage() {
     try {
       await artworkService.deleteArtwork(artworkToDelete.id);
       setArtworks((current) => current.filter((artwork) => artwork.id !== artworkToDelete.id));
+      setSelectedArtworkIds((current) => {
+        const next = new Set(current);
+        next.delete(artworkToDelete.id);
+        return next;
+      });
       setArtworkToDelete(null);
       toast.success('Artwork deleted.');
     } catch (error) {
@@ -274,6 +282,29 @@ export default function InventoryPage() {
     }
   };
 
+  const bulkMoveArtworks = async (folderId: string | null) => {
+    const artworkIds = [...selectedArtworkIds];
+    if (artworkIds.length === 0) return;
+
+    setIsSavingFolder(true);
+    try {
+      await artworkService.bulkMoveArtworks({ artworkIds, folderId });
+      const movedIds = new Set(artworkIds);
+      setArtworks((current) => current.map((artwork) => (
+        movedIds.has(artwork.id) ? { ...artwork, folderId } : artwork
+      )));
+      setSelectedArtworkIds(new Set());
+      setIsBulkMoveDialogOpen(false);
+      await refreshFolders();
+      toast.success(folderId ? `${artworkIds.length} artworks moved to folder.` : `${artworkIds.length} artworks removed from folder.`);
+    } catch (error) {
+      console.error('Bulk artwork folder move failed', error);
+      toast.error('Unable to move the selected artworks. Please try again.');
+    } finally {
+      setIsSavingFolder(false);
+    }
+  };
+
   const items = useMemo(() => {
     const query = search.trim().toLowerCase();
     const folderFiltered = activeFolderId
@@ -310,6 +341,27 @@ export default function InventoryPage() {
     () => [...new Set(artworks.flatMap((artwork) => artwork.customTags))].sort((first, second) => first.localeCompare(second)),
     [artworks],
   );
+
+  const selectedArtworkCount = selectedArtworkIds.size;
+  const allVisibleArtworksSelected = items.length > 0 && items.every((artwork) => selectedArtworkIds.has(artwork.id));
+
+  const toggleArtworkSelection = (artworkId: string) => {
+    setSelectedArtworkIds((current) => {
+      const next = new Set(current);
+      if (next.has(artworkId)) next.delete(artworkId);
+      else next.add(artworkId);
+      return next;
+    });
+  };
+
+  const toggleAllVisibleArtworkSelection = () => {
+    setSelectedArtworkIds((current) => {
+      const next = new Set(current);
+      if (allVisibleArtworksSelected) items.forEach((artwork) => next.delete(artwork.id));
+      else items.forEach((artwork) => next.add(artwork.id));
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
@@ -383,6 +435,19 @@ export default function InventoryPage() {
         />
 
         <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_2px_5px_rgba(15,23,42,0.04)]">
+          {selectedArtworkCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-100 bg-blue-50 px-4 py-3 text-sm sm:px-5 lg:px-6">
+              <span className="font-semibold text-blue-950">{selectedArtworkCount} artwork{selectedArtworkCount === 1 ? '' : 's'} selected</span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setSelectedArtworkIds(new Set())} className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 font-semibold text-slate-600 hover:bg-blue-100">
+                  <X size={16} /> Clear
+                </button>
+                <button type="button" onClick={() => setIsBulkMoveDialogOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-full bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700">
+                  <Folder size={16} /> Move to folder
+                </button>
+              </div>
+            </div>
+          )}
           <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
             <div className="text-sm font-semibold text-slate-950">Artworks</div>
 
@@ -494,6 +559,10 @@ export default function InventoryPage() {
                   changingPublicationArtworkId={changingPublicationArtworkId}
                   onMoveToFolder={setArtworkToMove}
                   onDelete={setArtworkToDelete}
+                  selectedArtworkIds={selectedArtworkIds}
+                  allArtworksSelected={allVisibleArtworksSelected}
+                  onToggleArtwork={toggleArtworkSelection}
+                  onToggleAllArtworks={toggleAllVisibleArtworkSelection}
                 />
               ) : (
                 <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2' : 'space-y-5'}>
@@ -507,6 +576,8 @@ export default function InventoryPage() {
                       isChangingPublication={changingPublicationArtworkId === item.id}
                       onMoveToFolder={() => setArtworkToMove(item)}
                       onDelete={() => setArtworkToDelete(item)}
+                      isSelected={selectedArtworkIds.has(item.id)}
+                      onToggleSelection={() => toggleArtworkSelection(item.id)}
                     />
                   ))}
                 </div>
@@ -568,6 +639,15 @@ export default function InventoryPage() {
           onSubmit={(folderId) => void moveArtwork(folderId)}
         />
       )}
+      {isBulkMoveDialogOpen && (
+        <BulkMoveArtworksDialog
+          artworkCount={selectedArtworkCount}
+          folders={folders}
+          isSaving={isSavingFolder}
+          onCancel={() => setIsBulkMoveDialogOpen(false)}
+          onSubmit={(folderId) => void bulkMoveArtworks(folderId)}
+        />
+      )}
       {isFilterOpen && (
         <FilterDialog
           filters={filterDraft}
@@ -587,7 +667,7 @@ export default function InventoryPage() {
 
 const INVENTORY_TABLE_COLUMNS = 'grid-cols-[minmax(220px,1.35fr)_minmax(120px,.8fr)_minmax(130px,.8fr)_minmax(85px,.55fr)_minmax(65px,.4fr)_minmax(150px,.9fr)_minmax(130px,.8fr)_minmax(150px,.9fr)_minmax(160px,1fr)_minmax(180px,1.1fr)_44px]';
 
-function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onMoveToFolder, onDelete }: {
+function InventoryTable({ artworks, artistName, onEdit, onChangePublication, changingPublicationArtworkId, onMoveToFolder, onDelete, selectedArtworkIds, allArtworksSelected, onToggleArtwork, onToggleAllArtworks }: {
   artworks: Artwork[];
   artistName: string;
   onEdit: (artwork: Artwork) => void;
@@ -595,12 +675,16 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
   changingPublicationArtworkId: string | null;
   onMoveToFolder: (artwork: Artwork) => void;
   onDelete: (artwork: Artwork) => void;
+  selectedArtworkIds: Set<string>;
+  allArtworksSelected: boolean;
+  onToggleArtwork: (artworkId: string) => void;
+  onToggleAllArtworks: () => void;
 }) {
   return (
     <div className="overflow-x-auto pb-1">
       <div className="min-w-[1520px]">
         <div className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-full bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950`}>
-          <div className="flex items-center gap-4"><input aria-label="Select all artworks" type="checkbox" className="h-5 w-5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" /><span className="inline-flex items-center gap-2">Title <ArrowUpDown size={16} className="text-slate-400" /></span></div>
+          <div className="flex items-center gap-4"><input aria-label="Select all visible artworks" type="checkbox" checked={allArtworksSelected} onChange={onToggleAllArtworks} className="h-5 w-5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" /><span className="inline-flex items-center gap-2">Title <ArrowUpDown size={16} className="text-slate-400" /></span></div>
           <span>Artist name</span>
           <span>Listing status</span>
           <span>Price</span>
@@ -624,6 +708,8 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
               isChangingPublication={changingPublicationArtworkId === artwork.id}
               onMoveToFolder={() => onMoveToFolder(artwork)}
               onDelete={() => onDelete(artwork)}
+              isSelected={selectedArtworkIds.has(artwork.id)}
+              onToggleSelection={() => onToggleArtwork(artwork.id)}
             />
           ))}
         </div>
@@ -632,7 +718,7 @@ function InventoryTable({ artworks, artistName, onEdit, onChangePublication, cha
   );
 }
 
-function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete }: {
+function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete, isSelected, onToggleSelection }: {
   artwork: Artwork;
   artistName: string;
   onEdit: () => void;
@@ -640,6 +726,8 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
   isChangingPublication: boolean;
   onMoveToFolder: () => void;
   onDelete: () => void;
+  isSelected: boolean;
+  onToggleSelection: () => void;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const image = getArtworkImage(artwork.images);
@@ -652,7 +740,7 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
   return (
     <article className={`grid ${INVENTORY_TABLE_COLUMNS} items-center gap-4 rounded-xl bg-slate-50 px-5 py-4 text-sm text-slate-800`}>
       <div className="flex min-w-0 items-center gap-4">
-        <input aria-label={`Select ${artwork.title}`} type="checkbox" className="h-5 w-5 shrink-0 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <input aria-label={`Select ${artwork.title}`} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="h-5 w-5 shrink-0 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-white text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || artwork.title} className="h-full w-full object-cover" /> : <ImageOff size={15} />}</div>
         <h2 className="line-clamp-2 font-semibold text-slate-950">{artwork.title}</h2>
       </div>
@@ -672,7 +760,7 @@ function InventoryTableRow({ artwork, artistName, onEdit, onChangePublication, i
   );
 }
 
-function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete }: {
+function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChangingPublication, onMoveToFolder, onDelete, isSelected, onToggleSelection }: {
   item: Artwork;
   viewMode: ViewMode;
   onEdit: () => void;
@@ -680,6 +768,8 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   isChangingPublication: boolean;
   onMoveToFolder: () => void;
   onDelete: () => void;
+  isSelected: boolean;
+  onToggleSelection: () => void;
 }) {
   const [isDraftMenuOpen, setIsDraftMenuOpen] = useState(false);
   const closeDraftMenu = () => setIsDraftMenuOpen(false);
@@ -706,7 +796,7 @@ function InventoryCard({ item, viewMode, onEdit, onChangePublication, isChanging
   return (
     <article className={`rounded-2xl border border-slate-200 px-6 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.08)] ${viewMode === 'compact' ? 'min-h-[126px]' : 'min-h-[168px]'}`}>
       <div className="flex items-start gap-4">
-        <input aria-label={`Select ${item.title}`} type="checkbox" className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
+        <input aria-label={`Select ${item.title}`} type="checkbox" checked={isSelected} onChange={onToggleSelection} className="mt-1 h-4.5 w-4.5 appearance-none rounded border-2 border-slate-400 checked:bg-blue-600" />
         <div className="flex h-[48px] w-[45px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50 text-slate-400">{image ? <img src={image.secureUrl || image.url} alt={image.altText || item.title} className="h-full w-full object-cover" /> : <ImageOff size={12} />}</div>
         <h2 className="pt-1 text-[17px] font-medium text-slate-700">{item.title}</h2>
         <div className="ml-auto flex items-center gap-3 pt-1">
@@ -970,6 +1060,29 @@ function MoveArtworkDialog({ artwork, folders, isSaving, onCancel, onSubmit }: {
         {options.map(({ folder, depth }) => <option key={folder.id} value={folder.id}>{`${'— '.repeat(depth)}${folder.name}`}</option>)}
       </select>
       <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move artwork" onSubmit={() => onSubmit(folderId || null)} />
+    </Dialog>
+  );
+}
+
+function BulkMoveArtworksDialog({ artworkCount, folders, isSaving, onCancel, onSubmit }: {
+  artworkCount: number;
+  folders: ArtworkFolderTree[];
+  isSaving: boolean;
+  onCancel: () => void;
+  onSubmit: (folderId: string | null) => void;
+}) {
+  const [folderId, setFolderId] = useState('');
+  const options = flattenFolders(folders);
+
+  return (
+    <Dialog title={`Move ${artworkCount} artwork${artworkCount === 1 ? '' : 's'}`} onCancel={onCancel}>
+      <p className="mb-4 text-sm leading-6 text-slate-600">Choose where to move the selected artworks.</p>
+      <label className="block text-sm font-semibold text-slate-700" htmlFor="bulk-artwork-folder">Folder</label>
+      <select id="bulk-artwork-folder" autoFocus value={folderId} onChange={(event) => setFolderId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500">
+        <option value="">No folder</option>
+        {options.map(({ folder, depth }) => <option key={folder.id} value={folder.id}>{`${'— '.repeat(depth)}${folder.name}`}</option>)}
+      </select>
+      <DialogActions onCancel={onCancel} isSaving={isSaving} submitLabel="Move artworks" onSubmit={() => onSubmit(folderId || null)} />
     </Dialog>
   );
 }

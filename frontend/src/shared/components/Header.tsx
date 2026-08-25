@@ -49,7 +49,7 @@ export default function Header() {
                   {t('nav.pricing')}
                 </Link>
                 {user && (
-                  <Link to="/orders" className="text-sm text-gray-600 hover:text-black transition-colors">
+                  <Link to="/orders" className="text-xs text-gray-600 hover:text-black transition-colors">
                     {t('nav.orders')}
                   </Link>
                 )}

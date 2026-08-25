@@ -27,6 +27,10 @@ import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
 import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
+import {
+  BulkMoveArtworksInput,
+  BulkMoveArtworksResponseDto,
+} from './dto/bulk-move-artworks.dto';
 
 type NormalizedListArtworksQuery = {
   page: number;
@@ -349,6 +353,54 @@ export class ArtworksService {
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async bulkMove(
+    input: BulkMoveArtworksInput,
+    ownerId: string,
+  ): Promise<BulkMoveArtworksResponseDto> {
+    const sellerId = this.cleanRequiredUuid(ownerId, 'sellerId');
+    const artworkIds = input.artworkIds.map((id) =>
+      this.cleanRequiredUuid(id, 'artworkIds'),
+    );
+    const uniqueArtworkIds = [...new Set(artworkIds)];
+
+    if (uniqueArtworkIds.length !== artworkIds.length) {
+      throw new BadRequestException('artworkIds must not contain duplicates');
+    }
+
+    if (!this.hasOwn(input, 'folderId')) {
+      throw new BadRequestException(
+        t('artwork.validation.required', {
+          args: { field: 'folderId' },
+        }),
+      );
+    }
+
+    const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
+    await this.assertFolderOwnedBySeller(folderId, sellerId);
+
+    return this.artworkRepository.manager.transaction(async (manager) => {
+      const ownedArtworkCount = await manager.count(Artwork, {
+        where: { id: In(uniqueArtworkIds), sellerId },
+      });
+
+      if (ownedArtworkCount !== uniqueArtworkIds.length) {
+        throw new NotFoundException(t('artwork.not_found'));
+      }
+
+      const result = await manager.update(
+        Artwork,
+        { id: In(uniqueArtworkIds), sellerId },
+        { folderId },
+      );
+
+      if (result.affected !== uniqueArtworkIds.length) {
+        throw new NotFoundException(t('artwork.not_found'));
+      }
+
+      return { movedCount: uniqueArtworkIds.length };
+    });
   }
 
   async updateStatus(
