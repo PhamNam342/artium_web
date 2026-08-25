@@ -30,7 +30,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <Link to="/home" className="text-xl font-bold tracking-tight text-black">
@@ -40,7 +40,7 @@ export default function Header() {
           <nav className="hidden items-center gap-6 md:flex">
             {user?.role !== 'ADMIN' && (
               <>
-                <NavLink to="/" end className={navLinkClass}>
+                <NavLink to="/home" end className={navLinkClass}>
                   {t('nav.home')}
                 </NavLink>
                 <NavLink to="/artworks" className={navLinkClass}>

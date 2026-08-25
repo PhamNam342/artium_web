@@ -18,7 +18,7 @@ import ForgotPasswordModal from '../features/auth/components/ForgotPasswordModal
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectPath = (location.state as { from?: string } | null)?.from || '/';
+  const redirectPath = (location.state as { from?: string } | null)?.from || '/home';
 
   const { login, loginWithGoogle } = useAuth();
   const { t, getApiError } = useI18n();

@@ -32,7 +32,7 @@ import PricingPage from '../pages/PricingPage';
 function GuestRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  let redirectPath = (location.state as { from?: string } | null)?.from || '/';
+  let redirectPath = (location.state as { from?: string } | null)?.from || '/home';
 
   if (isLoading) {
     return (
