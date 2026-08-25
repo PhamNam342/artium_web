@@ -5,7 +5,7 @@ const artworkImages = [
   { title: 'Amber Horizon', artist: 'Amelia Stone', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=700&q=85' },
   { title: 'Tidal Memory', artist: 'Minh Nguyen', image: 'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=700&q=85' },
   { title: 'Garden After Rain', artist: 'Amelia Stone', image: 'https://images.unsplash.com/photo-1515405295579-ba7b45403062?auto=format&fit=crop&w=700&q=85' },
-  { title: 'Violet Noon', artist: 'Amelia Stone', image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988f7?auto=format&fit=crop&w=700&q=85' },
+  { title: 'Violet Noon', artist: 'Amelia Stone', image: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?auto=format&fit=crop&w=700&q=85' },
   { title: 'Red Thread', artist: 'Amelia Stone', image: 'https://images.unsplash.com/photo-1541961017774-1fb6e03b2f9d?auto=format&fit=crop&w=700&q=85' },
   { title: 'Saigon Windows', artist: 'Linh Tran', image: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=700&q=85' },
   { title: 'Indigo Current', artist: 'An Pham', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=700&q=85' },
@@ -51,7 +51,7 @@ function Hero() {
         </div>
       </div>
       <ArtworkRail />
-      <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-lg px-5 sm:mt-16"><img alt="Artist working in a gallery" className="aspect-[1.35] w-full object-cover" src="https://images.unsplash.com/photo-1577083552431-6e5fd01988f7?auto=format&fit=crop&w=1500&q=85" /></div>
+      <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-lg px-5 sm:mt-16"><img alt="Artist working in a gallery" className="aspect-[1.35] w-full object-cover" src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1500&q=85" /></div>
     </section>
   );
 }
