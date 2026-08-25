@@ -5,7 +5,6 @@ import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import AdminLayout from '../layouts/AdminLayout';
 
-import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
@@ -14,9 +13,9 @@ import ArtistsPage from '../pages/ArtistsPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
 import ArtistProfilePage from '../pages/ArtistProfilePage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
-import HomePage from '../pages/HomePage';
 import InventoryPage from '../pages/InventoryPage';
 import UploadArtworkPage from '../pages/UploadArtworkPage';
+import HomePage from '../pages/HomePage';
 
 import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
@@ -128,7 +127,8 @@ export default function AppRoutes() {
     <>
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
@@ -172,7 +172,6 @@ export default function AppRoutes() {
               element={<PaymentResultPage cancelled />}
             />
             {/* Protected routes go here */}
-            <Route path="/home" element={<HomePage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
