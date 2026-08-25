@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 
 // Month key (YYYY-MM) → short name
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
                   }}
                   labelStyle={{ fontWeight: 600, color: '#1e293b' }}
                   itemStyle={{ color: '#6366f1' }}
-                  formatter={(v: number) => [v, t('admin.dashboard.chart.newUsers') || 'New Users']}
+                  formatter={(value) => [value ?? 0, t('admin.dashboard.chart.newUsers') || 'New Users']}
                 />
                 <Area
                   type="monotone"
@@ -233,7 +233,7 @@ export default function AdminDashboardPage() {
                       border: '1px solid #e2e8f0',
                       fontSize: 12,
                     }}
-                    formatter={(v: number, name: string) => [v, name]}
+                    formatter={(value, name) => [value ?? 0, name ?? '']}
                   />
                 </PieChart>
               </ResponsiveContainer>
