@@ -1,0 +1,8 @@
+{
+  "like_title": "New like",
+  "like_message": "Someone liked your artwork",
+  "comment_title": "New comment",
+  "comment_message": "Someone commented on your artwork",
+  "follow_title": "New follower",
+  "follow_message": "Someone started following you"
+}

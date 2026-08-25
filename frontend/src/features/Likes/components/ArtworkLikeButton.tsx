@@ -11,6 +11,22 @@ interface ArtworkLikeButtonProps {
   artworkId: string;
 }
 
+function getHttpStatus(error: unknown): number | undefined {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'status' in error.response &&
+    typeof error.response.status === 'number'
+  ) {
+    return error.response.status;
+  }
+
+  return undefined;
+}
+
 export default function ArtworkLikeButton({
   artworkId,
 }: ArtworkLikeButtonProps) {
@@ -90,10 +106,12 @@ export default function ArtworkLikeButton({
         setIsLiked(true);
         setLikeCount((current) => current + 1);
       }
-    } catch (error: any) {
-      if (error?.response?.status === 409) {
+    } catch (error: unknown) {
+      const status = getHttpStatus(error);
+
+      if (status === 409) {
         setIsLiked(true);
-      } else if (error?.response?.status === 404) {
+      } else if (status === 404) {
         setIsLiked(false);
       } else {
         toast.error(t('artworks.likeError'));

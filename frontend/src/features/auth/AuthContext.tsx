@@ -60,7 +60,7 @@ interface AuthContextType {
   login: (
     email: string,
     password: string,
-  ) => Promise<void>;
+  ) => Promise<User>;
 
   register: (
     email: string,
@@ -75,7 +75,7 @@ interface AuthContextType {
 
   loginWithGoogle: (
     idToken: string,
-  ) => Promise<void>;
+  ) => Promise<User>;
 
   completeProfile: (
     role: UserRole,
@@ -148,14 +148,16 @@ export function AuthProvider({
     async (
       email: string,
       password: string,
-    ) => {
+    ): Promise<User> => {
       const response =
         await authService.login({
           email,
           password,
         });
 
+      const extractedUser = extractUser(response.access_token);
       saveSession(response.access_token);
+      return extractedUser;
     },
     [saveSession],
   );
@@ -204,13 +206,15 @@ export function AuthProvider({
   // =====================================================
 
   const loginWithGoogle = useCallback(
-    async (idToken: string) => {
+    async (idToken: string): Promise<User> => {
       const response =
         await authService.loginWithGoogle({
           idToken,
         });
 
+      const extractedUser = extractUser(response.access_token);
       saveSession(response.access_token);
+      return extractedUser;
     },
     [saveSession],
   );

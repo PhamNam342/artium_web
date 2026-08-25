@@ -120,10 +120,13 @@ export default function UploadArtworkPage() {
   }, []);
 
   useEffect(() => {
-    if (!artworkId) return;
-
     let isCurrent = true;
     const loadArtwork = async () => {
+      if (!artworkId) {
+        setIsLoadingArtwork(false);
+        return;
+      }
+
       setIsLoadingArtwork(true);
       try {
         const artwork = await artworkService.getArtwork(artworkId);

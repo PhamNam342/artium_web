@@ -128,8 +128,8 @@ export class AuthService {
     }
     if (!user.is_active) {
       throw new HttpException(
-        t('auth.account_inactive'),
-        HttpStatus.UNAUTHORIZED,
+        t('auth.account_disabled') || 'Tài khoản của bạn đã bị vô hiệu hóa',
+        HttpStatus.FORBIDDEN,
       );
     }
     const validPassword = await bcrypt.compare(password, user.password);
@@ -186,7 +186,6 @@ export class AuthService {
 
       return this.generateToken(user);
     }
-
     // ==========================================
     // 2. Google ID not found → find by email
     // ==========================================
@@ -224,7 +223,6 @@ export class AuthService {
     });
 
     await this.users.save(user);
-
     return this.generateToken(user);
   }
 

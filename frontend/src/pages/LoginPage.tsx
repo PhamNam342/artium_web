@@ -47,14 +47,18 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
 
-      await login(email.trim(), password);
+      const user = await login(email.trim(), password);
 
       toast.success(t('auth.loginSuccess'));
 
       // AuthContext đã cập nhật user.
       // App sẽ tự kiểm tra user.role để hiển thị
       // CompleteProfileModal nếu cần.
-      navigate(redirectPath, { replace: true });
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate(redirectPath, { replace: true });
+      }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
 
@@ -85,7 +89,7 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
 
-      await loginWithGoogle(
+      const user = await loginWithGoogle(
         credentialResponse.credential,
       );
 
@@ -93,7 +97,11 @@ export default function LoginPage() {
 
       // Nếu user mới chưa có role,
       // CompleteProfileModal sẽ được App hiển thị.
-      navigate(redirectPath, { replace: true });
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate(redirectPath, { replace: true });
+      }
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>;
 

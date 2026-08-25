@@ -8,6 +8,7 @@ export interface SellerProfile {
   website_url: string | null;
   is_visible: boolean;
   is_verified: boolean;
+  verification_status: 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface PublicSellerProfile {
@@ -128,4 +129,57 @@ export async function deleteMyAccount() {
   const response = await api.delete('/identity/users/me');
 
   return response.data;
+}
+
+/**
+ * PUT /identity/seller-profiles/:profileId/verify-request
+ * Gửi yêu cầu duyệt Artist
+ */
+export async function requestVerification(
+  profileId: string,
+): Promise<SellerProfile> {
+  const res = await api.put<SellerProfile>(
+    `/identity/seller-profiles/${profileId}/verify-request`,
+  );
+  return res.data;
+}
+
+/**
+ * GET /admin/verify-requests
+ * Lấy danh sách yêu cầu duyệt
+ */
+export async function getPendingVerifications(
+  page: number = 1,
+  limit: number = 10,
+) {
+  const res = await api.get(`/admin/verify-requests`, {
+    params: { page, limit },
+  });
+  return res.data;
+}
+
+/**
+ * POST /admin/verify-requests/:profileId/approve
+ * Chấp nhận yêu cầu duyệt
+ */
+export async function approveVerification(
+  profileId: string,
+): Promise<SellerProfile> {
+  const res = await api.post<SellerProfile>(
+    `/admin/verify-requests/${profileId}/approve`,
+  );
+  return res.data;
+}
+
+/**
+ * POST /admin/verify-requests/:profileId/reject
+ * Từ chối yêu cầu duyệt
+ */
+export async function rejectVerification(
+  profileId: string,
+): Promise<SellerProfile> {
+  const res = await api.post<SellerProfile>(
+    `/admin/verify-requests/${profileId}/reject`,
+  );
+  return res.data;
 }

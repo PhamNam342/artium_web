@@ -12,7 +12,10 @@ import { UpdateArtworkCommentDto } from './dto/update-artwork-comment.dto';
 import { ArtworkCommentResponseDto } from './dto/artwork-comment-response.dto';
 
 import { Artwork, ArtworkStatus } from '../../../artworks/artwork.entity';
-
+import { NotificationService } from '../../../notification/notification.service';
+import { NotificationType } from '../../../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../../../notification/enums/notification-entity-type.enum';
+import { t } from '../../../../common/utils/i18n.util';
 @Injectable()
 export class ArtworkCommentService {
   constructor(
@@ -21,6 +24,7 @@ export class ArtworkCommentService {
 
     @InjectRepository(Artwork)
     private readonly artworkRepository: Repository<Artwork>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   // ============================================
@@ -52,12 +56,11 @@ export class ArtworkCommentService {
     artworkId: string,
     dto: CreateArtworkCommentDto,
   ) {
+    const artwork = await this.findPublicArtwork(artworkId);
+
     if (!dto.content.trim()) {
       throw new BadRequestException('Comment content cannot be empty');
     }
-
-    // Kiểm tra artwork tồn tại + public
-    await this.findPublicArtwork(artworkId);
 
     const comment = this.commentRepository.create({
       userId,
@@ -66,6 +69,18 @@ export class ArtworkCommentService {
     });
 
     const savedComment = await this.commentRepository.save(comment);
+
+    if (artwork.sellerId !== userId) {
+      await this.notificationService.create({
+        recipientId: artwork.sellerId,
+        actorId: userId,
+        type: NotificationType.ARTWORK_COMMENT,
+        entityType: NotificationEntityType.ARTWORK,
+        entityId: artwork.id,
+        title: t('notification.comment_title'),
+        message: t('notification.comment_message'),
+      });
+    }
 
     return this.findOne(savedComment.id);
   }

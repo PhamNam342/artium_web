@@ -16,7 +16,79 @@
     "register": "Sign Up",
     "profile": "Profile",
     "orders": "Orders",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "userManagement": "User Management",
+    "verifyRequests": "Verify Requests"
+  },
+  "admin": {
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage all registered accounts, roles and their statuses.",
+      "searchPlaceholder": "Search users by name or email...",
+      "filterAll": "All Status",
+      "filterActive": "Active",
+      "filterInactive": "Inactive",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "joinedDate": "Joined Date",
+        "actions": "Actions",
+        "empty": "No users found matching your search.",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "disable": "Disable",
+        "enable": "Enable"
+      },
+      "confirmModal": {
+        "titleDisable": "Disable User Account",
+        "titleEnable": "Enable User Account",
+        "descDisable": "Are you sure you want to disable this user? They will not be able to log in or use the platform.",
+        "descEnable": "Are you sure you want to enable this user? They will regain access to the platform.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "messages": {
+        "fetchError": "Failed to load users",
+        "updateSuccess": "Status updated successfully",
+        "updateError": "Failed to update user status"
+      }
+    },
+    "verifyRequests": {
+      "title": "Artist Verify Requests",
+      "subtitle": "Manage pending verification requests from artists.",
+      "table": {
+        "artist": "Artist",
+        "email": "Email",
+        "bioWebsite": "Bio / Website",
+        "empty": "No pending requests found."
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "messages": {
+        "fetchError": "Failed to load verify requests",
+        "approveSuccess": "Artist approved successfully",
+        "approveError": "Failed to approve artist",
+        "rejectSuccess": "Artist verification rejected",
+        "rejectError": "Failed to reject artist"
+      },
+      "paginationLabel": "Showing {{start}} to {{end}} of {{total}} results",
+      "previous": "Previous",
+      "next": "Next",
+      "pageInfo": "Page {{page}} of {{totalPages}}"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of your platform metrics and activities.",
+      "totalUsers": "Total Users",
+      "totalArtists": "Total Artists",
+      "totalCollectors": "Total Collectors",
+      "pendingVerifications": "Pending Verifications"
+    }
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -144,66 +216,70 @@
     "unauthorized": "Session expired. Please sign in again."
   },
   "profile": {
-    "title": "My Profile",
-    "subtitle": "Manage your personal information and account settings",
-    "artist": "Artist",
-    "collector": "Collector",
-    "verified": "Verified",
-    "notVerified": "Not verified",
-    "verifiedAccount": "Verified Account",
-    "changeAvatar": "Click to change photo • Max 5MB",
-    "avatarSuccess": "Avatar updated successfully!",
-    "avatarError": "Failed to upload avatar. Please try again.",
-    "avatarFormatError": "Only image files are allowed (jpg, png, webp...)",
-    "avatarSizeError": "Image size cannot exceed 5MB",
-    "emailLabel": "Email",
-    "nameLabel": "Full Name",
-    "namePlaceholder": "Enter your full name",
-    "locationLabel": "Location",
-    "locationPlaceholder": "E.g. New York, USA",
-    "artistInfo": "Artist Information",
-    "bioLabel": "Bio",
-    "bioPlaceholder": "Describe your art style, experience...",
-    "websiteLabel": "Website / Portfolio",
-    "websitePlaceholder": "https://yourportfolio.com",
-    "profileNotCreated": "Artist profile not created. Please contact admin.",
-    "publicVisibility": "Public Profile Visibility",
-    "visibleHelp": "Everyone can view your profile",
-    "hiddenHelp": "Your profile is hidden",
-    "visibilitySuccess": "Profile visibility updated successfully",
-    "visibilityError": "Failed to update profile visibility",
-    "saveChanges": "Save Changes",
-    "saving": "Saving...",
-    "updateSuccess": "Profile updated successfully!",
-    "updateError": "Failed to update profile. Please try again.",
-    "loadError": "Failed to load profile information.",
-    "addLocation": "Add location",
-    "addBio": "Add bio",
-    "addWebsite": "Add website",
-    "changePassword": "Change Password",
-    "currentPasswordLabel": "Current Password",
-    "currentPasswordPlaceholder": "Enter your current password",
-    "newPasswordLabel": "New Password",
-    "newPasswordPlaceholder": "Enter new password (min. 8 characters)",
-    "confirmPasswordLabel": "Confirm New Password",
-    "confirmPasswordPlaceholder": "Re-enter new password",
-    "updatePassword": "Update Password",
-    "passwordChanging": "Updating...",
-    "passwordChangeSuccess": "Password updated successfully!",
-    "passwordChangeError": "Failed to update password. Please try again.",
-    "passwordFillAll": "Please fill in all password fields.",
-    "passwordMinLength": "New password must be at least 8 characters.",
-    "passwordMismatch": "New passwords do not match.",
-    "passwordTooWeak": "Password is too weak. Use uppercase, lowercase, numbers and symbols.",
-    "passwordGoogleOnly": "This account uses Google sign-in. Password cannot be changed here.",
-    "passwordStrength": {
-      "weak": "Weak password",
-      "fair": "Fair password",
-      "good": "Good password",
-      "strong": "Strong password"
-    },
-    "unverified":"Unverified",
-    "deleteAccount": {
+  "title": "My Profile",
+  "subtitle": "Manage your personal information and account settings",
+  "artist": "Artist",
+  "collector": "Collector",
+  "verified": "Verified",
+  "notVerified": "Not verified",
+  "verifiedAccount": "Verified Account",
+  "changeAvatar": "Click to change photo • Max 5MB",
+  "avatarSuccess": "Avatar updated successfully!",
+  "avatarError": "Failed to upload avatar. Please try again.",
+  "avatarFormatError": "Only image files are allowed (jpg, png, webp...)",
+  "avatarSizeError": "Image size cannot exceed 5MB",
+  "emailLabel": "Email",
+  "nameLabel": "Full Name",
+  "namePlaceholder": "Enter your full name",
+  "locationLabel": "Location",
+  "locationPlaceholder": "E.g. New York, USA",
+  "artistInfo": "Artist Information",
+  "bioLabel": "Bio",
+  "bioPlaceholder": "Describe your art style, experience...",
+  "websiteLabel": "Website / Portfolio",
+  "websitePlaceholder": "https://yourportfolio.com",
+  "profileNotCreated": "Artist profile not created. Please contact admin.",
+  "publicVisibility": "Public Profile Visibility",
+  "visibleHelp": "Everyone can view your profile",
+  "hiddenHelp": "Your profile is hidden",
+  "visibilitySuccess": "Profile visibility updated successfully",
+  "visibilityError": "Failed to update profile visibility",
+  "saveChanges": "Save Changes",
+  "saving": "Saving...",
+  "updateSuccess": "Profile updated successfully!",
+  "updateError": "Failed to update profile. Please try again.",
+  "loadError": "Failed to load profile information.",
+  "addLocation": "Add location",
+  "addBio": "Add bio",
+  "addWebsite": "Add website",
+
+  "changePassword": "Change Password",
+  "currentPasswordLabel": "Current Password",
+  "currentPasswordPlaceholder": "Enter your current password",
+  "newPasswordLabel": "New Password",
+  "newPasswordPlaceholder": "Enter new password (min. 8 characters)",
+  "confirmPasswordLabel": "Confirm New Password",
+  "confirmPasswordPlaceholder": "Re-enter new password",
+  "updatePassword": "Update Password",
+  "passwordChanging": "Updating...",
+  "passwordChangeSuccess": "Password updated successfully!",
+  "passwordChangeError": "Failed to update password. Please try again.",
+  "passwordFillAll": "Please fill in all password fields.",
+  "passwordMinLength": "New password must be at least 8 characters.",
+  "passwordMismatch": "New passwords do not match.",
+  "passwordTooWeak": "Password is too weak. Use uppercase, lowercase, numbers and symbols.",
+  "passwordGoogleOnly": "This account uses Google sign-in. Password cannot be changed here.",
+
+  "passwordStrength": {
+    "weak": "Weak password",
+    "fair": "Fair password",
+    "good": "Good password",
+    "strong": "Strong password"
+  },
+
+  "unverified": "Unverified",
+
+  "deleteAccount": {
     "title": "Delete Account",
     "description": "Your account will be deactivated. Your data will be retained.",
     "button": "Delete Account",
@@ -213,9 +289,20 @@
     "deleting": "Deleting...",
     "success": "Your account has been deactivated successfully.",
     "error": "Failed to delete your account.",
-    "cancel":"Cancel"
-  }
+    "cancel": "Cancel"
   },
+
+  "verificationStatus": "Verification Status",
+  "verifiedDesc": "Your account is verified.",
+  "pendingDesc": "Your verification request is under review.",
+  "rejectedDesc": "Your previous verification request was rejected.",
+  "unverifiedDesc": "Get a verified badge to build trust with collectors.",
+  "verifiedStatus": "Verified",
+  "pendingStatus": "Pending",
+  "requestVerification": "Request Verification",
+  "verifyRequestSuccess": "Verification requested successfully",
+  "verifyRequestError": "Failed to request verification"
+},
   "orders": {
     "title": "Your Orders",
     "empty": "You have no orders yet.",
@@ -290,6 +377,19 @@
     "viewOrder": "View order",
     "missingOrder": "The payment order could not be found.",
     "lookupError": "Unable to load the payment status."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications yet",
+    "unreadBadge": "Unread",
+    "newNotification": "New notification",
+    "types": {
+      "artworkLike": "{{actor}} liked your artwork",
+      "artworkComment": "{{actor}} commented on your artwork",
+      "follow": "{{actor}} started following you",
+      "momentLike": "{{actor}} liked your moment",
+      "momentComment": "{{actor}} commented on your moment"
+    }
   }
-
-  }
+}

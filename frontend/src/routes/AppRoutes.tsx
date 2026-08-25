@@ -3,6 +3,7 @@ import { useAuth } from '../features/auth/AuthContext';
 
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
+import AdminLayout from '../layouts/AdminLayout';
 
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
@@ -19,12 +20,15 @@ import UploadArtworkPage from '../pages/UploadArtworkPage';
 import OrdersPage from '../pages/OrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import AdminUsersPage from '../pages/AdminUsersPage';
+import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
+import AdminDashboardPage from '../pages/AdminDashboardPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
 
-function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string }) {
+function GuestRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
-  const redirectPath = (location.state as { from?: string } | null)?.from || defaultRedirect;
+  let redirectPath = (location.state as { from?: string } | null)?.from || '/';
 
   if (isLoading) {
     return (
@@ -35,6 +39,9 @@ function GuestRoute({ defaultRedirect = '/home' }: { defaultRedirect?: string })
   }
 
   if (user) {
+    if (user.role === 'ADMIN') {
+      redirectPath = '/admin/dashboard';
+    }
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -89,6 +96,29 @@ function ProtectedRoute() {
   return <Outlet />;
 }
 
+function AdminRoute() {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-600 rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  if (user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
 export default function AppRoutes() {
   return (
     <>
@@ -100,6 +130,15 @@ export default function AppRoutes() {
           <Route path="/artists/:userId" element={<ArtistProfilePage />} />
           <Route element={<ArtistRoute />}>
             <Route path="/inventory" element={<InventoryPage />} />
+          </Route>
+        </Route>
+
+        {/* Admin Routes with AdminLayout */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/verify-requests" element={<AdminVerifyRequestsPage />} />
           </Route>
         </Route>
 

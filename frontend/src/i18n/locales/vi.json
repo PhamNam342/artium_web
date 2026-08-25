@@ -16,7 +16,79 @@
     "register": "Đăng ký",
     "profile": "Hồ sơ cá nhân",
     "orders": "Đơn hàng",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "userManagement": "Quản lý người dùng",
+    "verifyRequests": "Yêu cầu duyệt"
+  },
+  "admin": {
+    "users": {
+      "title": "Quản lý người dùng",
+      "subtitle": "Quản lý tất cả tài khoản đã đăng ký, vai trò và trạng thái hoạt động.",
+      "searchPlaceholder": "Tìm kiếm theo tên hoặc email...",
+      "filterAll": "Tất cả",
+      "filterActive": "Hoạt động",
+      "filterInactive": "Vô hiệu hóa",
+      "table": {
+        "user": "Người dùng",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "joinedDate": "Ngày tham gia",
+        "actions": "Hành động",
+        "empty": "Không tìm thấy người dùng nào phù hợp.",
+        "active": "Hoạt động",
+        "inactive": "Vô hiệu hóa"
+      },
+      "actions": {
+        "disable": "Vô hiệu hóa",
+        "enable": "Kích hoạt"
+      },
+      "confirmModal": {
+        "titleDisable": "Vô hiệu hóa tài khoản",
+        "titleEnable": "Kích hoạt tài khoản",
+        "descDisable": "Bạn có chắc chắn muốn vô hiệu hóa người dùng này? Họ sẽ không thể đăng nhập và sử dụng hệ thống.",
+        "descEnable": "Bạn có chắc chắn muốn kích hoạt lại người dùng này? Họ sẽ có thể đăng nhập bình thường.",
+        "cancel": "Hủy bỏ",
+        "confirm": "Xác nhận"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách người dùng",
+        "updateSuccess": "Cập nhật trạng thái thành công",
+        "updateError": "Cập nhật trạng thái thất bại"
+      }
+    },
+    "verifyRequests": {
+      "title": "Yêu cầu duyệt Artist",
+      "subtitle": "Quản lý các yêu cầu duyệt tài khoản từ nghệ sĩ.",
+      "table": {
+        "artist": "Nghệ sĩ",
+        "email": "Email",
+        "bioWebsite": "Tiểu sử / Website",
+        "empty": "Không có yêu cầu duyệt nào."
+      },
+      "actions": {
+        "approve": "Duyệt",
+        "reject": "Từ chối"
+      },
+      "messages": {
+        "fetchError": "Không thể tải danh sách yêu cầu",
+        "approveSuccess": "Đã duyệt nghệ sĩ thành công",
+        "approveError": "Duyệt nghệ sĩ thất bại",
+        "rejectSuccess": "Đã từ chối yêu cầu của nghệ sĩ",
+        "rejectError": "Từ chối nghệ sĩ thất bại"
+      },
+      "paginationLabel": "Hiển thị {{start}} đến {{end}} trong {{total}} kết quả",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "pageInfo": "Trang {{page}} / {{totalPages}}"
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển",
+      "subtitle": "Tổng quan về các chỉ số và hoạt động của nền tảng.",
+      "totalUsers": "Tổng số người dùng",
+      "totalArtists": "Tổng số nghệ sĩ",
+      "totalCollectors": "Tổng số nhà sưu tập",
+      "pendingVerifications": "Yêu cầu chờ duyệt"
+    }
   },
   "auth": {
     "welcomeBack": "Chào mừng trở lại",
@@ -215,7 +287,17 @@
     "success": "Tài khoản của bạn đã được vô hiệu hóa thành công.",
     "error": "Không thể xóa tài khoản.",
     "cancel":"Hủy"
-  }
+  },
+    "verificationStatus": "Trạng thái xác minh",
+    "verifiedDesc": "Tài khoản của bạn đã được xác minh.",
+    "pendingDesc": "Yêu cầu xác minh của bạn đang được xét duyệt.",
+    "rejectedDesc": "Yêu cầu xác minh trước đó đã bị từ chối.",
+    "unverifiedDesc": "Nhận huy hiệu xác minh để tạo niềm tin với nhà sưu tập.",
+    "verifiedStatus": "Đã xác minh",
+    "pendingStatus": "Chờ duyệt",
+    "requestVerification": "Yêu cầu xác minh",
+    "verifyRequestSuccess": "Đã gửi yêu cầu xác minh thành công",
+    "verifyRequestError": "Gửi yêu cầu xác minh thất bại"
   },
   "orders": {
     "title": "Đơn hàng của bạn",
@@ -291,5 +373,19 @@
     "viewOrder": "Xem đơn hàng",
     "missingOrder": "Không tìm thấy đơn hàng thanh toán.",
     "lookupError": "Không thể tải trạng thái thanh toán."
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "noNotifications": "Chưa có thông báo nào",
+    "unreadBadge": "Chưa đọc",
+    "newNotification": "Thông báo mới",
+    "types": {
+      "artworkLike": "{{actor}} đã thích tác phẩm của bạn",
+      "artworkComment": "{{actor}} đã bình luận về tác phẩm của bạn",
+      "follow": "{{actor}} đã bắt đầu theo dõi bạn",
+      "momentLike": "{{actor}} đã thích khoảnh khắc của bạn",
+      "momentComment": "{{actor}} đã bình luận về khoảnh khắc của bạn"
+    }
   }
 }

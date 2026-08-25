@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -27,6 +28,9 @@ import type { UploadedAvatarFile } from '../../modules/upload/upload.types';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from './entities/user.entity';
 @Controller('identity/users')
 export class UserController {
   constructor(
@@ -34,6 +38,68 @@ export class UserController {
     private readonly uploadService: UploadService,
     private readonly configService: ConfigService,
   ) {}
+
+  // =========================
+  // Admin Endpoints
+  // =========================
+
+  @Get('admin/dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAdminDashboardStats() {
+    return this.userService.getAdminDashboardStats();
+  }
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAllUsers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
+  ) {
+    const parsedPage = Number.parseInt(page, 10);
+    const parsedLimit = Number.parseInt(limit, 10);
+    const pageNum =
+      Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const limitNum =
+      Number.isInteger(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 10;
+    const activeFilter =
+      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+
+    return this.userService.findAllUsers(
+      pageNum,
+      limitNum,
+      search,
+      activeFilter,
+    );
+  }
+
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAdminUserDetail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.userService.getAdminUserDetail(id);
+  }
+
+  @Patch('admin/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async toggleUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('is_active') isActive: boolean,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.userService.toggleUserStatus(id, isActive, req.user.id);
+  }
+
+  // =========================
+  // Public & User Endpoints
+  // =========================
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: RequestWithUser) {

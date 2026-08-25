@@ -8,7 +8,9 @@ import { Repository } from 'typeorm';
 
 import { Follow } from './entities/follow.entity';
 import { User } from '../../../identity/user/entities/user.entity';
-
+import { NotificationService } from '../../notification/notification.service';
+import { NotificationType } from '../../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../../notification/enums/notification-entity-type.enum';
 @Injectable()
 export class FollowersService {
   constructor(
@@ -17,6 +19,7 @@ export class FollowersService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async follow(followerId: string, followingId: string) {
@@ -53,8 +56,23 @@ export class FollowersService {
       follower_id: followerId,
       following_id: followingId,
     });
+    const savedFollow = await this.followRepository.save(follow);
 
-    return this.followRepository.save(follow);
+    try {
+      await this.notificationService.create({
+        recipientId: followingId,
+        actorId: followerId,
+        type: NotificationType.FOLLOW,
+        entityType: NotificationEntityType.USER,
+        entityId: followerId,
+        title: 'New follower',
+        message: 'Someone started following you',
+      });
+    } catch (error) {
+      console.error('Failed to create follow notification:', error);
+    }
+
+    return savedFollow;
   }
   // unfollow
   async unfollow(followerId: string, followingId: string) {
