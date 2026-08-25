@@ -277,5 +277,19 @@
     "viewOrder": "View order",
     "missingOrder": "The payment order could not be found.",
     "lookupError": "Unable to load the payment status."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications yet",
+    "unreadBadge": "Unread",
+    "newNotification": "New notification",
+    "types": {
+      "artworkLike": "{{actor}} liked your artwork",
+      "artworkComment": "{{actor}} commented on your artwork",
+      "follow": "{{actor}} started following you",
+      "momentLike": "{{actor}} liked your moment",
+      "momentComment": "{{actor}} commented on your moment"
+    }
   }
-  }
+}

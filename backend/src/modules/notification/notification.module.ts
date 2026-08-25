@@ -3,18 +3,19 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import type { StringValue } from 'ms';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
-import { MailModule } from '../../common/mail/mail.module';
-import { User } from '../user/entities/user.entity';
 import { RedisModule } from '../../common/redis/redis.module';
-import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
+
+import { Notification } from './entities/notification.entity';
+import { NotificationController } from './notification.controller';
+import { NotificationService } from './notification.service';
+import { NotificationGateway } from './notification.gateway';
+
 @Module({
   imports: [
     ConfigModule,
     RedisModule,
-    TypeOrmModule.forFeature([User, SellerProfile]),
+
+    TypeOrmModule.forFeature([Notification]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -28,12 +29,12 @@ import { SellerProfile } from '../seller_profile/entities/seller_profile.entity'
         },
       }),
     }),
-
-    MailModule,
   ],
 
-  providers: [AuthService, JwtStrategy],
-  controllers: [AuthController],
-  exports: [AuthService],
+  controllers: [NotificationController],
+
+  providers: [NotificationService, NotificationGateway],
+
+  exports: [NotificationService],
 })
-export class AuthModule {}
+export class NotificationModule {}

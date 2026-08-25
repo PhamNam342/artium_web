@@ -277,5 +277,19 @@
     "viewOrder": "Xem đơn hàng",
     "missingOrder": "Không tìm thấy đơn hàng thanh toán.",
     "lookupError": "Không thể tải trạng thái thanh toán."
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "noNotifications": "Chưa có thông báo nào",
+    "unreadBadge": "Chưa đọc",
+    "newNotification": "Thông báo mới",
+    "types": {
+      "artworkLike": "{{actor}} đã thích tác phẩm của bạn",
+      "artworkComment": "{{actor}} đã bình luận về tác phẩm của bạn",
+      "follow": "{{actor}} đã bắt đầu theo dõi bạn",
+      "momentLike": "{{actor}} đã thích khoảnh khắc của bạn",
+      "momentComment": "{{actor}} đã bình luận về khoảnh khắc của bạn"
+    }
   }
 }
