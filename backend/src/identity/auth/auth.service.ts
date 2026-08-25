@@ -126,14 +126,12 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-
     if (!user.is_active) {
       throw new HttpException(
         t('auth.account_disabled') || 'Tài khoản của bạn đã bị vô hiệu hóa',
         HttpStatus.FORBIDDEN,
       );
     }
-
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
@@ -168,36 +166,63 @@ export class AuthService {
     const email = payload.email;
     const google_id = payload.sub;
 
+    // ==========================================
+    // 1. Find user by Google ID
+    // ==========================================
+
     let user = await this.users.findOne({
-      where: { google_id },
+      where: {
+        google_id,
+      },
     });
 
-    if (!user) {
-      user = await this.users.findOne({
-        where: { email },
-      });
-
-      if (user) {
-        user.google_id = google_id;
-
-        await this.users.save(user);
-      } else {
-        user = this.users.create({
-          email,
-          google_id,
-        });
-
-        await this.users.save(user);
+    if (user) {
+      if (!user.is_active) {
+        throw new HttpException(
+          t('auth.account_inactive'),
+          HttpStatus.UNAUTHORIZED,
+        );
       }
+
+      return this.generateToken(user);
+    }
+    // ==========================================
+    // 2. Google ID not found → find by email
+    // ==========================================
+
+    user = await this.users.findOne({
+      where: {
+        email,
+      },
+    });
+
+    if (user) {
+      if (!user.is_active) {
+        throw new HttpException(
+          t('auth.account_inactive'),
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      // Link Google account to existing account
+      user.google_id = google_id;
+
+      await this.users.save(user);
+
+      return this.generateToken(user);
     }
 
-    if (!user.is_active) {
-      throw new HttpException(
-        t('auth.account_disabled') || 'Tài khoản của bạn đã bị vô hiệu hóa',
-        HttpStatus.FORBIDDEN,
-      );
-    }
+    // ==========================================
+    // 3. User does not exist → create new user
+    // ==========================================
 
+    user = this.users.create({
+      email,
+      google_id,
+      is_active: true,
+    });
+
+    await this.users.save(user);
     return this.generateToken(user);
   }
 
@@ -304,10 +329,9 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !user.is_active) {
       return;
     }
-
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     await this.cacheManager.set(
       `forgot-password:otp:${email}`,

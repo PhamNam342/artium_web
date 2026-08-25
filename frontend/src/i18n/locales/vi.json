@@ -205,7 +205,8 @@
     "comingSoon": "Phần này sẽ sớm có mặt.",
     "buyNow": "Mua ngay",
     "about": "Giới thiệu về nghệ sĩ",
-    "verified": "Đã xác minh"
+    "verified": "Đã xác minh",
+    "unverified":"Chưa xác minh"
   },
   "apiErrors": {
     "emailExists": "Email này đã được sử dụng",
@@ -274,6 +275,19 @@
       "good": "Mật khẩu khá mạnh",
       "strong": "Mật khẩu mạnh"
     },
+    "unverified":"Chưa xác minh",
+    "deleteAccount": {
+    "title": "Xóa tài khoản",
+    "description": "Tài khoản của bạn sẽ bị vô hiệu hóa. Dữ liệu của bạn sẽ được giữ lại.",
+    "button": "Xóa tài khoản",
+    "confirmTitle": "Xóa tài khoản của bạn?",
+    "confirmDescription": "Bạn có chắc chắn muốn xóa tài khoản không? Tài khoản của bạn sẽ bị vô hiệu hóa và bạn sẽ không thể truy cập tài khoản nữa.",
+    "confirmButton": "Xóa tài khoản",
+    "deleting": "Đang xóa...",
+    "success": "Tài khoản của bạn đã được vô hiệu hóa thành công.",
+    "error": "Không thể xóa tài khoản.",
+    "cancel":"Hủy"
+  },
     "verificationStatus": "Trạng thái xác minh",
     "verifiedDesc": "Tài khoản của bạn đã được xác minh.",
     "pendingDesc": "Yêu cầu xác minh của bạn đang được xét duyệt.",

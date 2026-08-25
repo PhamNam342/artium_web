@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -28,7 +29,6 @@ import { ConfigService } from '@nestjs/config';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
-
 @Controller('identity/users')
 export class UserController {
   constructor(
@@ -134,5 +134,15 @@ export class UserController {
     );
 
     return this.userService.updateAvatar(req.user.id, avatarUrl);
+  }
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  async deleteMyAccount(@Req() req: RequestWithUser) {
+    const authorization = req.headers.authorization;
+    const accessToken = authorization?.startsWith('Bearer ')
+      ? authorization.substring(7)
+      : undefined;
+
+    return this.userService.deactivateAccount(req.user.id, accessToken);
   }
 }

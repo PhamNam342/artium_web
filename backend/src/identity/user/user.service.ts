@@ -5,21 +5,31 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User, UserRole } from './entities/user.entity';
 import {
   SellerProfile,
   VerificationStatus,
 } from '../seller_profile/entities/seller_profile.entity';
+import { AuthService } from '../auth/auth.service';
+
 import { t } from '../../common/utils/i18n.util';
+
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
     @InjectRepository(SellerProfile)
     private readonly sellerProfileRepository: Repository<SellerProfile>,
+    private readonly authService: AuthService,
   ) {}
+
+  // =====================================================
+  // Get Current User Profile
+  // =====================================================
 
   async findById(userId: string) {
     const user = await this.userRepository.findOne({
@@ -56,6 +66,11 @@ export class UserService {
         : null,
     };
   }
+
+  // =====================================================
+  // Get Public Profile
+  // =====================================================
+
   async findPublicProfile(userId: string) {
     const user = await this.userRepository.findOne({
       where: {
@@ -87,6 +102,11 @@ export class UserService {
           : null,
     };
   }
+
+  // =====================================================
+  // Update Profile
+  // =====================================================
+
   async updateProfile(userId: string, dto: UpdateProfileDto) {
     const user = await this.userRepository.findOne({
       where: {
@@ -137,6 +157,11 @@ export class UserService {
 
     return this.findById(userId);
   }
+
+  // =====================================================
+  // Update Avatar
+  // =====================================================
+
   async updateAvatar(userId: string, avatarUrl: string) {
     const user = await this.userRepository.findOne({
       where: {
@@ -162,9 +187,41 @@ export class UserService {
     };
   }
 
-  // =========================
+  // =====================================================
+  // Deactivate Current User Account
+  // =====================================================
+
+  async deactivateAccount(userId: string, accessToken?: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(t('user.user_not_found'));
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      throw new BadRequestException(
+        'Administrators cannot deactivate their own account.',
+      );
+    }
+
+    await this.authService.logout(accessToken);
+
+    user.is_active = false;
+
+    await this.userRepository.save(user);
+
+    return {
+      message: t('user.account_deleted'),
+    };
+  }
+
+  // =====================================================
   // Admin Endpoints
-  // =========================
+  // =====================================================
 
   async findAllUsers(
     page: number = 1,
@@ -179,15 +236,20 @@ export class UserService {
       .take(limit);
 
     const normalizedSearch = search?.trim();
+
     if (normalizedSearch) {
       query.andWhere(
         '(user.full_name ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${normalizedSearch}%` },
+        {
+          search: `%${normalizedSearch}%`,
+        },
       );
     }
 
     if (isActive !== undefined) {
-      query.andWhere('user.is_active = :isActive', { isActive });
+      query.andWhere('user.is_active = :isActive', {
+        isActive,
+      });
     }
 
     const [users, total] = await query.getManyAndCount();
@@ -202,6 +264,7 @@ export class UserService {
         avatar_url: user.avatar_url,
         created_at: user.created_at,
       })),
+
       total,
       page,
       limit,
@@ -209,9 +272,15 @@ export class UserService {
     };
   }
 
+  // =====================================================
+  // Admin User Detail
+  // =====================================================
+
   async getAdminUserDetail(userId: string) {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
       relations: {
         sellerProfile: true,
       },
@@ -230,6 +299,7 @@ export class UserService {
       location: user.location,
       is_active: user.is_active,
       created_at: user.created_at,
+
       seller_profile: user.sellerProfile
         ? {
             id: user.sellerProfile.id,
@@ -242,15 +312,31 @@ export class UserService {
     };
   }
 
+  // =====================================================
+  // Admin Dashboard Stats
+  // =====================================================
+
   async getAdminDashboardStats() {
     const [totalUsers, totalArtists, totalCollectors] = await Promise.all([
       this.userRepository.count(),
-      this.userRepository.count({ where: { role: UserRole.ARTIST } }),
-      this.userRepository.count({ where: { role: UserRole.COLLECTOR } }),
+
+      this.userRepository.count({
+        where: {
+          role: UserRole.ARTIST,
+        },
+      }),
+
+      this.userRepository.count({
+        where: {
+          role: UserRole.COLLECTOR,
+        },
+      }),
     ]);
 
     const totalPendingVerifications = await this.sellerProfileRepository.count({
-      where: { verificationStatus: VerificationStatus.PENDING },
+      where: {
+        verificationStatus: VerificationStatus.PENDING,
+      },
     });
 
     return {
@@ -261,17 +347,24 @@ export class UserService {
     };
   }
 
+  // =====================================================
+  // Admin Toggle User Status
+  // =====================================================
+
   async toggleUserStatus(
     userId: string,
     isActive: boolean,
     actorUserId: string,
   ) {
+    // Admin cannot deactivate their own account
     if (userId === actorUserId && !isActive) {
       throw new BadRequestException('You cannot disable your own account.');
     }
 
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
     });
 
     if (!user) {
@@ -279,12 +372,14 @@ export class UserService {
     }
 
     user.is_active = isActive;
+
     await this.userRepository.save(user);
 
     return {
       message: isActive
         ? 'Tài khoản đã được kích hoạt'
         : 'Tài khoản đã bị vô hiệu hóa',
+
       user: {
         id: user.id,
         is_active: user.is_active,
