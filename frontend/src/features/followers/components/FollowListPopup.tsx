@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 import {
@@ -13,6 +13,8 @@ interface FollowListPopupProps {
   onClose: () => void;
 }
 
+const PAGE_SIZE = 20;
+
 export default function FollowListPopup({
   userId,
   type,
@@ -20,27 +22,39 @@ export default function FollowListPopup({
 }: FollowListPopupProps) {
   const [users, setUsers] = useState<FollowUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const listRequestId = useRef(0);
 
   useEffect(() => {
     let active = true;
+    const requestId = listRequestId.current + 1;
+
+    listRequestId.current = requestId;
 
     const loadUsers = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        const data =
+        const response =
           type === 'followers'
-            ? await getFollowers(userId)
-            : await getFollowing(userId);
+            ? await getFollowers(userId, { take: PAGE_SIZE })
+            : await getFollowing(userId, { take: PAGE_SIZE });
 
         if (active) {
-          setUsers(data);
+          setUsers(response.data);
+          setHasMore(response.meta.hasMore);
         }
       } catch (error) {
         console.error('Failed to load follow list:', error);
 
         if (active) {
           setUsers([]);
+          setHasMore(false);
+          setError('Unable to load this list. Please try again.');
         }
       } finally {
         if (active) {
@@ -53,8 +67,56 @@ export default function FollowListPopup({
 
     return () => {
       active = false;
+
+      if (listRequestId.current === requestId) {
+        listRequestId.current += 1;
+      }
     };
-  }, [userId, type]);
+  }, [userId, type, retryCount]);
+
+  const loadMoreUsers = async () => {
+    if (loadingMore || !hasMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+    setError(null);
+
+    const requestId = listRequestId.current;
+
+    try {
+      const response =
+        type === 'followers'
+          ? await getFollowers(userId, {
+              skip: users.length,
+              take: PAGE_SIZE,
+            })
+          : await getFollowing(userId, {
+              skip: users.length,
+              take: PAGE_SIZE,
+            });
+
+      if (listRequestId.current !== requestId) {
+        return;
+      }
+
+      setUsers((currentUsers) => [
+        ...currentUsers,
+        ...response.data,
+      ]);
+      setHasMore(response.meta.hasMore);
+    } catch (error) {
+      console.error('Failed to load more users:', error);
+
+      if (listRequestId.current === requestId) {
+        setError('Unable to load more users. Please try again.');
+      }
+    } finally {
+      if (listRequestId.current === requestId) {
+        setLoadingMore(false);
+      }
+    }
+  };
 
   const title =
     type === 'followers'
@@ -90,6 +152,17 @@ export default function FollowListPopup({
           {loading ? (
             <div className="p-5 text-center text-sm text-slate-500">
               Loading...
+            </div>
+          ) : error && users.length === 0 ? (
+            <div className="p-8 text-center text-sm text-slate-500">
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+                className="mt-3 font-medium text-blue-600 hover:underline"
+              >
+                Try again
+              </button>
             </div>
           ) : users.length === 0 ? (
             <div className="p-8 text-center text-sm text-slate-500">
@@ -127,6 +200,23 @@ export default function FollowListPopup({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {users.length > 0 && (hasMore || error) && (
+            <div className="border-t border-slate-100 p-4 text-center">
+              {error && (
+                <p className="mb-2 text-sm text-red-600">{error}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => void loadMoreUsers()}
+                disabled={loadingMore}
+                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loadingMore ? 'Loading...' : error ? 'Try again' : 'Load more'}
+              </button>
             </div>
           )}
         </div>

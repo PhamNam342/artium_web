@@ -13,15 +13,35 @@ export interface FollowCounts {
   following: number;
 }
 
+export interface FollowListResponse {
+  data: FollowUser[];
+  meta: {
+    total: number;
+    skip: number;
+    take: number;
+    hasMore: boolean;
+  };
+}
+
+export interface FollowListParams {
+  skip?: number;
+  take?: number;
+}
+
 export async function getFollowCounts(userId: string): Promise<FollowCounts> {
   const res = await api.get<FollowCounts>(`/community/followers/counts/${userId}`);
   return res.data;
 }
 
-export async function getFollowers(userId: string, take = 6): Promise<FollowUser[]> {
-  const res = await api.get<FollowUser[]>(`/community/followers/followers/${userId}`, {
-    params: { skip: 0, take },
-  });
+export async function getFollowers(
+  userId: string,
+  { skip = 0, take = 20 }: FollowListParams = {},
+): Promise<FollowListResponse> {
+  const res = await api.get<FollowListResponse>(
+    `/community/followers/followers/${userId}`,
+    { params: { skip, take } },
+  );
+
   return res.data;
 }
 
@@ -37,16 +57,16 @@ export async function followUser(userId: string): Promise<void> {
 export async function unfollowUser(userId: string): Promise<void> {
   await api.delete(`/community/followers/${userId}`);
 }
-  
+
 export async function getFollowing(
   userId: string,
-  take = 6,
-): Promise<FollowUser[]> {
-  const res = await api.get<FollowUser[]>(
+  { skip = 0, take = 20 }: FollowListParams = {},
+): Promise<FollowListResponse> {
+  const res = await api.get<FollowListResponse>(
     `/community/followers/following/${userId}`,
     {
       params: {
-        skip: 0,
+        skip,
         take,
       },
     },
@@ -54,4 +74,3 @@ export async function getFollowing(
 
   return res.data;
 }
-
