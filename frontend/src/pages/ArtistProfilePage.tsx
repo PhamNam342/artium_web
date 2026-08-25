@@ -23,6 +23,7 @@ import {
 } from '../services/followService';
 
 import { useAuth } from '../features/auth/AuthContext';
+import type { User } from '../features/auth/types';
 import { useI18n } from '../i18n/I18nContext';
 
 import { artworkService } from '../features/artworks/artworkService';
@@ -32,9 +33,35 @@ import FollowListPopup from '../features/followers/components/FollowListPopup';
 
 export default function ArtistProfilePage() {
   const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
-
   const { user } = useAuth();
+
+  if (!userId) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  return (
+    <ArtistProfileContent
+      key={`${userId}:${user?.id ?? 'guest'}`}
+      userId={userId}
+      user={user}
+    />
+  );
+}
+
+interface ArtistProfileContentProps {
+  userId: string;
+  user: User | null;
+}
+
+function ArtistProfileContent({
+  userId,
+  user,
+}: ArtistProfileContentProps) {
+  const navigate = useNavigate();
   const { language, t } = useI18n();
 
   // ============================================================
@@ -91,8 +118,7 @@ export default function ArtistProfilePage() {
   // Derived values
   // ============================================================
 
-  const isOwnProfile =
-    Boolean(user?.id && user.id === userId);
+  const isOwnProfile = user?.id === userId;
 
   const locale =
     language === 'en'
@@ -109,19 +135,6 @@ export default function ArtistProfilePage() {
     }
 
     let cancelled = false;
-
-    // Reset state when changing artist
-    setProfile(null);
-    setError(null);
-    setProfileLoading(true);
-
-    setCounts({
-      followers: 0,
-      following: 0,
-    });
-
-    setActiveTab('overview');
-    setFollowPopup(null);
 
     void Promise.all([
       getPublicUserProfile(userId),
@@ -173,10 +186,6 @@ export default function ArtistProfilePage() {
 
     let cancelled = false;
 
-    setArtworks([]);
-    setArtworkTotal(0);
-    setArtworksLoading(true);
-
     void artworkService
       .getArtistArtworks(userId, 20)
       .then((response) => {
@@ -216,14 +225,11 @@ export default function ArtistProfilePage() {
     }
 
     // Own profile cannot follow itself
-    if (!user || user.id === userId) {
-      setIsFollowing(false);
+    if (!user || isOwnProfile) {
       return;
     }
 
     let cancelled = false;
-
-    setIsFollowing(false);
 
     void getFollowStatus(userId)
       .then((status) => {
@@ -240,7 +246,7 @@ export default function ArtistProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [user, userId]);
+  }, [isOwnProfile, user, userId]);
 
   // ============================================================
   // Follow / Unfollow
