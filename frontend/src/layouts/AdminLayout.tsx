@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
-import { LayoutDashboard, Users, UserCheck, LogOut, Paintbrush } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, LogOut, Paintbrush, Image } from 'lucide-react';
 import { LanguageSwitcher, useI18n } from '../i18n/I18nContext';
 
 export default function AdminLayout() {
@@ -14,7 +14,9 @@ export default function AdminLayout() {
     { name: t('admin.dashboard.title') || 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: t('admin.users.title') || 'User Management', href: '/admin/users', icon: Users },
     { name: t('admin.verifyRequests.title') || 'Verify Requests', href: '/admin/verify-requests', icon: UserCheck },
+    { name: t('admin.artworks.title') || 'Artwork Management', href: '/admin/artworks', icon: Image },
   ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

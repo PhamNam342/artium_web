@@ -103,3 +103,12 @@ export interface ArtworkUpsertInput {
   customTags?: string[];
   folderId?: string | null;
 }
+
+export interface BulkMoveArtworksInput {
+  artworkIds: string[];
+  folderId: string | null;
+}
+
+export interface BulkMoveArtworksResponse {
+  movedCount: number;
+}

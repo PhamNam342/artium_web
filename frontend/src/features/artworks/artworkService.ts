@@ -5,6 +5,8 @@ import type {
   ArtworkListQuery,
   ArtworkListResponse,
   ArtworkTag,
+  BulkMoveArtworksInput,
+  BulkMoveArtworksResponse,
   ArtworkUpsertInput,
 } from './types';
 
@@ -99,6 +101,16 @@ export const artworkService = {
 
   async updateArtwork(id: string, input: ArtworkUpsertInput): Promise<Artwork> {
     const response = await api.put<Artwork>(`/artwork/${id}`, input);
+    return response.data;
+  },
+
+  async bulkMoveArtworks(
+    input: BulkMoveArtworksInput,
+  ): Promise<BulkMoveArtworksResponse> {
+    const response = await api.post<BulkMoveArtworksResponse>(
+      '/artwork/bulk/move',
+      input,
+    );
     return response.data;
   },
 

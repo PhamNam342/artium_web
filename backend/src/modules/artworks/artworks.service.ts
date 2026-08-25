@@ -15,6 +15,9 @@ import {
 } from './artwork.entity';
 import { ArtworkWeightInput, CreateArtworkDto } from './dto/create-artwork.dto';
 import {
+  AdminArtworkImageResponseDto,
+  AdminArtworkResponseDto,
+  AdminListArtworksResponseDto,
   ArtworkDimensionsResponseDto,
   ArtworkImageResponseDto,
   ArtworkResponseDto,
@@ -27,6 +30,13 @@ import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import { Tag } from './tag.entity';
 import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../notification/enums/notification-entity-type.enum';
+import {
+  BulkMoveArtworksInput,
+  BulkMoveArtworksResponseDto,
+} from './dto/bulk-move-artworks.dto';
 
 type NormalizedListArtworksQuery = {
   page: number;
@@ -59,6 +69,21 @@ type NormalizedCreateArtworkInput = {
 
 type NormalizedUpdateArtworkInput = Partial<NormalizedCreateArtworkInput>;
 
+type AdminArtworkRow = {
+  id: string;
+  sellerId: string;
+  sellerName: string | null;
+  sellerEmail: string | null;
+  sellerAvatarUrl: string | null;
+  title: string;
+  status: ArtworkStatus;
+  isPublished: boolean;
+  price: string | null;
+  currency: string | null;
+  images: unknown;
+  createdAt: Date | string;
+};
+
 @Injectable()
 export class ArtworksService {
   private readonly defaultPage = 1;
@@ -72,6 +97,7 @@ export class ArtworksService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(ArtworkFolder)
     private readonly folderRepository: Repository<ArtworkFolder>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(
@@ -199,6 +225,69 @@ export class ArtworksService {
     });
   }
 
+  async adminFindAll(
+    query: ListArtworksQueryDto,
+  ): Promise<AdminListArtworksResponseDto> {
+    const filters = this.normalizeQuery(query);
+    const offset = (filters.page - 1) * filters.limit;
+
+    const qb = this.artworkRepository
+      .createQueryBuilder('artwork')
+      .leftJoin('users', 'u', 'u.id = artwork.seller_id')
+      .select([
+        'artwork.id AS id',
+        'artwork.seller_id AS "sellerId"',
+        'u.full_name AS "sellerName"',
+        'u.email AS "sellerEmail"',
+        'u.avatar_url AS "sellerAvatarUrl"',
+        'artwork.title AS title',
+        'artwork.status AS status',
+        'artwork.is_published AS "isPublished"',
+        'artwork.price AS price',
+        'artwork.currency AS currency',
+        'artwork.images AS images',
+        'artwork.created_at AS "createdAt"',
+      ])
+      .andWhere('artwork.status != :deletedStatus', {
+        deletedStatus: ArtworkStatus.DELETED,
+      });
+
+    if (filters.search) {
+      qb.andWhere(
+        '(artwork.title ILIKE :search OR artwork.description ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    if (filters.sellerId) {
+      qb.andWhere('artwork.seller_id = :sellerId', {
+        sellerId: filters.sellerId,
+      });
+    }
+
+    const totalRow = await qb
+      .clone()
+      .select('COUNT(*) AS cnt')
+      .getRawOne<{ cnt: string }>();
+    const total = Number(totalRow?.cnt ?? 0);
+
+    const rows = await qb
+      .orderBy('artwork.created_at', 'DESC')
+      .offset(offset)
+      .limit(filters.limit)
+      .getRawMany<AdminArtworkRow>();
+
+    return this.toResponseDto(AdminListArtworksResponseDto, {
+      data: rows.map((row) => this.toAdminArtworkResponse(row)),
+      meta: {
+        page: filters.page,
+        limit: filters.limit,
+        total,
+        totalPages: Math.ceil(total / filters.limit) || 1,
+      },
+    });
+  }
+
   async findMine(
     sellerId: string,
     query: ListArtworksQueryDto,
@@ -209,7 +298,10 @@ export class ArtworksService {
     const queryBuilder = this.artworkRepository
       .createQueryBuilder('artwork')
       .leftJoinAndSelect('artwork.tags', 'tag')
-      .where('artwork.seller_id = :sellerId', { sellerId: normalizedSellerId });
+      .where('artwork.seller_id = :sellerId', { sellerId: normalizedSellerId })
+      .andWhere('artwork.status != :deletedStatus', {
+        deletedStatus: ArtworkStatus.DELETED,
+      });
 
     if (filters.search) {
       queryBuilder.andWhere(
@@ -280,7 +372,7 @@ export class ArtworksService {
       relations: { tags: true },
     });
 
-    if (!artwork) {
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
@@ -306,7 +398,7 @@ export class ArtworksService {
       relations: { tags: true },
     });
 
-    if (!artwork) {
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
@@ -339,16 +431,120 @@ export class ArtworksService {
   async remove(id: string, ownerId: string): Promise<DeleteArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
-    const result = await this.artworkRepository.delete({
-      id: artworkId,
-      sellerId: normalizedOwnerId,
-    });
+    const result = await this.artworkRepository.update(
+      {
+        id: artworkId,
+        sellerId: normalizedOwnerId,
+      },
+      {
+        status: ArtworkStatus.DELETED,
+        isPublished: false,
+      },
+    );
 
     if (!result.affected) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
     return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async adminRemove(
+    id: string,
+    adminId: string,
+    reason?: string,
+  ): Promise<DeleteArtworkResponseDto> {
+    const artworkId = this.cleanRequiredUuid(id, 'id');
+
+    const artwork = await this.artworkRepository.findOne({
+      where: { id: artworkId },
+      select: { id: true, sellerId: true, title: true, status: true },
+    });
+
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
+      throw new NotFoundException(t('artwork.not_found'));
+    }
+
+    const result = await this.artworkRepository.update(
+      { id: artworkId },
+      {
+        status: ArtworkStatus.DELETED,
+        isPublished: false,
+      },
+    );
+
+    if (!result.affected) {
+      throw new NotFoundException(t('artwork.not_found'));
+    }
+
+    // Notify the artist whose artwork was removed
+    try {
+      const message = reason
+        ? `Your artwork "${artwork.title}" has been removed by an administrator. Reason: ${reason}`
+        : `Your artwork "${artwork.title}" has been removed by an administrator for violating platform guidelines.`;
+
+      await this.notificationService.create({
+        recipientId: artwork.sellerId,
+        actorId: adminId,
+        type: NotificationType.ARTWORK_DELETED_BY_ADMIN,
+        entityType: NotificationEntityType.ARTWORK,
+        entityId: artwork.id,
+        title: 'Artwork Removed',
+        message,
+      });
+    } catch {
+      // Notification failure should not block the delete response
+    }
+
+    return this.toResponseDto(DeleteArtworkResponseDto, { success: true });
+  }
+
+  async bulkMove(
+    input: BulkMoveArtworksInput,
+    ownerId: string,
+  ): Promise<BulkMoveArtworksResponseDto> {
+    const sellerId = this.cleanRequiredUuid(ownerId, 'sellerId');
+    const artworkIds = input.artworkIds.map((id) =>
+      this.cleanRequiredUuid(id, 'artworkIds'),
+    );
+    const uniqueArtworkIds = [...new Set(artworkIds)];
+
+    if (uniqueArtworkIds.length !== artworkIds.length) {
+      throw new BadRequestException('artworkIds must not contain duplicates');
+    }
+
+    if (!this.hasOwn(input, 'folderId')) {
+      throw new BadRequestException(
+        t('artwork.validation.required', {
+          args: { field: 'folderId' },
+        }),
+      );
+    }
+
+    const folderId = this.cleanOptionalUuid(input.folderId, 'folderId');
+    await this.assertFolderOwnedBySeller(folderId, sellerId);
+
+    return this.artworkRepository.manager.transaction(async (manager) => {
+      const ownedArtworkCount = await manager.count(Artwork, {
+        where: { id: In(uniqueArtworkIds), sellerId },
+      });
+
+      if (ownedArtworkCount !== uniqueArtworkIds.length) {
+        throw new NotFoundException(t('artwork.not_found'));
+      }
+
+      const result = await manager.update(
+        Artwork,
+        { id: In(uniqueArtworkIds), sellerId },
+        { folderId },
+      );
+
+      if (result.affected !== uniqueArtworkIds.length) {
+        throw new NotFoundException(t('artwork.not_found'));
+      }
+
+      return { movedCount: uniqueArtworkIds.length };
+    });
   }
 
   async updateStatus(
@@ -924,6 +1120,57 @@ export class ArtworksService {
       location: artwork.location ?? null,
       dimensions: this.toDimensionsResponse(artwork.dimensions),
       weight: artwork.weight ?? null,
+    });
+  }
+
+  private toAdminArtworkResponse(
+    artwork: AdminArtworkRow,
+  ): AdminArtworkResponseDto {
+    return this.toResponseDto(AdminArtworkResponseDto, {
+      id: artwork.id,
+      sellerId: artwork.sellerId,
+      sellerName: artwork.sellerName,
+      sellerEmail: artwork.sellerEmail,
+      sellerAvatarUrl: artwork.sellerAvatarUrl,
+      title: artwork.title,
+      status: artwork.status,
+      isPublished: artwork.isPublished,
+      price: artwork.price,
+      currency: artwork.currency,
+      images: this.toAdminArtworkImageResponses(artwork.images),
+      createdAt:
+        artwork.createdAt instanceof Date
+          ? artwork.createdAt.toISOString()
+          : artwork.createdAt,
+    });
+  }
+
+  private toAdminArtworkImageResponses(
+    images: unknown,
+  ): AdminArtworkImageResponseDto[] {
+    if (!Array.isArray(images)) {
+      return [];
+    }
+
+    return images.flatMap((image) => {
+      if (typeof image !== 'object' || image === null || Array.isArray(image)) {
+        return [];
+      }
+
+      const imageRecord = image as Record<string, unknown>;
+      if (typeof imageRecord.url !== 'string') {
+        return [];
+      }
+
+      return [
+        this.toResponseDto(AdminArtworkImageResponseDto, {
+          url: imageRecord.url,
+          isPrimary:
+            typeof imageRecord.isPrimary === 'boolean'
+              ? imageRecord.isPrimary
+              : undefined,
+        }),
+      ];
     });
   }
 

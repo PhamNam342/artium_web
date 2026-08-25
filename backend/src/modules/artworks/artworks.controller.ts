@@ -19,6 +19,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../identity/user/entities/user.entity';
 import { ArtworksService } from './artworks.service';
 import {
+  AdminListArtworksResponseDto,
   ArtworkResponseDto,
   ArtworkTagResponseDto,
   DeleteArtworkResponseDto,
@@ -29,9 +30,14 @@ import { ListArtworksQueryDto } from './dto/list-artworks-query.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { CreateArtworkTagDto } from './dto/create-artwork-tag.dto';
 import {
+  BulkMoveArtworksInput,
+  BulkMoveArtworksResponseDto,
+} from './dto/bulk-move-artworks.dto';
+import {
   UpdateArtworkPublishDto,
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
+import { AdminDeleteArtworkDto } from './dto/admin-delete-artwork.dto';
 
 @Controller(['artwork', 'artworks'])
 export class ArtworksController {
@@ -42,6 +48,15 @@ export class ArtworksController {
     @Query() query: ListArtworksQueryDto,
   ): Promise<ListArtworksResponseDto> {
     return this.artworksService.findAll(query);
+  }
+
+  @Get('admin/list')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminFindAll(
+    @Query() query: ListArtworksQueryDto,
+  ): Promise<AdminListArtworksResponseDto> {
+    return this.artworksService.adminFindAll(query);
   }
 
   @Get('mine')
@@ -64,6 +79,16 @@ export class ArtworksController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   createTag(@Body() body: CreateArtworkTagDto): Promise<ArtworkTagResponseDto> {
     return this.artworksService.createTag(body);
+  }
+
+  @Post('bulk/move')
+  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  bulkMove(
+    @Req() req: RequestWithUser,
+    @Body() body: BulkMoveArtworksInput,
+  ): Promise<BulkMoveArtworksResponseDto> {
+    return this.artworksService.bulkMove(body, req.user.id);
   }
 
   @Get(':id')
@@ -105,6 +130,17 @@ export class ArtworksController {
     @Body() body: UpdateArtworkDto,
   ): Promise<ArtworkResponseDto> {
     return this.artworksService.update(id, body, req.user.id);
+  }
+
+  @Delete('admin/:id')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  adminRemove(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() body: AdminDeleteArtworkDto,
+  ): Promise<DeleteArtworkResponseDto> {
+    return this.artworksService.adminRemove(id, req.user.id, body.reason);
   }
 
   @Delete(':id')
