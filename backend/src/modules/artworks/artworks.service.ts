@@ -286,7 +286,10 @@ export class ArtworksService {
     const queryBuilder = this.artworkRepository
       .createQueryBuilder('artwork')
       .leftJoinAndSelect('artwork.tags', 'tag')
-      .where('artwork.seller_id = :sellerId', { sellerId: normalizedSellerId });
+      .where('artwork.seller_id = :sellerId', { sellerId: normalizedSellerId })
+      .andWhere('artwork.status != :deletedStatus', {
+        deletedStatus: ArtworkStatus.DELETED,
+      });
 
     if (filters.search) {
       queryBuilder.andWhere(
@@ -357,7 +360,7 @@ export class ArtworksService {
       relations: { tags: true },
     });
 
-    if (!artwork) {
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
@@ -383,7 +386,7 @@ export class ArtworksService {
       relations: { tags: true },
     });
 
-    if (!artwork) {
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
@@ -416,10 +419,16 @@ export class ArtworksService {
   async remove(id: string, ownerId: string): Promise<DeleteArtworkResponseDto> {
     const artworkId = this.cleanRequiredUuid(id, 'id');
     const normalizedOwnerId = this.cleanRequiredUuid(ownerId, 'sellerId');
-    const result = await this.artworkRepository.delete({
-      id: artworkId,
-      sellerId: normalizedOwnerId,
-    });
+    const result = await this.artworkRepository.update(
+      {
+        id: artworkId,
+        sellerId: normalizedOwnerId,
+      },
+      {
+        status: ArtworkStatus.DELETED,
+        isPublished: false,
+      },
+    );
 
     if (!result.affected) {
       throw new NotFoundException(t('artwork.not_found'));
@@ -437,14 +446,24 @@ export class ArtworksService {
 
     const artwork = await this.artworkRepository.findOne({
       where: { id: artworkId },
-      select: { id: true, sellerId: true, title: true },
+      select: { id: true, sellerId: true, title: true, status: true },
     });
 
-    if (!artwork) {
+    if (!artwork || artwork.status === ArtworkStatus.DELETED) {
       throw new NotFoundException(t('artwork.not_found'));
     }
 
-    await this.artworkRepository.delete({ id: artworkId });
+    const result = await this.artworkRepository.update(
+      { id: artworkId },
+      {
+        status: ArtworkStatus.DELETED,
+        isPublished: false,
+      },
+    );
+
+    if (!result.affected) {
+      throw new NotFoundException(t('artwork.not_found'));
+    }
 
     // Notify the artist whose artwork was removed
     try {

@@ -10,6 +10,9 @@ import {
 import { Tag } from './tag.entity';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../notification/enums/notification-entity-type.enum';
 
 describe('ArtworksService', () => {
   const sellerId = '123e4567-e89b-12d3-a456-426614174000';
@@ -20,6 +23,7 @@ describe('ArtworksService', () => {
     delete: jest.Mock;
     findOne: jest.Mock;
     save: jest.Mock;
+    update: jest.Mock;
   };
   let tagRepository: {
     create: jest.Mock;
@@ -30,6 +34,9 @@ describe('ArtworksService', () => {
   };
   let folderRepository: {
     findOne: jest.Mock;
+  };
+  let notificationService: {
+    create: jest.Mock;
   };
   let service: ArtworksService;
 
@@ -46,6 +53,7 @@ describe('ArtworksService', () => {
           createdAt: artwork.createdAt ?? new Date('2026-08-18T10:37:05.141Z'),
         }),
       ),
+      update: jest.fn(),
     };
     tagRepository = {
       create: jest.fn((data: Partial<Tag>) => data as Tag),
@@ -62,11 +70,15 @@ describe('ArtworksService', () => {
     folderRepository = {
       findOne: jest.fn(),
     };
+    notificationService = {
+      create: jest.fn(),
+    };
 
     service = new ArtworksService(
       artworkRepository as unknown as Repository<Artwork>,
       tagRepository as unknown as Repository<Tag>,
       folderRepository as unknown as Repository<ArtworkFolder>,
+      notificationService as unknown as NotificationService,
     );
   });
 
@@ -461,6 +473,22 @@ describe('ArtworksService', () => {
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
+  it('does not allow an artist to restore an artwork removed by an admin', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    artworkRepository.findOne.mockResolvedValue({
+      id: artworkId,
+      sellerId,
+      status: ArtworkStatus.DELETED,
+      tags: [],
+    });
+
+    await expect(
+      service.update(artworkId, { isPublished: true }, sellerId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(artworkRepository.save).not.toHaveBeenCalled();
+  });
+
   it('only updates artwork owned by the authenticated seller', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
     const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
@@ -477,9 +505,9 @@ describe('ArtworksService', () => {
     expect(artworkRepository.save).not.toHaveBeenCalled();
   });
 
-  it('deletes artwork by id', async () => {
+  it('marks an artist artwork as deleted instead of removing its order history', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    artworkRepository.delete.mockResolvedValue({
+    artworkRepository.update.mockResolvedValue({
       affected: 1,
       raw: {},
     });
@@ -487,10 +515,11 @@ describe('ArtworksService', () => {
     await expect(service.remove(artworkId, sellerId)).resolves.toEqual({
       success: true,
     });
-    expect(artworkRepository.delete).toHaveBeenCalledWith({
-      id: artworkId,
-      sellerId,
-    });
+    expect(artworkRepository.update).toHaveBeenCalledWith(
+      { id: artworkId, sellerId },
+      { status: ArtworkStatus.DELETED, isPublished: false },
+    );
+    expect(artworkRepository.delete).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid artwork delete id', async () => {
@@ -498,12 +527,12 @@ describe('ArtworksService', () => {
       BadRequestException,
     );
 
-    expect(artworkRepository.delete).not.toHaveBeenCalled();
+    expect(artworkRepository.update).not.toHaveBeenCalled();
   });
 
   it('throws not found when deleting a missing artwork', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
-    artworkRepository.delete.mockResolvedValue({
+    artworkRepository.update.mockResolvedValue({
       affected: 0,
       raw: {},
     });
@@ -516,7 +545,7 @@ describe('ArtworksService', () => {
   it('only deletes artwork owned by the authenticated seller', async () => {
     const artworkId = '123e4567-e89b-12d3-a456-426614174222';
     const otherSellerId = '123e4567-e89b-12d3-a456-426614174001';
-    artworkRepository.delete.mockResolvedValue({
+    artworkRepository.update.mockResolvedValue({
       affected: 0,
       raw: {},
     });
@@ -524,9 +553,41 @@ describe('ArtworksService', () => {
     await expect(
       service.remove(artworkId, otherSellerId),
     ).rejects.toBeInstanceOf(NotFoundException);
-    expect(artworkRepository.delete).toHaveBeenCalledWith({
+    expect(artworkRepository.update).toHaveBeenCalledWith(
+      { id: artworkId, sellerId: otherSellerId },
+      { status: ArtworkStatus.DELETED, isPublished: false },
+    );
+  });
+
+  it('marks an admin-removed artwork as deleted and keeps its order history', async () => {
+    const artworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const adminId = '123e4567-e89b-12d3-a456-426614174999';
+    artworkRepository.findOne.mockResolvedValue({
       id: artworkId,
-      sellerId: otherSellerId,
+      sellerId,
+      title: 'Sunset Study',
+      status: ArtworkStatus.RESERVED,
+    });
+    artworkRepository.update.mockResolvedValue({ affected: 1, raw: {} });
+
+    await expect(
+      service.adminRemove(artworkId, adminId, 'Violates guidelines'),
+    ).resolves.toEqual({ success: true });
+
+    expect(artworkRepository.update).toHaveBeenCalledWith(
+      { id: artworkId },
+      { status: ArtworkStatus.DELETED, isPublished: false },
+    );
+    expect(artworkRepository.delete).not.toHaveBeenCalled();
+    expect(notificationService.create).toHaveBeenCalledWith({
+      recipientId: sellerId,
+      actorId: adminId,
+      type: NotificationType.ARTWORK_DELETED_BY_ADMIN,
+      entityType: NotificationEntityType.ARTWORK,
+      entityId: artworkId,
+      title: 'Artwork Removed',
+      message:
+        'Your artwork "Sunset Study" has been removed by an administrator. Reason: Violates guidelines',
     });
   });
 });
