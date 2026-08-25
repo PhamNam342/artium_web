@@ -26,8 +26,6 @@ import { UploadService } from '../../modules/upload/upload.service';
 import type { UploadedAvatarFile } from '../../modules/upload/upload.types';
 
 import { ConfigService } from '@nestjs/config';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
@@ -139,7 +137,12 @@ export class UserController {
   }
   @Delete('me')
   @UseGuards(JwtAuthGuard)
-  async deleteMyAccount(@CurrentUser() user: AuthenticatedUser) {
-    return this.userService.deactivateAccount(user.id);
+  async deleteMyAccount(@Req() req: RequestWithUser) {
+    const authorization = req.headers.authorization;
+    const accessToken = authorization?.startsWith('Bearer ')
+      ? authorization.substring(7)
+      : undefined;
+
+    return this.userService.deactivateAccount(req.user.id, accessToken);
   }
 }

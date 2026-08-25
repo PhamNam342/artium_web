@@ -12,6 +12,7 @@ import {
   SellerProfile,
   VerificationStatus,
 } from '../seller_profile/entities/seller_profile.entity';
+import { AuthService } from '../auth/auth.service';
 
 import { t } from '../../common/utils/i18n.util';
 
@@ -23,6 +24,7 @@ export class UserService {
 
     @InjectRepository(SellerProfile)
     private readonly sellerProfileRepository: Repository<SellerProfile>,
+    private readonly authService: AuthService,
   ) {}
 
   // =====================================================
@@ -189,7 +191,7 @@ export class UserService {
   // Deactivate Current User Account
   // =====================================================
 
-  async deactivateAccount(userId: string) {
+  async deactivateAccount(userId: string, accessToken?: string) {
     const user = await this.userRepository.findOne({
       where: {
         id: userId,
@@ -205,6 +207,8 @@ export class UserService {
         'Administrators cannot deactivate their own account.',
       );
     }
+
+    await this.authService.logout(accessToken);
 
     user.is_active = false;
 
