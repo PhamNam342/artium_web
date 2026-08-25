@@ -26,6 +26,8 @@ interface ArtistProfileHeaderProps {
   onFollowToggle: () => void;
   onShare: () => void;
   onBack: () => void;
+  onFollowersClick: () => void;
+  onFollowingClick: () => void;
 }
 
 export default function ArtistProfileHeader({
@@ -38,6 +40,8 @@ export default function ArtistProfileHeader({
   onFollowToggle,
   onShare,
   onBack,
+  onFollowersClick,
+  onFollowingClick,
 }: ArtistProfileHeaderProps) {
   const { t } = useI18n();
 
@@ -64,16 +68,10 @@ export default function ArtistProfileHeader({
           ← {t('common.back') || 'Back'}
         </button>
 
-        {/* =====================================================
-            Main Header
-        ====================================================== */}
-
+        {/* Main Header */}
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
 
-          {/* ===================================================
-              Avatar
-          ==================================================== */}
-
+          {/* Avatar */}
           <div className="relative flex-shrink-0">
             {profile.avatar_url ? (
               <img
@@ -87,7 +85,7 @@ export default function ArtistProfileHeader({
               </div>
             )}
 
-            {/* Verified badge on avatar */}
+            {/* Verified badge */}
             {isVerified && (
               <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-0.5">
                 <CheckCircle2 className="h-6 w-6 fill-blue-500 text-white" />
@@ -95,10 +93,7 @@ export default function ArtistProfileHeader({
             )}
           </div>
 
-          {/* ===================================================
-              Personal Information
-          ==================================================== */}
-
+          {/* Personal Information */}
           <div className="min-w-0 flex-1">
 
             {/* Name + Verified */}
@@ -142,24 +137,16 @@ export default function ArtistProfileHeader({
                   className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
                 >
                   <Globe className="h-3.5 w-3.5" />
-
                   {website.replace(/^https?:\/\//, '')}
                 </a>
               </p>
             )}
           </div>
 
-          {/* ===================================================
-              Right Side
-              Stats + Actions
-          ==================================================== */}
-
+          {/* Right Side - Stats + Actions */}
           <div className="flex flex-col gap-6 lg:ml-auto lg:min-w-[360px]">
 
-            {/* =================================================
-                Stats
-            ================================================== */}
-
+            {/* Stats */}
             <div className="flex items-center justify-start gap-8 lg:justify-end">
 
               {/* Artworks */}
@@ -178,7 +165,11 @@ export default function ArtistProfileHeader({
               <div className="h-8 w-px bg-slate-200" />
 
               {/* Followers */}
-              <div className="min-w-[70px] text-center">
+              <button
+                type="button"
+                onClick={onFollowersClick}
+                className="min-w-[70px] text-center transition hover:opacity-70"
+              >
                 <span className="block text-lg font-bold text-slate-950">
                   {counts.followers}
                 </span>
@@ -188,12 +179,16 @@ export default function ArtistProfileHeader({
                     count: counts.followers,
                   })}
                 </p>
-              </div>
+              </button>
 
               <div className="h-8 w-px bg-slate-200" />
 
               {/* Following */}
-              <div className="min-w-[70px] text-center">
+              <button
+                type="button"
+                onClick={onFollowingClick}
+                className="min-w-[70px] text-center transition hover:opacity-70"
+              >
                 <span className="block text-lg font-bold text-slate-950">
                   {counts.following}
                 </span>
@@ -203,13 +198,10 @@ export default function ArtistProfileHeader({
                     count: counts.following,
                   })}
                 </p>
-              </div>
+              </button>
             </div>
 
-            {/* =================================================
-                Actions
-            ================================================== */}
-
+            {/* Actions */}
             {!isOwnProfile && (
               <div className="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
 

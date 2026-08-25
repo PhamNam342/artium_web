@@ -95,7 +95,7 @@ export class FollowersService {
   }
   // Lấy tất cả follower của user_id
   async getFollowers(userId: string, skip = 0, take = 20) {
-    const follows = await this.followRepository.find({
+    const [follows, total] = await this.followRepository.findAndCount({
       where: {
         following_id: userId,
       },
@@ -109,17 +109,25 @@ export class FollowersService {
       },
     });
 
-    return follows.map((follow) => ({
-      id: follow.follower.id,
-      full_name: follow.follower.full_name,
-      avatar_url: follow.follower.avatar_url,
-      role: follow.follower.role,
-      location: follow.follower.location,
-    }));
+    return {
+      data: follows.map((follow) => ({
+        id: follow.follower.id,
+        full_name: follow.follower.full_name,
+        avatar_url: follow.follower.avatar_url,
+        role: follow.follower.role,
+        location: follow.follower.location,
+      })),
+      meta: {
+        total,
+        skip,
+        take,
+        hasMore: skip + follows.length < total,
+      },
+    };
   }
   // User_id đang follow những ai
   async getFollowing(userId: string, skip = 0, take = 20) {
-    const follows = await this.followRepository.find({
+    const [follows, total] = await this.followRepository.findAndCount({
       where: {
         follower_id: userId,
       },
@@ -133,13 +141,21 @@ export class FollowersService {
       },
     });
 
-    return follows.map((follow) => ({
-      id: follow.following.id,
-      full_name: follow.following.full_name,
-      avatar_url: follow.following.avatar_url,
-      role: follow.following.role,
-      location: follow.following.location,
-    }));
+    return {
+      data: follows.map((follow) => ({
+        id: follow.following.id,
+        full_name: follow.following.full_name,
+        avatar_url: follow.following.avatar_url,
+        role: follow.following.role,
+        location: follow.following.location,
+      })),
+      meta: {
+        total,
+        skip,
+        take,
+        hasMore: skip + follows.length < total,
+      },
+    };
   }
   async getCounts(userId: string) {
     const [followers, following] = await Promise.all([
