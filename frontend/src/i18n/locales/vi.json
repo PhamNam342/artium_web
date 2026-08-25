@@ -240,6 +240,8 @@
     "viewImage": "Xem ảnh {{index}}",
     "weight": "Khối lượng: {{weight}}",
     "contactArtist": "Liên hệ nghệ sĩ để biết thêm thông tin về tác phẩm và phương thức mua.",
+    "artist": "Nghệ sĩ",
+    "viewArtistProfile": "Xem hồ sơ của {{name}}",
     "actionsLabel": "Thao tác với tác phẩm",
     "favorite": "Yêu thích",
     "unfavorite": "Bỏ yêu thích",

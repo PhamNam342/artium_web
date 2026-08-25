@@ -240,6 +240,8 @@
     "viewImage": "View image {{index}}",
     "weight": "Weight: {{weight}}",
     "contactArtist": "Contact the artist for more information about this artwork and how to purchase it.",
+    "artist": "Artist",
+    "viewArtistProfile": "View {{name}}'s profile",
     "actionsLabel": "Artwork actions",
     "favorite": "Add to favorites",
     "unfavorite": "Remove from favorites",
