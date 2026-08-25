@@ -695,5 +695,46 @@
       { "question": "Phí giao dịch được tính như thế nào?", "answer": "Artium không tính phí đăng tải. Khi một tác phẩm được thanh toán qua nền tảng, phí xử lý thanh toán sẽ được hiển thị rõ ràng trước khi bạn kích hoạt." }
     ],
     "cta": { "eyebrow": "Bắt đầu ngay hôm nay", "title": "Tác phẩm của bạn xứng đáng có một không gian riêng.", "button": "Tạo tài khoản miễn phí" }
+  },
+  "home": {
+    "hero": {
+      "titleLine1": "Khám phá nghệ thuật.",
+      "titleLine2": "Quản lý",
+      "titleLine3": "công việc của bạn.",
+      "titleLine4": "Tất cả trong một nền tảng.",
+      "description": "Kết nối với nhà sưu tầm nhờ khám phá bằng AI, đồng thời vận hành gallery hoặc studio với các công cụ chuyên nghiệp cho kho tác phẩm, thanh toán, website, email và quản lý khách hàng.",
+      "button": "Bắt đầu"
+    },
+    "stats": { "collectors": "Nhà sưu tầm đang hoạt động", "artworksSold": "Tác phẩm đã bán" },
+    "tools": {
+      "titleLine1": "Mọi công cụ nghệ thuật",
+      "titleLine2": "bạn cần",
+      "description": "Bạn không cần làm mọi thứ một mình — Artium giúp bạn trưng bày, bán và phát triển cộng đồng dễ dàng.",
+      "portfolioLabel": "Hồ sơ tác phẩm",
+      "portfolioDescription": "Tạo portfolio chuyên nghiệp, trưng bày tác phẩm để bán và xây dựng danh sách đăng ký nhận tin.",
+      "featureNewsletter": "Gửi bản tin",
+      "featureSell": "Bán mọi nơi",
+      "button": "Đăng ký",
+      "portfolioAlt": "Không gian làm việc portfolio Artium"
+    },
+    "stage": {
+      "titleLine1": "Được thiết kế cho mọi",
+      "titleLine2": "chặng đường nghệ thuật",
+      "description": "Dù bạn giữ vai trò nào trong thế giới nghệ thuật, Artium đều kết nối mọi người trên một nền tảng liền mạch.",
+      "learnMore": "Tìm hiểu thêm cho {{audience}}",
+      "artists": { "title": "Dành cho nghệ sĩ", "description": "Trưng bày tác phẩm, quản lý doanh số và phát triển cộng đồng của bạn." },
+      "collectors": { "title": "Dành cho nhà sưu tầm", "description": "Khám phá tác phẩm gốc và theo dõi những nghệ sĩ bạn yêu thích." }
+    },
+    "stories": {
+      "titleLine1": "Gặp gỡ cộng đồng đang dùng",
+      "titleLine2": "Artium để phát triển thành công",
+      "items": [
+        { "quote": "Là một nghệ sĩ quốc tế trưng bày tại Superfine Art Fair, Artium khiến mọi quy trình trở nên liền mạch và minh bạch.", "role": "Nghệ sĩ, Chiang Mai" },
+        { "quote": "Làm việc cùng Artium thật tuyệt vời. Họ hỗ trợ tận tình ở từng bước, và sự quan tâm dành cho nghệ sĩ là điều không thể nhầm lẫn.", "role": "Họa sĩ, Ý" },
+        { "quote": "Nền tảng quy tụ những tác phẩm đầy tâm huyết và giúp tôi dễ dàng khám phá các nghệ sĩ mà trước đây tôi chưa từng biết tới.", "role": "Nhà sưu tầm, Singapore" },
+        { "quote": "Một nơi rõ ràng, thân thiện để trưng bày tác phẩm và xây dựng những kết nối ý nghĩa với người yêu nghệ thuật.", "role": "Nghệ sĩ, New York" }
+      ]
+    },
+    "closing": { "line1": "Tương lai của nghệ thuật thuộc về người sáng tạo", "line2": "Tương lai là Artium", "button": "Bắt đầu" }
   }
 }

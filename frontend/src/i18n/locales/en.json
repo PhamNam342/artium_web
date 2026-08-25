@@ -699,5 +699,46 @@
       { "question": "How are transaction fees calculated?", "answer": "Artium does not charge listing fees. Any payment processing fee is clearly displayed before you activate online payments." }
     ],
     "cta": { "eyebrow": "Get started today", "title": "Your art deserves a space of its own.", "button": "Create a free account" }
+  },
+  "home": {
+    "hero": {
+      "titleLine1": "Discover art.",
+      "titleLine2": "Manage your",
+      "titleLine3": "business.",
+      "titleLine4": "All in one platform.",
+      "description": "Connect with collectors through AI-powered discovery while running your gallery or art studio with professional tools for inventory, payments, website hosting, email, and client management.",
+      "button": "Get started"
+    },
+    "stats": { "collectors": "Active Collectors", "artworksSold": "in Artwork Sold" },
+    "tools": {
+      "titleLine1": "The Only Art",
+      "titleLine2": "Tools You'll Need",
+      "description": "You don't have to do it alone — we help you showcase, sell, and grow your audience effortlessly.",
+      "portfolioLabel": "Portfolio",
+      "portfolioDescription": "Create a professional portfolio, display your artworks for sale, and collect subscribers for your newsletter.",
+      "featureNewsletter": "Send Newsletters",
+      "featureSell": "Sell Anywhere",
+      "button": "Sign Up",
+      "portfolioAlt": "Artium portfolio workspace"
+    },
+    "stage": {
+      "titleLine1": "Designed for Every",
+      "titleLine2": "Stage of the Art Journey",
+      "description": "No matter your role in the art world, Artium brings everyone into one seamless platform.",
+      "learnMore": "Learn more for {{audience}}",
+      "artists": { "title": "For Artists", "description": "Show your work, manage sales, and grow your audience." },
+      "collectors": { "title": "For Collectors", "description": "Discover original work and follow artists you love." }
+    },
+    "stories": {
+      "titleLine1": "Meet the Community Using",
+      "titleLine2": "Artium to Scale Their Success",
+      "items": [
+        { "quote": "As an international artist showcasing at Superfine Art Fair, Artium made the process feel seamless and transparent.", "role": "Artist, Chiang Mai" },
+        { "quote": "Working with Artium was wonderful. They were very helpful at each step, and their care in supporting artists is unmistakable.", "role": "Painter, Italy" },
+        { "quote": "The platform brings thoughtful work together and makes it simple to discover artists I would not otherwise have met.", "role": "Collector, Singapore" },
+        { "quote": "A clear, friendly place to show work and develop meaningful connections with people who love art.", "role": "Artist, New York" }
+      ]
+    },
+    "closing": { "line1": "The art world's future is creator-first", "line2": "The future is Artium", "button": "Get Started" }
   }
 }
