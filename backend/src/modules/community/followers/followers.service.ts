@@ -56,22 +56,23 @@ export class FollowersService {
       follower_id: followerId,
       following_id: followingId,
     });
-    await this.notificationService.create({
-      recipientId: followingId,
-      actorId: followerId,
+    const savedFollow = await this.followRepository.save(follow);
 
-      type: NotificationType.FOLLOW,
+    try {
+      await this.notificationService.create({
+        recipientId: followingId,
+        actorId: followerId,
+        type: NotificationType.FOLLOW,
+        entityType: NotificationEntityType.USER,
+        entityId: followerId,
+        title: 'New follower',
+        message: 'Someone started following you',
+      });
+    } catch (error) {
+      console.error('Failed to create follow notification:', error);
+    }
 
-      entityType: NotificationEntityType.USER,
-
-      entityId: followerId,
-
-      title: 'New follower',
-
-      message: 'Someone started following you',
-    });
-
-    return this.followRepository.save(follow);
+    return savedFollow;
   }
   // unfollow
   async unfollow(followerId: string, followingId: string) {
