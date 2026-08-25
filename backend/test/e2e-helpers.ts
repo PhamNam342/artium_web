@@ -122,7 +122,7 @@ export async function createE2eApp() {
   const followers = { follow: jest.fn(() => ({ followerId: ids.collector })), unfollow: jest.fn(() => ({ deleted: true })), getCounts: jest.fn(() => ({ followers: 1, following: 2 })), getFollowers: jest.fn(() => []), getFollowing: jest.fn(() => []), getStatus: jest.fn(() => ({ isFollowing: true })) };
   const item = { id: 'notification-1', type: 'FOLLOW', entityType: 'USER', isRead: false, createdAt: new Date() };
   const notifications = { findAll: jest.fn(() => []), countUnread: jest.fn(() => 1), markAllAsRead: jest.fn(() => ({ updated: 1 })), findById: jest.fn(() => item), markAsRead: jest.fn(() => ({ ...item, isRead: true })), create: jest.fn(() => ({ id: item.id })) };
-  const orders = { createOrder: jest.fn(() => ({ id: ids.order })), createPaymentLink: jest.fn(() => ({ checkoutUrl: 'https://pay.test/checkout' })), cancelPayment: jest.fn(() => ({ id: ids.order })), getUserOrders: jest.fn(() => []), getOrderById: jest.fn(() => ({ id: ids.order })), updateOrderStatus: jest.fn(() => ({ id: ids.order, status: 'SHIPPED' })), handlePayOSWebhook: jest.fn() };
+  const orders = { createOrder: jest.fn(() => ({ id: ids.order })), createPaymentLink: jest.fn(() => ({ checkoutUrl: 'https://pay.test/checkout' })), cancelPayment: jest.fn(() => ({ id: ids.order })), getUserOrders: jest.fn(() => []), getOrderById: jest.fn(() => ({ id: ids.order })), updateOrderStatus: jest.fn(() => ({ id: ids.order, status: 'CANCELLED' })), handlePayOSWebhook: jest.fn() };
   const uploads = { uploadArtworkImages: jest.fn(() => [{ url: 'http://test.local/uploads/image.jpg' }]), uploadAvatar: jest.fn(() => 'http://test.local/uploads/avatar.jpg') };
 
   const moduleFixture: TestingModule = await Test.createTestingModule({

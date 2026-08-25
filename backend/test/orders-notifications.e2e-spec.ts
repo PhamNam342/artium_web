@@ -29,7 +29,7 @@ describe('Notifications, orders and payments API (e2e)', () => {
   it('lists, reads, updates and pays for orders', async () => {
     await request(app.getHttpServer()).get('/api/orders').set(as('collector-token')).expect(200, []);
     await request(app.getHttpServer()).get(`/api/orders/${ids.order}`).set(as('collector-token')).expect(200, { id: ids.order });
-    await request(app.getHttpServer()).put(`/api/orders/${ids.order}`).set(as('artist-token')).send({ status: 'SHIPPED' }).expect(200);
+    await request(app.getHttpServer()).put(`/api/orders/${ids.order}`).set(as('admin-token')).send({ status: 'CANCELLED' }).expect(200);
     await request(app.getHttpServer()).post(`/api/orders/${ids.order}/payment`).set(as('collector-token')).expect(201);
     await request(app.getHttpServer()).post(`/api/orders/${ids.order}/payment/cancel`).set(as('collector-token')).expect(201);
   });

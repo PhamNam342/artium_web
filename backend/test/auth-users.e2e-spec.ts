@@ -31,7 +31,7 @@ describe('Auth and users API (e2e)', () => {
   });
 
   it('updates the authenticated user profile, password, avatar and logout state', async () => {
-    await request(app.getHttpServer()).patch('/api/auth/profile/complete').set(as('artist-token')).send({ role: 'ARTIST', full_name: 'Artist', location: 'HCM' }).expect(200, { access_token: 'profile-token' });
+    await request(app.getHttpServer()).patch('/api/auth/profile/complete').set(as('artist-token')).send({ role: 'ARTIST', full_name: 'Artist', location: 'HCM', bio: 'Contemporary visual artist' }).expect(200, { access_token: 'profile-token' });
     await request(app.getHttpServer()).patch('/api/auth/change-password').set(as('artist-token')).send({ currentPassword: 'secret1', newPassword: 'new-secret' }).expect(200);
     await request(app.getHttpServer()).get('/api/identity/users/me').set(as('artist-token')).expect(200, { id: ids.artist });
     await request(app.getHttpServer()).patch('/api/identity/users/profile').set(as('artist-token')).send({ full_name: 'Renamed' }).expect(200);

@@ -146,6 +146,14 @@ describe('ArtworksService', () => {
     );
   });
 
+  it('rejects an invalid artwork price range before querying', async () => {
+    await expect(
+      service.findAll({ minPrice: '100', maxPrice: '10' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(artworkRepository.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
   it('rejects a folder that is not owned by the artwork seller', async () => {
     folderRepository.findOne.mockResolvedValue(null);
 
