@@ -10,6 +10,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
 import ArtworksPage from '../pages/ArtworksPage';
+import ArtistsPage from '../pages/ArtistsPage';
 import ArtworkDetailPage from '../pages/ArtworkDetailPage';
 import ArtistProfilePage from '../pages/ArtistProfilePage';
 import CompleteProfileModal from '../features/auth/components/CompleteProfileModal';
@@ -128,6 +129,7 @@ export default function AppRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
+          <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artists/:userId" element={<ArtistProfilePage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route element={<ArtistRoute />}>

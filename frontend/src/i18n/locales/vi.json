@@ -10,6 +10,7 @@
   "nav": {
     "home": "Trang chủ",
     "artworks": "Khám phá",
+    "artists": "Nghệ sĩ",
     "inventory": "Kho tác phẩm",
     "pricing": "Bảng giá",
     "login": "Đăng nhập",
@@ -19,6 +20,16 @@
     "logout": "Đăng xuất",
     "userManagement": "Quản lý người dùng",
     "verifyRequests": "Yêu cầu duyệt"
+  },
+  "artists": {
+    "featuredTitle": "Nghệ sĩ nổi bật",
+    "browseTitle": "Khám phá nghệ sĩ",
+    "follow": "Theo dõi",
+    "following": "Đang theo dõi",
+    "alphabetLabel": "Lọc nghệ sĩ theo chữ cái đầu",
+    "emptyLetter": "Không có nghệ sĩ bắt đầu bằng chữ {{letter}}.",
+    "loadError": "Không thể tải danh sách nghệ sĩ. Vui lòng thử lại sau.",
+    "followError": "Không thể cập nhật trạng thái theo dõi. Vui lòng thử lại."
   },
   "admin": {
     "users": {

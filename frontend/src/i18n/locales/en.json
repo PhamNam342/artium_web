@@ -10,6 +10,7 @@
   "nav": {
     "home": "Home",
     "artworks": "Discover",
+    "artists": "Artists",
     "inventory": "Inventory",
     "pricing": "Pricing",
     "login": "Sign In",
@@ -19,6 +20,16 @@
     "logout": "Sign Out",
     "userManagement": "User Management",
     "verifyRequests": "Verify Requests"
+  },
+  "artists": {
+    "featuredTitle": "Featured Artists",
+    "browseTitle": "Browse Artists",
+    "follow": "Follow",
+    "following": "Following",
+    "alphabetLabel": "Filter artists by first letter",
+    "emptyLetter": "No artists found starting with {{letter}}.",
+    "loadError": "We couldn't load artists. Please try again later.",
+    "followError": "We couldn't update the follow status. Please try again."
   },
   "admin": {
     "users": {

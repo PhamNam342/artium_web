@@ -40,6 +40,9 @@ export default function Header() {
                 <Link to="/artworks" className="text-xs text-gray-600 hover:text-black transition-colors">
                   {t('nav.artworks')}
                 </Link>
+                <Link to="/artists" className="text-xs text-gray-600 hover:text-black transition-colors">
+                  {t('nav.artists')}
+                </Link>
                 {user?.role === 'ARTIST' && (
                   <Link to="/inventory" className="text-xs text-gray-600 hover:text-black transition-colors">
                     {t('nav.inventory')}

@@ -59,6 +59,12 @@ export async function getPublicUserProfile(userId: string): Promise<PublicUserPr
   return res.data;
 }
 
+/** GET /identity/users/artists — public, visible artist profiles */
+export async function getPublicArtists(): Promise<PublicUserProfile[]> {
+  const res = await api.get<PublicUserProfile[]>('/identity/users/artists');
+  return res.data;
+}
+
 /**
  * GET /identity/users/:userId
  * Lấy thông tin đầy đủ của user, bao gồm seller_profile nếu là ARTIST
