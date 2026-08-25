@@ -25,6 +25,7 @@ import AdminVerifyRequestsPage from '../pages/AdminVerifyRequestsPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import AdminArtworksPage from '../pages/AdminArtworksPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
+import PricingPage from '../pages/PricingPage';
 
 
 function GuestRoute() {
@@ -130,6 +131,7 @@ export default function AppRoutes() {
           <Route path="/artworks" element={<ArtworksPage />} />
           <Route path="/artworks/:id" element={<ArtworkDetailPage />} />
           <Route path="/artists/:userId" element={<ArtistProfilePage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           <Route element={<ArtistRoute />}>
             <Route path="/inventory" element={<InventoryPage />} />
           </Route>

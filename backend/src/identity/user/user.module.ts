@@ -6,8 +6,13 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { UploadModule } from './../../modules/upload/upload.module';
 import { SellerProfile } from '../seller_profile/entities/seller_profile.entity';
+import { AuthModule } from '../auth/auth.module';
 @Module({
-  imports: [TypeOrmModule.forFeature([User, SellerProfile]), UploadModule],
+  imports: [
+    TypeOrmModule.forFeature([User, SellerProfile]),
+    UploadModule,
+    AuthModule,
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

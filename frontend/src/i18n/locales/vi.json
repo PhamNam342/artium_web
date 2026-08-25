@@ -265,7 +265,8 @@
     "comingSoon": "Phần này sẽ sớm có mặt.",
     "buyNow": "Mua ngay",
     "about": "Giới thiệu về nghệ sĩ",
-    "verified": "Đã xác minh"
+    "verified": "Đã xác minh",
+    "unverified":"Chưa xác minh"
   },
   "apiErrors": {
     "emailExists": "Email này đã được sử dụng",
@@ -334,6 +335,19 @@
       "good": "Mật khẩu khá mạnh",
       "strong": "Mật khẩu mạnh"
     },
+    "unverified":"Chưa xác minh",
+    "deleteAccount": {
+    "title": "Xóa tài khoản",
+    "description": "Tài khoản của bạn sẽ bị vô hiệu hóa. Dữ liệu của bạn sẽ được giữ lại.",
+    "button": "Xóa tài khoản",
+    "confirmTitle": "Xóa tài khoản của bạn?",
+    "confirmDescription": "Bạn có chắc chắn muốn xóa tài khoản không? Tài khoản của bạn sẽ bị vô hiệu hóa và bạn sẽ không thể truy cập tài khoản nữa.",
+    "confirmButton": "Xóa tài khoản",
+    "deleting": "Đang xóa...",
+    "success": "Tài khoản của bạn đã được vô hiệu hóa thành công.",
+    "error": "Không thể xóa tài khoản.",
+    "cancel":"Hủy"
+  },
     "verificationStatus": "Trạng thái xác minh",
     "verifiedDesc": "Tài khoản của bạn đã được xác minh.",
     "pendingDesc": "Yêu cầu xác minh của bạn đang được xét duyệt.",
@@ -433,5 +447,64 @@
       "momentLike": "{{actor}} đã thích khoảnh khắc của bạn",
       "momentComment": "{{actor}} đã bình luận về khoảnh khắc của bạn"
     }
+  },
+  "pricing": {
+    "eyebrow": "Artium dành cho nghệ sĩ",
+    "hero": {
+      "titleLine1": "Tập trung sáng tạo.",
+      "titleLine2": "Để Artium lo phần còn lại.",
+      "description": "Một nền tảng gọn gàng để bạn trưng bày, quản lý và bán tác phẩm nghệ thuật theo cách của riêng mình."
+    },
+    "billing": {
+      "monthly": "Theo tháng",
+      "yearly": "Theo năm",
+      "save": "Tiết kiệm 20%",
+      "trial": "Dùng thử Studio miễn phí 14 ngày · Huỷ bất cứ lúc nào"
+    },
+    "mostPopular": "Được yêu thích nhất",
+    "free": "Miễn phí",
+    "currency": "đ",
+    "perMonth": "/ tháng",
+    "paidAnnually": "Thanh toán {{price}} / năm",
+    "includes": "Bao gồm:",
+    "yes": "Có",
+    "no": "Không",
+    "unlimited": "Không giới hạn",
+    "plans": {
+      "free": {
+        "name": "Free", "kicker": "Bắt đầu hành trình", "description": "Mọi điều cần thiết để giới thiệu các tác phẩm đầu tiên của bạn.", "button": "Dùng miễn phí",
+        "features": ["Tối đa 10 tác phẩm", "Trang hồ sơ nghệ sĩ", "Nhận yêu cầu từ nhà sưu tầm", "Chứng nhận tác phẩm số"]
+      },
+      "studio": {
+        "name": "Studio", "kicker": "Dành cho nghệ sĩ", "description": "Bộ công cụ đầy đủ để quản lý studio và bán tác phẩm chuyên nghiệp.", "button": "Bắt đầu dùng thử",
+        "features": ["Không giới hạn tác phẩm", "Kho tác phẩm & bộ sưu tập", "Thanh toán trực tuyến", "Mã giảm giá & invoice", "Danh sách người sưu tầm"]
+      },
+      "gallery": {
+        "name": "Gallery", "kicker": "Dành cho gallery", "description": "Quản trị nhiều nghệ sĩ, tác phẩm và mối quan hệ khách hàng trong một nơi.", "button": "Liên hệ tư vấn",
+        "features": ["Tất cả tính năng Studio", "Quản lý nhiều nghệ sĩ", "Trang web theo tên miền riêng", "Phân quyền cho đội ngũ", "Hỗ trợ ưu tiên"]
+      }
+    },
+    "comparison": {
+      "eyebrow": "So sánh chi tiết", "titleLine1": "Chọn không gian phù hợp", "titleLine2": "cho hành trình của bạn.", "description": "Mở rộng công cụ khi hoạt động nghệ thuật phát triển — không ràng buộc dài hạn.", "feature": "Tính năng",
+      "Quản lý tác phẩm": "Quản lý tác phẩm", "Số lượng tác phẩm": "Số lượng tác phẩm", "Quản lý bộ sưu tập": "Quản lý bộ sưu tập", "Chứng nhận tác phẩm số": "Chứng nhận tác phẩm số", "Xuất nhãn tác phẩm": "Xuất nhãn tác phẩm",
+      "Bán hàng & khách hàng": "Bán hàng & khách hàng", "Nhận yêu cầu mua": "Nhận yêu cầu mua", "Thanh toán trực tuyến": "Thanh toán trực tuyến", "CRM nhà sưu tầm": "CRM nhà sưu tầm", "Mã ưu đãi & hoá đơn": "Mã ưu đãi & hoá đơn",
+      "Hiện diện trực tuyến": "Hiện diện trực tuyến", "Hồ sơ nghệ sĩ": "Hồ sơ nghệ sĩ", "Tên miền tuỳ chỉnh": "Tên miền tuỳ chỉnh", "Quản lý nhiều nghệ sĩ": "Quản lý nhiều nghệ sĩ"
+    },
+    "services": {
+      "eyebrow": "Dịch vụ hỗ trợ", "titleLine1": "Bắt đầu nhanh hơn", "titleLine2": "với một bàn tay hỗ trợ.", "description": "Để bạn có thêm thời gian cho studio, phần còn lại hãy để đội ngũ Artium cùng lo.",
+      "items": {
+        "migration": { "title": "Chuyển dữ liệu tác phẩm", "price": "Từ 490.000đ", "description": "Chúng tôi giúp bạn đưa portfolio hiện có lên Artium gọn gàng và chính xác." },
+        "storefront": { "title": "Thiết lập storefront", "price": "Từ 1.500.000đ", "description": "Thiết kế không gian bán hàng trực tuyến mang nhận diện của riêng bạn." },
+        "consulting": { "title": "Tư vấn vận hành gallery", "price": "Theo nhu cầu", "description": "Thiết lập quy trình quản lý nghệ sĩ, khách hàng và tác phẩm cho đội ngũ." }
+      }
+    },
+    "learnMore": "Tìm hiểu thêm",
+    "faq": { "titleLine1": "Những điều", "titleLine2": "bạn thường hỏi.", "description": "Chưa tìm thấy câu trả lời? Đội ngũ Artium luôn sẵn lòng hỗ trợ." },
+    "faqs": [
+      { "question": "Tôi có thể đổi gói bất cứ lúc nào không?", "answer": "Có. Bạn có thể nâng cấp, hạ cấp hoặc huỷ gói bất cứ lúc nào. Khi nâng cấp, các tính năng mới sẽ được mở ngay lập tức." },
+      { "question": "Gói Studio có thời gian dùng thử không?", "answer": "Có, bạn được dùng thử Studio 14 ngày miễn phí. Không cần thẻ thanh toán để bắt đầu." },
+      { "question": "Phí giao dịch được tính như thế nào?", "answer": "Artium không tính phí đăng tải. Khi một tác phẩm được thanh toán qua nền tảng, phí xử lý thanh toán sẽ được hiển thị rõ ràng trước khi bạn kích hoạt." }
+    ],
+    "cta": { "eyebrow": "Bắt đầu ngay hôm nay", "title": "Tác phẩm của bạn xứng đáng có một không gian riêng.", "button": "Tạo tài khoản miễn phí" }
   }
 }

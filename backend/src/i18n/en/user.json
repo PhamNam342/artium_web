@@ -1,3 +1,5 @@
 {
-  "user_not_found": "User not found"
+  "user_not_found": "User not found",
+   "cannot_delete_other_account":"Can not delete othe account",
+   "account_deleted":"Account deleted"
 }

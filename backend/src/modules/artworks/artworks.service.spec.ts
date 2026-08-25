@@ -24,6 +24,7 @@ describe('ArtworksService', () => {
     createQueryBuilder: jest.Mock;
     delete: jest.Mock;
     findOne: jest.Mock;
+    manager: { transaction: jest.Mock };
     save: jest.Mock;
     update: jest.Mock;
   };
@@ -48,6 +49,7 @@ describe('ArtworksService', () => {
       createQueryBuilder: jest.fn(),
       delete: jest.fn(),
       findOne: jest.fn(),
+      manager: { transaction: jest.fn() },
       save: jest.fn((artwork: Artwork) =>
         Promise.resolve({
           ...artwork,
@@ -663,5 +665,60 @@ describe('ArtworksService', () => {
       message:
         'Your artwork "Sunset Study" has been removed by an administrator. Reason: Violates guidelines',
     });
+  });
+
+  it('moves all selected artworks to an owned folder atomically', async () => {
+    const firstArtworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const secondArtworkId = '123e4567-e89b-12d3-a456-426614174223';
+    const folderId = '123e4567-e89b-12d3-a456-426614174333';
+    const manager = {
+      count: jest.fn().mockResolvedValue(2),
+      update: jest.fn().mockResolvedValue({ affected: 2 }),
+    };
+    folderRepository.findOne.mockResolvedValue({ id: folderId });
+    artworkRepository.manager.transaction.mockImplementation(
+      async (
+        callback: (transactionManager: typeof manager) => Promise<unknown>,
+      ) => callback(manager),
+    );
+
+    await expect(
+      service.bulkMove(
+        { artworkIds: [firstArtworkId, secondArtworkId], folderId },
+        sellerId,
+      ),
+    ).resolves.toEqual({ movedCount: 2 });
+
+    expect(folderRepository.findOne).toHaveBeenCalledWith({
+      where: { id: folderId, sellerId },
+      select: { id: true },
+    });
+    expect(manager.count).toHaveBeenCalledTimes(1);
+    expect(manager.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not move anything when one selected artwork is not owned by the seller', async () => {
+    const firstArtworkId = '123e4567-e89b-12d3-a456-426614174222';
+    const secondArtworkId = '123e4567-e89b-12d3-a456-426614174223';
+    const folderId = '123e4567-e89b-12d3-a456-426614174333';
+    const manager = {
+      count: jest.fn().mockResolvedValue(1),
+      update: jest.fn(),
+    };
+    folderRepository.findOne.mockResolvedValue({ id: folderId });
+    artworkRepository.manager.transaction.mockImplementation(
+      async (
+        callback: (transactionManager: typeof manager) => Promise<unknown>,
+      ) => callback(manager),
+    );
+
+    await expect(
+      service.bulkMove(
+        { artworkIds: [firstArtworkId, secondArtworkId], folderId },
+        sellerId,
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(manager.update).not.toHaveBeenCalled();
   });
 });
