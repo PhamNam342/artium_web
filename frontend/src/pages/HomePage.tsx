@@ -47,7 +47,7 @@ function Hero() {
         <div className="pointer-events-none absolute inset-x-10 top-0 h-80 opacity-50 [background-image:radial-gradient(circle_at_center,rgba(255,255,255,.75)_1px,transparent_1px)] [background-size:52px_52px]" />
         <div className="relative grid gap-10 pt-5 lg:grid-cols-[1.15fr_.75fr] lg:items-end lg:gap-20">
           <h1 className="max-w-3xl text-5xl font-semibold leading-[.94] tracking-[-0.075em] sm:text-7xl md:text-8xl lg:text-[90px]">Discover art.<br />Manage your<br />business.<br />All in one platform.</h1>
-          <div className="max-w-sm pb-2 lg:pb-4"><p className="text-sm leading-6 text-white/65 sm:text-base">Connect with collectors through AI-powered discovery while running your gallery or art studio with professional tools for inventory, payments, website hosting, email, and client management.</p><Link className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/80" to="/artworks">Get started <ArrowUpRight className="h-4 w-4" /></Link></div>
+          <div className="max-w-sm pb-2 lg:pb-4"><p className="text-sm leading-6 text-white/65 sm:text-base">Connect with collectors through AI-powered discovery while running your gallery or art studio with professional tools for inventory, payments, website hosting, email, and client management.</p><Link className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/80" to="/login">Get started <ArrowUpRight className="h-4 w-4" /></Link></div>
         </div>
       </div>
       <ArtworkRail />
@@ -80,7 +80,7 @@ function CommunityStories() {
 
 function ClosingCta() {
   return (
-    <section className="bg-black px-5 pb-24 text-center text-white sm:pb-32"><Sparkles className="mx-auto h-5 w-5 text-white/35" /><p className="mt-8 text-3xl font-medium tracking-[-0.055em] text-white/40 sm:text-5xl">The art world's future is creator-first</p><p className="mt-1 text-3xl font-semibold tracking-[-0.055em] sm:text-5xl">The future is Artium</p><Link className="mt-8 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold transition hover:bg-blue-500" to="/artworks">Get Started <ArrowRight className="h-4 w-4" /></Link></section>
+    <section className="bg-black px-5 pb-24 text-center text-white sm:pb-32"><Sparkles className="mx-auto h-5 w-5 text-white/35" /><p className="mt-8 text-3xl font-medium tracking-[-0.055em] text-white/40 sm:text-5xl">The art world's future is creator-first</p><p className="mt-1 text-3xl font-semibold tracking-[-0.055em] sm:text-5xl">The future is Artium</p><Link className="mt-8 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold transition hover:bg-blue-500" to="/login">Get Started <ArrowRight className="h-4 w-4" /></Link></section>
   );
 }
 
