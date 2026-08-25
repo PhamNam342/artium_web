@@ -118,6 +118,23 @@
         "deleteSuccess": "Artwork removed successfully. The artist has been notified.",
         "deleteError": "Failed to remove artwork"
       },
+      "detail": {
+        "title": "Artwork Details",
+        "published": "Published",
+        "unpublished": "Unpublished",
+        "price": "Price",
+        "createdAt": "Created",
+        "views": "Views",
+        "artist": "Artist",
+        "description": "Description",
+        "materials": "Materials",
+        "location": "Location",
+        "dimensions": "Dimensions",
+        "weight": "Weight",
+        "tags": "Tags",
+        "artworkId": "Artwork ID",
+        "close": "Close"
+      },
       "paginationLabel": "Showing {{start}} to {{end}} of {{total}} results",
       "previous": "Previous",
       "next": "Next",

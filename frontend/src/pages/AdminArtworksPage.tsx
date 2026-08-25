@@ -2,9 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import type { AdminArtwork, PaginatedAdminArtworks } from '../services/adminService';
 import { getAdminArtworks, adminDeleteArtwork } from '../services/adminService';
-import ConfirmActionModal from '../features/admin/components/ConfirmActionModal';
 import { ChevronLeft, ChevronRight, Trash2, ImageOff, Loader2 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import AdminArtworkDetailModal from '../features/admin/components/AdminArtworkDetailModal';
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -56,7 +56,18 @@ export default function AdminArtworksPage() {
   const [deleteReason, setDeleteReason] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Detail drawer state
+  const [detailArtwork, setDetailArtwork] = useState<AdminArtwork | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const handleRowClick = (artwork: AdminArtwork) => {
+    setDetailArtwork(artwork);
+    setIsDetailOpen(true);
+  };
+
   const handleDeleteClick = (artwork: AdminArtwork) => {
+    setDetailArtwork(null);
+    setIsDetailOpen(false);
     setSelectedArtwork(artwork);
     setDeleteReason('');
     setIsDeleteModalOpen(true);
@@ -69,6 +80,7 @@ export default function AdminArtworksPage() {
       await adminDeleteArtwork(selectedArtwork.id, deleteReason || undefined);
       toast.success(t('admin.artworks.messages.deleteSuccess'));
       setIsDeleteModalOpen(false);
+      setIsDetailOpen(false);
       // Remove from local state
       if (data) {
         const updated = data.data.filter((a) => a.id !== selectedArtwork.id);
@@ -149,7 +161,11 @@ export default function AdminArtworksPage() {
               data?.data.map((artwork) => {
                 const thumb = getThumbnail(artwork);
                 return (
-                  <tr key={artwork.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={artwork.id}
+                    className="hover:bg-blue-50 transition-colors cursor-pointer"
+                    onClick={() => handleRowClick(artwork)}
+                  >
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
                       <div className="flex items-center gap-3">
                         <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-gray-100 border border-gray-200">
@@ -199,7 +215,7 @@ export default function AdminArtworksPage() {
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
                       <button
                         id={`admin-delete-artwork-${artwork.id}`}
-                        onClick={() => handleDeleteClick(artwork)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(artwork); }}
                         className="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                         title={t('admin.artworks.actions.delete')}
                       >
@@ -317,6 +333,13 @@ export default function AdminArtworksPage() {
           </div>
         </div>
       )}
+      {/* Detail Drawer */}
+      <AdminArtworkDetailModal
+        artwork={detailArtwork}
+        isOpen={isDetailOpen}
+        onClose={() => { setIsDetailOpen(false); }}
+        onDeleteClick={handleDeleteClick}
+      />
     </div>
   );
 }

@@ -118,6 +118,23 @@
         "deleteSuccess": "Đã xóa tác phẩm thành công. Nghệ sĩ đã được thông báo.",
         "deleteError": "Xóa tác phẩm thất bại"
       },
+      "detail": {
+        "title": "Chi tiết tác phẩm",
+        "published": "Đã đăng",
+        "unpublished": "Chưa đăng",
+        "price": "Giá",
+        "createdAt": "Ngày tạo",
+        "views": "Lượt xem",
+        "artist": "Nghệ sĩ",
+        "description": "Mô tả",
+        "materials": "Chất liệu",
+        "location": "Vị trí",
+        "dimensions": "Kích thước",
+        "weight": "Trọng lượng",
+        "tags": "Thẻ",
+        "artworkId": "ID tác phẩm",
+        "close": "Đóng"
+      },
       "paginationLabel": "Hiển thị {{start}} đến {{end}} trong {{total}} kết quả",
       "previous": "Trước",
       "next": "Tiếp",
