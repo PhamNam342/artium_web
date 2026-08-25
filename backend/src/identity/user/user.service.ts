@@ -126,9 +126,9 @@ export class UserService {
         avatar_url: artist.avatar_url,
         location: artist.location,
         seller_profile: {
-          bio: artist.sellerProfile!.bio,
-          website_url: artist.sellerProfile!.websiteUrl,
-          is_verified: artist.sellerProfile!.isVerified,
+          bio: artist.sellerProfile.bio,
+          website_url: artist.sellerProfile.websiteUrl,
+          is_verified: artist.sellerProfile.isVerified,
         },
       }));
   }
