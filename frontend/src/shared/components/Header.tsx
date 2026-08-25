@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useI18n, LanguageSwitcher } from '../../i18n/I18nContext';
 import toast from 'react-hot-toast';
@@ -11,6 +11,12 @@ export default function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `relative py-5 text-xs transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:transition-transform ${
+      isActive
+        ? 'font-semibold text-slate-950 after:scale-x-100 after:bg-slate-950'
+        : 'text-gray-600 hover:text-black after:scale-x-0 after:bg-slate-400'
+    }`;
 
   const handleLogout = async () => {
     try {
@@ -34,35 +40,35 @@ export default function Header() {
           <nav className="hidden items-center gap-6 md:flex">
             {user?.role !== 'ADMIN' && (
               <>
-                <Link to="/" className="text-xs text-gray-600 hover:text-black transition-colors">
+                <NavLink to="/" end className={navLinkClass}>
                   {t('nav.home')}
-                </Link>
-                <Link to="/artworks" className="text-xs text-gray-600 hover:text-black transition-colors">
+                </NavLink>
+                <NavLink to="/artworks" className={navLinkClass}>
                   {t('nav.artworks')}
-                </Link>
-                <Link to="/artists" className="text-xs text-gray-600 hover:text-black transition-colors">
+                </NavLink>
+                <NavLink to="/artists" className={navLinkClass}>
                   {t('nav.artists')}
-                </Link>
+                </NavLink>
                 {user?.role === 'ARTIST' && (
-                  <Link to="/inventory" className="text-xs text-gray-600 hover:text-black transition-colors">
+                  <NavLink to="/inventory" className={navLinkClass}>
                     {t('nav.inventory')}
-                  </Link>
+                  </NavLink>
                 )}
-                <Link to="/pricing" className="text-xs text-gray-600 hover:text-black transition-colors">
+                <NavLink to="/pricing" className={navLinkClass}>
                   {t('nav.pricing')}
-                </Link>
+                </NavLink>
                 {user && (
-                  <Link to="/orders" className="text-sm text-gray-600 hover:text-black transition-colors">
+                  <NavLink to="/orders" className={navLinkClass}>
                     {t('nav.orders')}
-                  </Link>
+                  </NavLink>
                 )}
               </>
             )}
             
             {user?.role === 'ADMIN' && (
-              <Link to="/admin/dashboard" className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+              <NavLink to="/admin/dashboard" className={navLinkClass}>
                 {t('admin.dashboard.title') || 'Dashboard'}
-              </Link>
+              </NavLink>
             )}
           </nav>
 
