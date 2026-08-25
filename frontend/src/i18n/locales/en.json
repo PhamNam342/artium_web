@@ -628,6 +628,16 @@
       ,"characters": "characters"
     }
   },
+  "footer": {
+    "description": "A platform for artists to sell and manage their artwork.",
+    "product": "Product",
+    "community": "Community",
+    "policies": "Policies",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "refund": "Refund Policy",
+    "copyright": "© {{year}} Artium. All rights reserved."
+  },
   "pricing": {
     "eyebrow": "Artium for artists",
     "hero": {

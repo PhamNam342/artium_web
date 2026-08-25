@@ -624,6 +624,16 @@
       ,"characters": "ký tự"
     }
   },
+  "footer": {
+    "description": "Nền tảng dành cho nghệ sĩ bán và quản lý tác phẩm nghệ thuật.",
+    "product": "Sản phẩm",
+    "community": "Cộng đồng",
+    "policies": "Chính sách",
+    "terms": "Điều khoản",
+    "privacy": "Quyền riêng tư",
+    "refund": "Hoàn tiền",
+    "copyright": "© {{year}} Artium. Bảo lưu mọi quyền."
+  },
   "pricing": {
     "eyebrow": "Artium dành cho nghệ sĩ",
     "hero": {

@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useI18n } from '../../i18n/I18nContext';
 
 export default function Footer() {
+  const { t } = useI18n();
+
   return (
     <footer className="bg-gray-950 text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -10,33 +13,33 @@ export default function Footer() {
               ARTIUM
             </span>
             <p className="mt-3 text-sm leading-relaxed">
-              Nền tảng dành cho nghệ sĩ bán và quản lý tác phẩm nghệ thuật.
+              {t('footer.description')}
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Sản phẩm</h4>
+            <h4 className="text-sm font-semibold text-white mb-4">{t('footer.product')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/" className="text-sm hover:text-white transition-colors">
-                  Trang chủ
+                  {t('nav.home')}
                 </Link>
               </li>
               <li>
                 <Link to="/artworks" className="text-sm hover:text-white transition-colors">
-                  Tác phẩm
+                  {t('nav.artworks')}
                 </Link>
               </li>
               <li>
                 <Link to="/pricing" className="text-sm hover:text-white transition-colors">
-                  Bảng giá
+                  {t('nav.pricing')}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Cộng đồng</h4>
+            <h4 className="text-sm font-semibold text-white mb-4">{t('footer.community')}</h4>
             <ul className="space-y-2.5">
               <li><a href="#" className="text-sm hover:text-white">Instagram</a></li>
               <li><a href="#" className="text-sm hover:text-white">Facebook</a></li>
@@ -45,17 +48,17 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Chính sách</h4>
+            <h4 className="text-sm font-semibold text-white mb-4">{t('footer.policies')}</h4>
             <ul className="space-y-2.5">
-              <li><a href="#" className="text-sm hover:text-white">Điều khoản</a></li>
-              <li><a href="#" className="text-sm hover:text-white">Quyền riêng tư</a></li>
-              <li><a href="#" className="text-sm hover:text-white">Hoàn tiền</a></li>
+              <li><a href="#" className="text-sm hover:text-white">{t('footer.terms')}</a></li>
+              <li><a href="#" className="text-sm hover:text-white">{t('footer.privacy')}</a></li>
+              <li><a href="#" className="text-sm hover:text-white">{t('footer.refund')}</a></li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} Artium. All rights reserved.
+          {t('footer.copyright', { year: new Date().getFullYear() })}
         </div>
       </div>
     </footer>
