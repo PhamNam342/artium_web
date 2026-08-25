@@ -32,11 +32,7 @@ import {
   UpdateArtworkPublishDto,
   UpdateArtworkStatusDto,
 } from './dto/update-artwork-status.dto';
-
-class AdminDeleteArtworkDto {
-  reason?: string;
-}
-
+import { AdminDeleteArtworkDto } from './dto/admin-delete-artwork.dto';
 
 @Controller(['artwork', 'artworks'])
 export class ArtworksController {
