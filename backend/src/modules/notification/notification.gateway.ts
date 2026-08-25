@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Server } from 'socket.io';
 
+import { RedisService } from '../../common/redis/redis.service';
 import type { JwtPayload } from '../../identity/auth/interfaces/jwt-payload.interface';
 import type { NotificationSocket } from './interfaces/notification-socket.interface';
 
@@ -25,7 +26,10 @@ export class NotificationGateway
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async handleConnection(
     @ConnectedSocket() client: NotificationSocket,
@@ -42,10 +46,23 @@ export class NotificationGateway
 
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
-      const userId = payload.sub;
+      const { sub: userId, jti } = payload;
 
-      if (!userId) {
-        console.log(`Notification socket rejected: ${client.id} - no userId`);
+      if (!userId || !jti) {
+        console.log(
+          `Notification socket rejected: ${client.id} - invalid token`,
+        );
+
+        client.disconnect();
+        return;
+      }
+
+      const revoked = await this.redisService.exists(`auth:revoked:${jti}`);
+
+      if (revoked) {
+        console.log(
+          `Notification socket rejected: ${client.id} - revoked token`,
+        );
 
         client.disconnect();
         return;

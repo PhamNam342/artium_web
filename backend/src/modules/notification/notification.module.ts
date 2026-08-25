@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import type { StringValue } from 'ms';
+import { RedisModule } from '../../common/redis/redis.module';
 
 import { Notification } from './entities/notification.entity';
 import { NotificationController } from './notification.controller';
@@ -12,6 +13,7 @@ import { NotificationGateway } from './notification.gateway';
 @Module({
   imports: [
     ConfigModule,
+    RedisModule,
 
     TypeOrmModule.forFeature([Notification]),
 
