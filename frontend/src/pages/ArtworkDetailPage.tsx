@@ -108,6 +108,7 @@ export default function ArtworkDetailPage() {
   const dimensions = artwork ? formatDimensions(artwork) : null;
   const weight = artwork ? formatWeight(artwork) : null;
   const artistName = artist?.full_name || t('artworks.artist');
+  const isOwnArtwork = user?.id === artwork?.sellerId;
 
   const selectRelativeImage = (offset: number) => {
     if (images.length < 2) return;
@@ -193,9 +194,18 @@ export default function ArtworkDetailPage() {
                 <p className="text-2xl font-bold text-slate-950">
                   {formatArtworkPrice(artwork.price, artwork.currency, language === 'en' ? 'en-US' : 'vi-VN', t('artworks.priceOnRequest'))}
                 </p>
-                <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
-                  {t('artworks.purchase')}
-                </button>
+                {isOwnArtwork ? (
+                  <Link
+                    to={`/inventory/upload/${artwork.id}`}
+                    className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none"
+                  >
+                    {t('artworks.manageArtwork')}
+                  </Link>
+                ) : (
+                  <button type="button" onClick={handleBuyNow} className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:flex-none">
+                    {t('artworks.purchase')}
+                  </button>
+                )}
               </div>
               <div className="mt-2 flex items-center gap-3" aria-label={t('artworks.actionsLabel')}>
                 <ArtworkLikeButton artworkId={artwork.id} />

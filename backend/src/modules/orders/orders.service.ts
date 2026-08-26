@@ -21,6 +21,7 @@ import {
   OrderShippingAddressResponseDto,
 } from './dto/order-response.dto';
 import type { Webhook } from '@payos/node';
+import { t } from '../../common/utils/i18n.util';
 
 function isPayOSSequenceRows(
   value: unknown,
@@ -59,6 +60,10 @@ export class OrdersService {
 
         if (!artwork) {
           throw new NotFoundException('Artwork not found');
+        }
+
+        if (artwork.sellerId === collectorId) {
+          throw new ForbiddenException(t('artwork.cannot_purchase_own'));
         }
 
         if (

@@ -254,6 +254,7 @@
     "cartAdded": "Artwork added to your cart.",
     "buyNow": "Buy now",
     "purchase": "Purchase",
+    "manageArtwork": "Manage artwork",
     "purchaseComingSoon": "Checkout is coming soon.",
     "aboutArtwork": "About this artwork",
     "lightboxLabel": "Images of {{title}}",
@@ -424,6 +425,8 @@
     "processing": "Processing...",
     "success": "Order placed successfully!",
     "error": "Failed to place order. Please try again.",
+    "cannotPurchaseOwnArtwork": "This artwork belongs to you, so it cannot be purchased from your own account. You can manage it in your inventory.",
+    "manageArtwork": "Manage this artwork",
     "orderSummary": "Order Summary"
   },
   "comment": {

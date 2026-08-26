@@ -1,5 +1,6 @@
 {
   "not_found": "Không tìm thấy tác phẩm.",
+  "cannot_purchase_own": "Bạn không thể mua tác phẩm của chính mình.",
   "update_fields_required": "Cần cung cấp ít nhất một trường để cập nhật tác phẩm.",
   "min_price_less_than_max_price": "Giá tối thiểu không được lớn hơn giá tối đa.",
   "files_required": "Cần tải lên ít nhất một tệp hình ảnh.",

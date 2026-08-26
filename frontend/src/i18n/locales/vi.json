@@ -254,6 +254,7 @@
     "cartAdded": "Đã thêm tác phẩm vào giỏ hàng.",
     "buyNow": "Mua ngay",
     "purchase": "Mua tác phẩm",
+    "manageArtwork": "Quản lý tác phẩm",
     "purchaseComingSoon": "Tính năng thanh toán sẽ sớm có mặt.",
     "aboutArtwork": "Về tác phẩm",
     "lightboxLabel": "Ảnh của {{title}}",
@@ -420,6 +421,8 @@
     "processing": "Đang xử lý...",
     "success": "Đặt hàng thành công!",
     "error": "Đặt hàng thất bại. Vui lòng thử lại.",
+    "cannotPurchaseOwnArtwork": "Đây là tác phẩm của bạn nên bạn không thể mua từ chính tài khoản này. Bạn có thể quản lý tác phẩm trong kho.",
+    "manageArtwork": "Quản lý tác phẩm này",
     "orderSummary": "Tóm tắt đơn hàng"
   },
   "comment": {
