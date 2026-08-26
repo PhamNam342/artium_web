@@ -626,9 +626,8 @@ export class ArtworksService {
       maxPrice,
       category: this.cleanString(query.category),
       material: this.cleanString(query.material),
-      sort: this.cleanString(query.sort) === 'top-picks'
-        ? 'top-picks'
-        : undefined,
+      sort:
+        this.cleanString(query.sort) === 'top-picks' ? 'top-picks' : undefined,
       sellerId: query.sellerId
         ? this.cleanRequiredUuid(query.sellerId, 'sellerId')
         : undefined,

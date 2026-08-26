@@ -8,7 +8,10 @@ import { ArtworkFolder } from '../artwork-folders/artwork-folder.entity';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Artwork, Tag, ArtworkFolder]), NotificationModule],
+  imports: [
+    TypeOrmModule.forFeature([Artwork, Tag, ArtworkFolder]),
+    NotificationModule,
+  ],
   controllers: [ArtworksController],
   providers: [ArtworksService],
 })

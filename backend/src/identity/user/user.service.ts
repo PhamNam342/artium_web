@@ -372,7 +372,10 @@ export class UserService {
     // Monthly new users for the last 6 months
     const monthlyRaw = await this.userRepository
       .createQueryBuilder('user')
-      .select("TO_CHAR(DATE_TRUNC('month', user.created_at), 'YYYY-MM')", 'month')
+      .select(
+        "TO_CHAR(DATE_TRUNC('month', user.created_at), 'YYYY-MM')",
+        'month',
+      )
       .addSelect('COUNT(*)', 'count')
       .where("user.created_at >= NOW() - INTERVAL '6 months'")
       .groupBy("DATE_TRUNC('month', user.created_at)")
@@ -398,7 +401,10 @@ export class UserService {
       roleBreakdown: [
         { name: 'Artists', value: totalArtists },
         { name: 'Collectors', value: totalCollectors },
-        { name: 'Others', value: Math.max(0, totalUsers - totalArtists - totalCollectors) },
+        {
+          name: 'Others',
+          value: Math.max(0, totalUsers - totalArtists - totalCollectors),
+        },
       ],
     };
   }

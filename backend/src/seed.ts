@@ -561,8 +561,10 @@ async function bootstrap() {
         if (eligibleUserIds.length === 0) continue;
 
         const startIndex =
-          [...title].reduce((sum, character) => sum + character.charCodeAt(0), 0) %
-          eligibleUserIds.length;
+          [...title].reduce(
+            (sum, character) => sum + character.charCodeAt(0),
+            0,
+          ) % eligibleUserIds.length;
 
         for (let index = 0; index < desiredLikeCount; index += 1) {
           const userId =
