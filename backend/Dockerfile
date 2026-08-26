@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy chính xác cả 2 file để tránh lỗi thiếu package-lock.json
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 RUN npm run build
