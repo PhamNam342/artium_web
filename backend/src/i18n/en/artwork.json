@@ -1,5 +1,6 @@
 {
   "not_found": "Artwork not found.",
+  "cannot_purchase_own": "You cannot purchase your own artwork.",
   "update_fields_required": "At least one artwork field is required.",
   "min_price_less_than_max_price": "Minimum price must not be greater than maximum price.",
   "files_required": "At least one image file is required.",

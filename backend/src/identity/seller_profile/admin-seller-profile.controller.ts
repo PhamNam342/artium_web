@@ -6,6 +6,8 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
 
 import { SellerProfilesService } from './seller_profile.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('admin/verify-requests')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -22,12 +24,12 @@ export class AdminSellerProfilesController {
   }
 
   @Post(':profileId/approve')
-  async approveRequest(@Param('profileId') profileId: string) {
-    return this.sellerProfilesService.approveVerification(profileId);
+  async approveRequest(@Param('profileId') profileId: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.sellerProfilesService.approveVerification(profileId, admin.id);
   }
 
   @Post(':profileId/reject')
-  async rejectRequest(@Param('profileId') profileId: string) {
-    return this.sellerProfilesService.rejectVerification(profileId);
+  async rejectRequest(@Param('profileId') profileId: string, @CurrentUser() admin: AuthenticatedUser) {
+    return this.sellerProfilesService.rejectVerification(profileId, admin.id);
   }
 }

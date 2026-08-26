@@ -6,6 +6,7 @@ import { artworkService, formatArtworkPrice } from '../features/artworks/artwork
 import { orderService } from '../features/orders/orderService';
 import type { Artwork } from '../features/artworks/types';
 import toast from 'react-hot-toast';
+import type { AxiosError } from 'axios';
 
 export default function CheckoutPage() {
   const { artworkId } = useParams<{ artworkId: string }>();
@@ -74,7 +75,8 @@ export default function CheckoutPage() {
       window.location.assign(payment.checkoutUrl);
     } catch (err) {
       console.error(err);
-      toast.error(t('checkout.error'));
+      const message = (err as AxiosError<{ message?: string }>).response?.data?.message;
+      toast.error(message || t('checkout.error'));
       setSubmitting(false);
     }
   };
@@ -97,6 +99,21 @@ export default function CheckoutPage() {
           className="mt-6 inline-flex rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
         >
           {t('artworks.backToArtworks')}
+        </Link>
+      </div>
+    );
+  }
+
+  if (user?.id === artwork.sellerId) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
+        <h1 className="text-2xl font-bold text-slate-900">{t('checkout.title')}</h1>
+        <p className="mt-3 text-slate-600">{t('checkout.cannotPurchaseOwnArtwork')}</p>
+        <Link
+          to={`/inventory/upload/${artwork.id}`}
+          className="mt-6 inline-flex rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+        >
+          {t('checkout.manageArtwork')}
         </Link>
       </div>
     );

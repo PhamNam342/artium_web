@@ -688,9 +688,12 @@ describe('ArtworksService', () => {
       type: NotificationType.ARTWORK_DELETED_BY_ADMIN,
       entityType: NotificationEntityType.ARTWORK,
       entityId: artworkId,
-      title: 'Artwork Removed',
-      message:
-        'Your artwork "Sunset Study" has been removed by an administrator. Reason: Violates guidelines',
+      title: 'ARTWORK_DELETED_BY_ADMIN',
+      message: 'ARTWORK_DELETED_BY_ADMIN',
+      metadata: {
+        artworkTitle: 'Sunset Study',
+        reason: 'Violates guidelines',
+      },
     });
   });
 

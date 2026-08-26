@@ -254,6 +254,7 @@
     "cartAdded": "Đã thêm tác phẩm vào giỏ hàng.",
     "buyNow": "Mua ngay",
     "purchase": "Mua tác phẩm",
+    "manageArtwork": "Quản lý tác phẩm",
     "purchaseComingSoon": "Tính năng thanh toán sẽ sớm có mặt.",
     "aboutArtwork": "Về tác phẩm",
     "lightboxLabel": "Ảnh của {{title}}",
@@ -288,6 +289,22 @@
     "about": "Giới thiệu về nghệ sĩ",
     "verified": "Đã xác minh",
     "unverified":"Chưa xác minh"
+  },
+  "followList": {
+    "followers": "Người theo dõi",
+    "following": "Đang theo dõi",
+    "loading": "Đang tải...",
+    "close": "Đóng",
+    "tryAgain": "Thử lại",
+    "loadError": "Không thể tải danh sách này. Vui lòng thử lại.",
+    "loadMoreError": "Không thể tải thêm người dùng. Vui lòng thử lại.",
+    "empty": {
+      "followers": "Chưa có người theo dõi",
+      "following": "Chưa theo dõi ai"
+    },
+    "loadMore": "Xem thêm",
+    "user": "Người dùng",
+    "unknownUser": "Người dùng không xác định"
   },
   "apiErrors": {
     "emailExists": "Email này đã được sử dụng",
@@ -404,6 +421,8 @@
     "processing": "Đang xử lý...",
     "success": "Đặt hàng thành công!",
     "error": "Đặt hàng thất bại. Vui lòng thử lại.",
+    "cannotPurchaseOwnArtwork": "Đây là tác phẩm của bạn nên bạn không thể mua từ chính tài khoản này. Bạn có thể quản lý tác phẩm trong kho.",
+    "manageArtwork": "Quản lý tác phẩm này",
     "orderSummary": "Tóm tắt đơn hàng"
   },
   "comment": {
@@ -461,6 +480,8 @@
     "title": "Thông báo",
     "markAllRead": "Đánh dấu tất cả đã đọc",
     "noNotifications": "Chưa có thông báo nào",
+    "toggle": "Bật/tắt thông báo",
+    "untitledArtwork": "Tác phẩm chưa có tên",
     "unreadBadge": "Chưa đọc",
     "newNotification": "Thông báo mới",
     "types": {
@@ -468,6 +489,10 @@
       "artworkComment": "{{actor}} đã bình luận về tác phẩm của bạn",
       "follow": "{{actor}} đã bắt đầu theo dõi bạn",
       "momentLike": "{{actor}} đã thích khoảnh khắc của bạn",
+      "artworkDeleted": "Tác phẩm \"{{title}}\" của bạn đã bị quản trị viên gỡ do vi phạm nguyên tắc của nền tảng.",
+      "artworkDeletedWithReason": "Tác phẩm \"{{title}}\" của bạn đã bị quản trị viên gỡ. Lý do: {{reason}}",
+      "verificationApproved": "Yêu cầu xác minh nghệ sĩ của bạn đã được duyệt.",
+      "verificationRejected": "Yêu cầu xác minh nghệ sĩ của bạn đã bị từ chối.",
       "momentComment": "{{actor}} đã bình luận về khoảnh khắc của bạn"
     }
   },
@@ -623,7 +648,12 @@
       "tagsSelected": "Đã chọn {{count}}/10",
       "vibes": "Cảm hứng",
       "values": "Giá trị",
-      "mediums": "Chất liệu"
+      "mediums": "Chất liệu",
+      "tagOptions": {
+        "joyful": "Vui tươi", "natural": "Tự nhiên", "vibrant": "Rực rỡ", "expressive": "Biểu cảm", "peaceful": "Bình yên", "romantic": "Lãng mạn", "bold": "Táo bạo", "dreamy": "Mộng mơ", "classic": "Cổ điển", "moody": "Trầm mặc", "minimalist": "Tối giản", "vintage": "Hoài cổ", "avantGarde": "Tiên phong", "spiritual": "Tâm linh", "melancholic": "U sầu", "other": "Khác",
+        "culturalHeritage": "Di sản văn hoá", "humanExperience": "Trải nghiệm con người", "pride": "Tự hào", "futurism": "Vị lai", "environment": "Môi trường", "equity": "Công bằng", "feminism": "Nữ quyền", "socialAwareness": "Nhận thức xã hội", "escapism": "Thoát ly", "empowerment": "Trao quyền", "universal": "Phổ quát",
+        "painting": "Hội hoạ", "drawing": "Bản vẽ", "illustration": "Minh hoạ", "digitalArt": "Nghệ thuật số", "photography": "Nhiếp ảnh", "sculpture": "Điêu khắc", "installation": "Sắp đặt", "collage": "Cắt dán", "immersive": "Nhập vai", "mixedMedia": "Đa chất liệu", "performanceArt": "Nghệ thuật trình diễn", "prints": "Tranh in", "publicArt": "Nghệ thuật công cộng", "video": "Video", "ceramics": "Gốm", "animation": "Hoạt hình", "jewelry": "Trang sức", "textile": "Dệt may", "designedObjects": "Vật thể thiết kế", "functionalArt": "Nghệ thuật ứng dụng", "conceptArt": "Nghệ thuật ý niệm", "intellectualArt": "Nghệ thuật trí tuệ"
+      }
       ,"characters": "ký tự"
     }
   },

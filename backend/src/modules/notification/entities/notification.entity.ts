@@ -58,6 +58,9 @@ export class Notification {
   @Column({ type: 'text' })
   message!: string;
 
+  @Column({ type: 'jsonb', default: {} })
+  metadata!: Record<string, string>;
+
   @Column({
     name: 'is_read',
     default: false,

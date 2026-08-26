@@ -254,6 +254,7 @@
     "cartAdded": "Artwork added to your cart.",
     "buyNow": "Buy now",
     "purchase": "Purchase",
+    "manageArtwork": "Manage artwork",
     "purchaseComingSoon": "Checkout is coming soon.",
     "aboutArtwork": "About this artwork",
     "lightboxLabel": "Images of {{title}}",
@@ -287,6 +288,22 @@
     "buyNow": "Buy now",
     "about": "About the artist",
     "verified": "Verified"
+  },
+  "followList": {
+    "followers": "Followers",
+    "following": "Following",
+    "loading": "Loading...",
+    "close": "Close",
+    "tryAgain": "Try again",
+    "loadError": "Unable to load this list. Please try again.",
+    "loadMoreError": "Unable to load more users. Please try again.",
+    "empty": {
+      "followers": "No followers yet",
+      "following": "Not following anyone yet"
+    },
+    "loadMore": "Load more",
+    "user": "User",
+    "unknownUser": "Unknown user"
   },
   "apiErrors": {
     "emailExists": "This email is already in use",
@@ -408,6 +425,8 @@
     "processing": "Processing...",
     "success": "Order placed successfully!",
     "error": "Failed to place order. Please try again.",
+    "cannotPurchaseOwnArtwork": "This artwork belongs to you, so it cannot be purchased from your own account. You can manage it in your inventory.",
+    "manageArtwork": "Manage this artwork",
     "orderSummary": "Order Summary"
   },
   "comment": {
@@ -465,6 +484,8 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications yet",
+    "toggle": "Toggle notifications",
+    "untitledArtwork": "Untitled artwork",
     "unreadBadge": "Unread",
     "newNotification": "New notification",
     "types": {
@@ -472,6 +493,10 @@
       "artworkComment": "{{actor}} commented on your artwork",
       "follow": "{{actor}} started following you",
       "momentLike": "{{actor}} liked your moment",
+      "artworkDeleted": "Your artwork \"{{title}}\" has been removed by an administrator for violating platform guidelines.",
+      "artworkDeletedWithReason": "Your artwork \"{{title}}\" has been removed by an administrator. Reason: {{reason}}",
+      "verificationApproved": "Your artist verification has been approved.",
+      "verificationRejected": "Your artist verification request has been rejected.",
       "momentComment": "{{actor}} commented on your moment"
     }
   },
@@ -627,7 +652,12 @@
       "tagsSelected": "{{count}}/10 selected",
       "vibes": "Vibes",
       "values": "Values",
-      "mediums": "Mediums"
+      "mediums": "Mediums",
+      "tagOptions": {
+        "joyful": "Joyful", "natural": "Natural", "vibrant": "Vibrant", "expressive": "Expressive", "peaceful": "Peaceful", "romantic": "Romantic", "bold": "Bold", "dreamy": "Dreamy", "classic": "Classic", "moody": "Moody", "minimalist": "Minimalist", "vintage": "Vintage", "avantGarde": "Avant Garde", "spiritual": "Spiritual", "melancholic": "Melancholic", "other": "Other",
+        "culturalHeritage": "Cultural Heritage", "humanExperience": "Human Experience", "pride": "Pride", "futurism": "Futurism", "environment": "Environment", "equity": "Equity", "feminism": "Feminism", "socialAwareness": "Social Awareness", "escapism": "Escapism", "empowerment": "Empowerment", "universal": "Universal",
+        "painting": "Painting", "drawing": "Drawing", "illustration": "Illustration", "digitalArt": "Digital Art", "photography": "Photography", "sculpture": "Sculpture", "installation": "Installation", "collage": "Collage", "immersive": "Immersive", "mixedMedia": "Mixed Media", "performanceArt": "Performance Art", "prints": "Prints", "publicArt": "Public Art", "video": "Video", "ceramics": "Ceramics", "animation": "Animation", "jewelry": "Jewelry", "textile": "Textile", "designedObjects": "Designed Objects", "functionalArt": "Functional Art", "conceptArt": "Concept Art", "intellectualArt": "Intellectual Art"
+      }
       ,"characters": "characters"
     }
   },

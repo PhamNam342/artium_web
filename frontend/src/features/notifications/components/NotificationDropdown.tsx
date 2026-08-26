@@ -69,6 +69,19 @@ export default function NotificationDropdown() {
         return t('notifications.types.momentLike', { actor: actorName });
       case 'MOMENT_COMMENT':
         return t('notifications.types.momentComment', { actor: actorName });
+      case 'ARTWORK_DELETED_BY_ADMIN':
+        return notif.metadata?.reason
+          ? t('notifications.types.artworkDeletedWithReason', {
+              title: notif.metadata.artworkTitle || t('notifications.untitledArtwork'),
+              reason: notif.metadata.reason,
+            })
+          : t('notifications.types.artworkDeleted', {
+              title: notif.metadata?.artworkTitle || t('notifications.untitledArtwork'),
+            });
+      case 'VERIFICATION_APPROVED':
+        return t('notifications.types.verificationApproved');
+      case 'VERIFICATION_REJECTED':
+        return t('notifications.types.verificationRejected');
       default:
         return notif.message;
     }
@@ -81,7 +94,7 @@ export default function NotificationDropdown() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-black focus:outline-none"
-        aria-label="Toggle notifications"
+        aria-label={t('notifications.toggle')}
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
