@@ -70,11 +70,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // 2. Navigate based on entityType
+      // Follow notifications can come from collectors, who do not have an
+      // artist profile route. They should only be marked as read.
+      if (notif.type === 'FOLLOW') return;
+
+      // 2. Navigate only to supported destinations.
       if (notif.entityType === 'ARTWORK') {
         navigate(`/artworks/${notif.entityId}`);
-      } else if (notif.entityType === 'USER') {
-        navigate(`/artists/${notif.entityId}`);
       }
     },
     [navigate],
