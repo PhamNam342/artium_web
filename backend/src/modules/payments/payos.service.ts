@@ -22,6 +22,10 @@ export class PayOSService {
     return this.client.webhooks.verify(webhook);
   }
 
+  async getPaymentLink(orderCode: number) {
+    return this.client.paymentRequests.get(orderCode);
+  }
+
   async cancelPaymentLink(orderCode: number, reason: string) {
     return this.client.paymentRequests.cancel(orderCode, reason);
   }

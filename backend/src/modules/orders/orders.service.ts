@@ -337,7 +337,39 @@ export class OrdersService {
     id: string,
     user: { id: string; role: string | null },
   ): Promise<OrderResponseDto> {
-    return this.toOrderResponse(await this.findOrderById(id, user));
+    const order = await this.findOrderById(id, user);
+    await this.syncPaymentStatus(order);
+    return this.toOrderResponse(order);
+  }
+
+  /**
+   * PayOS redirects the customer before its webhook is necessarily delivered.
+   * Reconcile the order from PayOS when it is viewed so a completed payment
+   * cannot continue to show the "Pay now" action.
+   */
+  private async syncPaymentStatus(order: Order): Promise<void> {
+    if (
+      order.paymentStatus !== OrderPaymentStatus.PENDING ||
+      !order.payosOrderCode
+    ) {
+      return;
+    }
+
+    try {
+      const payment = await this.payOSService.getPaymentLink(
+        Number(order.payosOrderCode),
+      );
+      if (payment?.status !== 'PAID') return;
+
+      order.paymentStatus = OrderPaymentStatus.PAID;
+      order.paidAt = order.paidAt ?? new Date();
+      const transaction = payment.transactions?.[0];
+      order.paymentReference =
+        order.paymentReference ?? transaction?.reference ?? null;
+      await this.orderRepository.save(order);
+    } catch {
+      // Viewing an order should still work if PayOS is temporarily unavailable.
+    }
   }
 
   async updateOrderStatus(
