@@ -289,6 +289,22 @@
     "verified": "Đã xác minh",
     "unverified":"Chưa xác minh"
   },
+  "followList": {
+    "followers": "Người theo dõi",
+    "following": "Đang theo dõi",
+    "loading": "Đang tải...",
+    "close": "Đóng",
+    "tryAgain": "Thử lại",
+    "loadError": "Không thể tải danh sách này. Vui lòng thử lại.",
+    "loadMoreError": "Không thể tải thêm người dùng. Vui lòng thử lại.",
+    "empty": {
+      "followers": "Chưa có người theo dõi",
+      "following": "Chưa theo dõi ai"
+    },
+    "loadMore": "Xem thêm",
+    "user": "Người dùng",
+    "unknownUser": "Người dùng không xác định"
+  },
   "apiErrors": {
     "emailExists": "Email này đã được sử dụng",
     "invalidCredentials": "Email hoặc mật khẩu không đúng",

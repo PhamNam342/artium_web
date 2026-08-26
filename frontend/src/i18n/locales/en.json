@@ -288,6 +288,22 @@
     "about": "About the artist",
     "verified": "Verified"
   },
+  "followList": {
+    "followers": "Followers",
+    "following": "Following",
+    "loading": "Loading...",
+    "close": "Close",
+    "tryAgain": "Try again",
+    "loadError": "Unable to load this list. Please try again.",
+    "loadMoreError": "Unable to load more users. Please try again.",
+    "empty": {
+      "followers": "No followers yet",
+      "following": "Not following anyone yet"
+    },
+    "loadMore": "Load more",
+    "user": "User",
+    "unknownUser": "Unknown user"
+  },
   "apiErrors": {
     "emailExists": "This email is already in use",
     "invalidCredentials": "Invalid email or password",
