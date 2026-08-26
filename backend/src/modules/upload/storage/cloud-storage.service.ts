@@ -9,7 +9,8 @@ import {
 @Injectable()
 export class CloudStorageService implements StorageService {
   constructor() {
-    const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+    const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
+      process.env;
     if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET) {
       cloudinary.config({
         cloud_name: CLOUDINARY_CLOUD_NAME,
@@ -21,7 +22,10 @@ export class CloudStorageService implements StorageService {
   }
 
   async uploadArtworkImage(input: UploadArtworkImageInput) {
-    const result = await this.upload(input.file.buffer, `artwork-images/${this.segment(input.sellerId)}/${this.segment(input.artworkId)}`);
+    const result = await this.upload(
+      input.file.buffer,
+      `artwork-images/${this.segment(input.sellerId)}/${this.segment(input.artworkId)}`,
+    );
     return {
       publicId: result.public_id,
       url: result.url,
@@ -36,7 +40,10 @@ export class CloudStorageService implements StorageService {
   }
 
   async uploadAvatar(input: UploadAvatarInput): Promise<string> {
-    const result = await this.upload(input.file.buffer, `avatars/${this.segment(input.userId)}`);
+    const result = await this.upload(
+      input.file.buffer,
+      `avatars/${this.segment(input.userId)}`,
+    );
     return result.secure_url;
   }
 
@@ -47,10 +54,17 @@ export class CloudStorageService implements StorageService {
   private upload(buffer: Buffer, folder: string): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder, resource_type: 'image', use_filename: false, unique_filename: true },
+        {
+          folder,
+          resource_type: 'image',
+          use_filename: false,
+          unique_filename: true,
+        },
         (error, result) => {
           if (error || !result) {
-            reject(new InternalServerErrorException('Cloudinary upload failed'));
+            reject(
+              new InternalServerErrorException('Cloudinary upload failed'),
+            );
             return;
           }
           resolve(result);
