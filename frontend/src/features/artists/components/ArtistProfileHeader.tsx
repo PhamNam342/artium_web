@@ -3,7 +3,6 @@ import {
   Globe,
   Loader2,
   MapPin,
-  MessageCircle,
   Share2,
   UserRound,
 } from 'lucide-react';
@@ -227,16 +226,6 @@ export default function ArtistProfileHeader({
                   )}
                 </button>
 
-                {/* Message */}
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                >
-                  <MessageCircle className="h-4 w-4" />
-
-                  {t('artistProfile.message') ||
-                    'Message'}
-                </button>
 
                 {/* Share */}
                 <button
