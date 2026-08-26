@@ -3,7 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy chính xác cả 2 file để tránh lỗi thiếu package-lock.json
+COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
@@ -15,7 +16,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy chính xác cả 2 file cho môi trường production
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
