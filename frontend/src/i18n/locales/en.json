@@ -627,7 +627,12 @@
       "tagsSelected": "{{count}}/10 selected",
       "vibes": "Vibes",
       "values": "Values",
-      "mediums": "Mediums"
+      "mediums": "Mediums",
+      "tagOptions": {
+        "joyful": "Joyful", "natural": "Natural", "vibrant": "Vibrant", "expressive": "Expressive", "peaceful": "Peaceful", "romantic": "Romantic", "bold": "Bold", "dreamy": "Dreamy", "classic": "Classic", "moody": "Moody", "minimalist": "Minimalist", "vintage": "Vintage", "avantGarde": "Avant Garde", "spiritual": "Spiritual", "melancholic": "Melancholic", "other": "Other",
+        "culturalHeritage": "Cultural Heritage", "humanExperience": "Human Experience", "pride": "Pride", "futurism": "Futurism", "environment": "Environment", "equity": "Equity", "feminism": "Feminism", "socialAwareness": "Social Awareness", "escapism": "Escapism", "empowerment": "Empowerment", "universal": "Universal",
+        "painting": "Painting", "drawing": "Drawing", "illustration": "Illustration", "digitalArt": "Digital Art", "photography": "Photography", "sculpture": "Sculpture", "installation": "Installation", "collage": "Collage", "immersive": "Immersive", "mixedMedia": "Mixed Media", "performanceArt": "Performance Art", "prints": "Prints", "publicArt": "Public Art", "video": "Video", "ceramics": "Ceramics", "animation": "Animation", "jewelry": "Jewelry", "textile": "Textile", "designedObjects": "Designed Objects", "functionalArt": "Functional Art", "conceptArt": "Concept Art", "intellectualArt": "Intellectual Art"
+      }
       ,"characters": "characters"
     }
   },

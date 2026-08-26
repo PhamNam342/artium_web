@@ -56,23 +56,34 @@ type ArtworkForm = {
   customTags: string[];
 };
 
-const ARTWORK_TAG_GROUPS = [
+type ArtworkTagGroup = {
+  labelKey: 'vibes' | 'values' | 'mediums';
+  tags: Array<[key: string, value: string]>;
+};
+
+const ARTWORK_TAG_GROUPS: ArtworkTagGroup[] = [
   {
-    label: 'Vibes',
-    tags: ['Joyful', 'Natural', 'Vibrant', 'Expressive', 'Peaceful', 'Romantic', 'Bold', 'Dreamy', 'Classic', 'Moody', 'Minimalist', 'Vintage', 'Avant Garde', 'Spiritual', 'Melancholic', 'Other'],
+    labelKey: 'vibes',
+    tags: [
+      ['joyful', 'Joyful'], ['natural', 'Natural'], ['vibrant', 'Vibrant'], ['expressive', 'Expressive'], ['peaceful', 'Peaceful'], ['romantic', 'Romantic'], ['bold', 'Bold'], ['dreamy', 'Dreamy'], ['classic', 'Classic'], ['moody', 'Moody'], ['minimalist', 'Minimalist'], ['vintage', 'Vintage'], ['avantGarde', 'Avant Garde'], ['spiritual', 'Spiritual'], ['melancholic', 'Melancholic'], ['other', 'Other'],
+    ],
   },
   {
-    label: 'Values',
-    tags: ['Cultural Heritage', 'Human Experience', 'Pride', 'Futurism', 'Environment', 'Equity', 'Feminism', 'Social Awareness', 'Escapism', 'Empowerment', 'Universal', 'Other'],
+    labelKey: 'values',
+    tags: [
+      ['culturalHeritage', 'Cultural Heritage'], ['humanExperience', 'Human Experience'], ['pride', 'Pride'], ['futurism', 'Futurism'], ['environment', 'Environment'], ['equity', 'Equity'], ['feminism', 'Feminism'], ['socialAwareness', 'Social Awareness'], ['escapism', 'Escapism'], ['empowerment', 'Empowerment'], ['universal', 'Universal'], ['other', 'Other'],
+    ],
   },
   {
-    label: 'Mediums',
-    tags: ['Painting', 'Drawing', 'Illustration', 'Digital Art', 'Photography', 'Sculpture', 'Installation', 'Collage', 'Immersive', 'Mixed Media', 'Performance Art', 'Prints', 'Public Art', 'Video', 'Ceramics', 'Animation', 'Jewelry', 'Textile', 'Designed Objects', 'Functional Art', 'Concept Art', 'Intellectual Art', 'Other'],
+    labelKey: 'mediums',
+    tags: [
+      ['painting', 'Painting'], ['drawing', 'Drawing'], ['illustration', 'Illustration'], ['digitalArt', 'Digital Art'], ['photography', 'Photography'], ['sculpture', 'Sculpture'], ['installation', 'Installation'], ['collage', 'Collage'], ['immersive', 'Immersive'], ['mixedMedia', 'Mixed Media'], ['performanceArt', 'Performance Art'], ['prints', 'Prints'], ['publicArt', 'Public Art'], ['video', 'Video'], ['ceramics', 'Ceramics'], ['animation', 'Animation'], ['jewelry', 'Jewelry'], ['textile', 'Textile'], ['designedObjects', 'Designed Objects'], ['functionalArt', 'Functional Art'], ['conceptArt', 'Concept Art'], ['intellectualArt', 'Intellectual Art'], ['other', 'Other'],
+    ],
   },
 ];
 
 const PRESET_TAGS_BY_NAME = new Map(
-  ARTWORK_TAG_GROUPS.flatMap((group) => group.tags).map((tag) => [
+  ARTWORK_TAG_GROUPS.flatMap((group) => group.tags).map(([, tag]) => [
     tag.toLocaleLowerCase(),
     tag,
   ]),
@@ -667,20 +678,20 @@ function ArtworkTagsBoard({ tags, onToggle, onAdd }: { tags: string[]; onToggle:
       </div>
       <div className="mt-8 space-y-10">
         {ARTWORK_TAG_GROUPS.map((group) => (
-          <div key={group.label}>
-            <h3 className="text-sm font-bold tracking-wide text-slate-500">{t(`inventory.upload.${group.label.toLowerCase()}`).toUpperCase()}</h3>
+          <div key={group.labelKey}>
+            <h3 className="text-sm font-bold tracking-wide text-slate-500">{t(`inventory.upload.${group.labelKey}`).toUpperCase()}</h3>
             <div className="mt-4 flex flex-wrap gap-2.5">
-              {group.tags.map((tag) => {
+              {group.tags.map(([tagKey, tag]) => {
                 const selected = tags.includes(tag);
                 return (
                   <button
-                    key={`${group.label}-${tag}`}
+                    key={`${group.labelKey}-${tag}`}
                     type="button"
                     aria-pressed={selected}
                     onClick={() => onToggle(tag)}
                     className={`rounded-full border-2 px-4 py-2.5 text-sm font-medium uppercase tracking-wide transition-colors ${selected ? 'border-blue-500 bg-white text-blue-700' : 'border-slate-900 bg-white text-slate-900 hover:border-blue-500 hover:text-blue-700'}`}
                   >
-                    {tag}
+                    {t(`inventory.upload.tagOptions.${tagKey}`)}
                   </button>
                 );
               })}

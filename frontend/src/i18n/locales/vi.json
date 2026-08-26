@@ -623,7 +623,12 @@
       "tagsSelected": "Đã chọn {{count}}/10",
       "vibes": "Cảm hứng",
       "values": "Giá trị",
-      "mediums": "Chất liệu"
+      "mediums": "Chất liệu",
+      "tagOptions": {
+        "joyful": "Vui tươi", "natural": "Tự nhiên", "vibrant": "Rực rỡ", "expressive": "Biểu cảm", "peaceful": "Bình yên", "romantic": "Lãng mạn", "bold": "Táo bạo", "dreamy": "Mộng mơ", "classic": "Cổ điển", "moody": "Trầm mặc", "minimalist": "Tối giản", "vintage": "Hoài cổ", "avantGarde": "Tiên phong", "spiritual": "Tâm linh", "melancholic": "U sầu", "other": "Khác",
+        "culturalHeritage": "Di sản văn hoá", "humanExperience": "Trải nghiệm con người", "pride": "Tự hào", "futurism": "Vị lai", "environment": "Môi trường", "equity": "Công bằng", "feminism": "Nữ quyền", "socialAwareness": "Nhận thức xã hội", "escapism": "Thoát ly", "empowerment": "Trao quyền", "universal": "Phổ quát",
+        "painting": "Hội hoạ", "drawing": "Bản vẽ", "illustration": "Minh hoạ", "digitalArt": "Nghệ thuật số", "photography": "Nhiếp ảnh", "sculpture": "Điêu khắc", "installation": "Sắp đặt", "collage": "Cắt dán", "immersive": "Nhập vai", "mixedMedia": "Đa chất liệu", "performanceArt": "Nghệ thuật trình diễn", "prints": "Tranh in", "publicArt": "Nghệ thuật công cộng", "video": "Video", "ceramics": "Gốm", "animation": "Hoạt hình", "jewelry": "Trang sức", "textile": "Dệt may", "designedObjects": "Vật thể thiết kế", "functionalArt": "Nghệ thuật ứng dụng", "conceptArt": "Nghệ thuật ý niệm", "intellectualArt": "Nghệ thuật trí tuệ"
+      }
       ,"characters": "ký tự"
     }
   },
