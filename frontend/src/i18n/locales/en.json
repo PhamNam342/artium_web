@@ -481,6 +481,8 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications yet",
+    "toggle": "Toggle notifications",
+    "untitledArtwork": "Untitled artwork",
     "unreadBadge": "Unread",
     "newNotification": "New notification",
     "types": {
@@ -488,6 +490,10 @@
       "artworkComment": "{{actor}} commented on your artwork",
       "follow": "{{actor}} started following you",
       "momentLike": "{{actor}} liked your moment",
+      "artworkDeleted": "Your artwork \"{{title}}\" has been removed by an administrator for violating platform guidelines.",
+      "artworkDeletedWithReason": "Your artwork \"{{title}}\" has been removed by an administrator. Reason: {{reason}}",
+      "verificationApproved": "Your artist verification has been approved.",
+      "verificationRejected": "Your artist verification request has been rejected.",
       "momentComment": "{{actor}} commented on your moment"
     }
   },

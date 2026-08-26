@@ -15,4 +15,6 @@ export class CreateNotificationDto {
   title!: string;
 
   message!: string;
+
+  metadata?: Record<string, string>;
 }

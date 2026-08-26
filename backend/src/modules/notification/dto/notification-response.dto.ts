@@ -9,6 +9,7 @@ export class NotificationResponseDto {
   entityId: string;
   title: string;
   message: string;
+  metadata: Record<string, string>;
   isRead: boolean;
   createdAt: Date;
 
@@ -27,6 +28,7 @@ export class NotificationResponseDto {
     this.entityId = notification.entityId;
     this.title = notification.title;
     this.message = notification.message;
+    this.metadata = notification.metadata ?? {};
     this.isRead = notification.isRead;
     this.createdAt = notification.createdAt;
   }

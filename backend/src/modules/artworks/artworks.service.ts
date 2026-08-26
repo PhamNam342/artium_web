@@ -491,18 +491,15 @@ export class ArtworksService {
 
     // Notify the artist whose artwork was removed
     try {
-      const message = reason
-        ? `Your artwork "${artwork.title}" has been removed by an administrator. Reason: ${reason}`
-        : `Your artwork "${artwork.title}" has been removed by an administrator for violating platform guidelines.`;
-
       await this.notificationService.create({
         recipientId: artwork.sellerId,
         actorId: adminId,
         type: NotificationType.ARTWORK_DELETED_BY_ADMIN,
         entityType: NotificationEntityType.ARTWORK,
         entityId: artwork.id,
-        title: 'Artwork Removed',
-        message,
+        title: 'ARTWORK_DELETED_BY_ADMIN',
+        message: 'ARTWORK_DELETED_BY_ADMIN',
+        metadata: { artworkTitle: artwork.title, reason: reason?.trim() ?? '' },
       });
     } catch {
       // Notification failure should not block the delete response

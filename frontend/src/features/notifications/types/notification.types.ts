@@ -3,7 +3,10 @@ export type NotificationType =
   | 'ARTWORK_COMMENT'
   | 'FOLLOW'
   | 'MOMENT_LIKE'
-  | 'MOMENT_COMMENT';
+  | 'MOMENT_COMMENT'
+  | 'ARTWORK_DELETED_BY_ADMIN'
+  | 'VERIFICATION_APPROVED'
+  | 'VERIFICATION_REJECTED';
 
 export type NotificationEntityType =
   | 'ARTWORK'
@@ -26,6 +29,7 @@ export interface Notification {
   entityId: string;
   title: string;
   message: string;
+  metadata: Record<string, string>;
   isRead: boolean;
   createdAt: string;
   updatedAt?: string;

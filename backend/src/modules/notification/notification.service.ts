@@ -24,6 +24,7 @@ export class NotificationService {
       entityId: data.entityId,
       title: data.title,
       message: data.message,
+      metadata: data.metadata ?? {},
       isRead: false,
     });
 

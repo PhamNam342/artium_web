@@ -477,6 +477,8 @@
     "title": "Thông báo",
     "markAllRead": "Đánh dấu tất cả đã đọc",
     "noNotifications": "Chưa có thông báo nào",
+    "toggle": "Bật/tắt thông báo",
+    "untitledArtwork": "Tác phẩm chưa có tên",
     "unreadBadge": "Chưa đọc",
     "newNotification": "Thông báo mới",
     "types": {
@@ -484,6 +486,10 @@
       "artworkComment": "{{actor}} đã bình luận về tác phẩm của bạn",
       "follow": "{{actor}} đã bắt đầu theo dõi bạn",
       "momentLike": "{{actor}} đã thích khoảnh khắc của bạn",
+      "artworkDeleted": "Tác phẩm \"{{title}}\" của bạn đã bị quản trị viên gỡ do vi phạm nguyên tắc của nền tảng.",
+      "artworkDeletedWithReason": "Tác phẩm \"{{title}}\" của bạn đã bị quản trị viên gỡ. Lý do: {{reason}}",
+      "verificationApproved": "Yêu cầu xác minh nghệ sĩ của bạn đã được duyệt.",
+      "verificationRejected": "Yêu cầu xác minh nghệ sĩ của bạn đã bị từ chối.",
       "momentComment": "{{actor}} đã bình luận về khoảnh khắc của bạn"
     }
   },

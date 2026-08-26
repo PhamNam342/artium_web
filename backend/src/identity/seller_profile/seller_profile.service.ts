@@ -13,11 +13,15 @@ import {
 } from './entities/seller_profile.entity';
 import { UpdateSellerProfileDto } from './dto/update-seller-profile.dto';
 import { t } from '../../common/utils/i18n.util';
+import { NotificationService } from '../../modules/notification/notification.service';
+import { NotificationType } from '../../modules/notification/enums/notification-type.enum';
+import { NotificationEntityType } from '../../modules/notification/enums/notification-entity-type.enum';
 @Injectable()
 export class SellerProfilesService {
   constructor(
     @InjectRepository(SellerProfile)
     private readonly sellerProfileRepository: Repository<SellerProfile>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findById(profileId: string): Promise<SellerProfile> {
@@ -121,7 +125,7 @@ export class SellerProfilesService {
     };
   }
 
-  async approveVerification(profileId: string): Promise<SellerProfile> {
+  async approveVerification(profileId: string, adminId: string): Promise<SellerProfile> {
     const result = await this.sellerProfileRepository.update(
       {
         id: profileId,
@@ -138,10 +142,12 @@ export class SellerProfilesService {
       throw new BadRequestException('Verification request is not pending.');
     }
 
-    return this.findById(profileId);
+    const profile = await this.findById(profileId);
+    await this.createVerificationNotification(profile, adminId, NotificationType.VERIFICATION_APPROVED);
+    return profile;
   }
 
-  async rejectVerification(profileId: string): Promise<SellerProfile> {
+  async rejectVerification(profileId: string, adminId: string): Promise<SellerProfile> {
     const result = await this.sellerProfileRepository.update(
       {
         id: profileId,
@@ -158,6 +164,28 @@ export class SellerProfilesService {
       throw new BadRequestException('Verification request is not pending.');
     }
 
-    return this.findById(profileId);
+    const profile = await this.findById(profileId);
+    await this.createVerificationNotification(profile, adminId, NotificationType.VERIFICATION_REJECTED);
+    return profile;
+  }
+
+  private async createVerificationNotification(
+    profile: SellerProfile,
+    adminId: string,
+    type: NotificationType.VERIFICATION_APPROVED | NotificationType.VERIFICATION_REJECTED,
+  ) {
+    try {
+      await this.notificationService.create({
+        recipientId: profile.userId,
+        actorId: adminId,
+        type,
+        entityType: NotificationEntityType.USER,
+        entityId: profile.userId,
+        title: type,
+        message: type,
+      });
+    } catch {
+      // A notification failure must not roll back the admin's decision.
+    }
   }
 }
