@@ -1,37 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private readonly transporter: nodemailer.Transporter;
+  private readonly resend: Resend;
 
   constructor(private readonly config: ConfigService) {
-    const host = this.config.getOrThrow<string>('SMTP_HOST');
-    const port = Number(this.config.getOrThrow<string>('SMTP_PORT'));
-    const secure = this.config.getOrThrow<string>('SMTP_SECURE') === 'true';
-    const user = this.config.getOrThrow<string>('SMTP_USER');
-    const pass = this.config.getOrThrow<string>('SMTP_PASS');
-
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: {
-        user,
-        pass,
-      },
-    });
+    const apiKey = this.config.getOrThrow<string>('RESEND_API_KEY');
+    this.resend = new Resend(apiKey);
   }
 
   async sendOtp(email: string, otp: string): Promise<void> {
-    const user = this.config.getOrThrow<string>('SMTP_USER');
-
-    await this.transporter.sendMail({
-      from: `"Artium" <${user}>`,
-      to: email,
+    await this.resend.emails.send({
+      // Nếu chưa cấu hình domain riêng trên Resend, bạn có thể dùng 'onboarding@resend.dev' để test
+      from: 'Artium <onboarding@resend.dev>',
+      to: [email],
       subject: 'Your verification code',
-      text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Mã xác nhận tài khoản Artium</h2>
+          <p>Mã OTP của bạn là:</p>
+          <h1 style="color: #4F46E5; letter-spacing: 5px;">${otp}</h1>
+          <p>Mã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ cho người khác.</p>
+        </div>
+      `,
     });
   }
 }
