@@ -1,30 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private readonly resend: Resend;
+  private apiKey: string;
 
   constructor(private readonly config: ConfigService) {
-    const apiKey = this.config.getOrThrow<string>('RESEND_API_KEY');
-    this.resend = new Resend(apiKey);
+    this.apiKey = this.config.getOrThrow<string>('BREVO_API_KEY');
   }
 
   async sendOtp(email: string, otp: string): Promise<void> {
-    await this.resend.emails.send({
-      // Nếu chưa cấu hình domain riêng trên Resend, bạn có thể dùng 'onboarding@resend.dev' để test
-      from: 'Artium <onboarding@resend.dev>',
-      to: [email],
+    const url = 'https://api.brevo.com/v3/smtp/email';
+
+    const body = {
+      sender: {
+        name: 'Artium',
+        email: 'nam1234kan@gmail.com', // Thay bằng email tài khoản Brevo của bạn
+      },
+      to: [{ email: email }],
       subject: 'Your verification code',
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Mã xác nhận tài khoản Artium</h2>
           <p>Mã OTP của bạn là:</p>
           <h1 style="color: #4F46E5; letter-spacing: 5px;">${otp}</h1>
-          <p>Mã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ cho người khác.</p>
+          <p>Mã này có hiệu lực trong vòng 5 phút.</p>
         </div>
       `,
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': this.apiKey,
+      },
+      body: JSON.stringify(body),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to send email via Brevo: ${errorText}`);
+    }
   }
 }

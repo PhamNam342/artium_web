@@ -16,6 +16,8 @@ export class AddNotificationMetadataAndVerificationTypes1787750000000 implements
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "notifications" DROP COLUMN IF EXISTS "metadata"`);
+    await queryRunner.query(
+      `ALTER TABLE "notifications" DROP COLUMN IF EXISTS "metadata"`,
+    );
   }
 }

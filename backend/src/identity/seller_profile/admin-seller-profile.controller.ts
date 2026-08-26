@@ -24,12 +24,18 @@ export class AdminSellerProfilesController {
   }
 
   @Post(':profileId/approve')
-  async approveRequest(@Param('profileId') profileId: string, @CurrentUser() admin: AuthenticatedUser) {
+  async approveRequest(
+    @Param('profileId') profileId: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     return this.sellerProfilesService.approveVerification(profileId, admin.id);
   }
 
   @Post(':profileId/reject')
-  async rejectRequest(@Param('profileId') profileId: string, @CurrentUser() admin: AuthenticatedUser) {
+  async rejectRequest(
+    @Param('profileId') profileId: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     return this.sellerProfilesService.rejectVerification(profileId, admin.id);
   }
 }

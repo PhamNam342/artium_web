@@ -125,7 +125,10 @@ export class SellerProfilesService {
     };
   }
 
-  async approveVerification(profileId: string, adminId: string): Promise<SellerProfile> {
+  async approveVerification(
+    profileId: string,
+    adminId: string,
+  ): Promise<SellerProfile> {
     const result = await this.sellerProfileRepository.update(
       {
         id: profileId,
@@ -143,11 +146,18 @@ export class SellerProfilesService {
     }
 
     const profile = await this.findById(profileId);
-    await this.createVerificationNotification(profile, adminId, NotificationType.VERIFICATION_APPROVED);
+    await this.createVerificationNotification(
+      profile,
+      adminId,
+      NotificationType.VERIFICATION_APPROVED,
+    );
     return profile;
   }
 
-  async rejectVerification(profileId: string, adminId: string): Promise<SellerProfile> {
+  async rejectVerification(
+    profileId: string,
+    adminId: string,
+  ): Promise<SellerProfile> {
     const result = await this.sellerProfileRepository.update(
       {
         id: profileId,
@@ -165,14 +175,20 @@ export class SellerProfilesService {
     }
 
     const profile = await this.findById(profileId);
-    await this.createVerificationNotification(profile, adminId, NotificationType.VERIFICATION_REJECTED);
+    await this.createVerificationNotification(
+      profile,
+      adminId,
+      NotificationType.VERIFICATION_REJECTED,
+    );
     return profile;
   }
 
   private async createVerificationNotification(
     profile: SellerProfile,
     adminId: string,
-    type: NotificationType.VERIFICATION_APPROVED | NotificationType.VERIFICATION_REJECTED,
+    type:
+      | NotificationType.VERIFICATION_APPROVED
+      | NotificationType.VERIFICATION_REJECTED,
   ) {
     try {
       await this.notificationService.create({
